@@ -23,7 +23,21 @@ import ProgressScreen from '../screens/main/ProgressScreen';
 import CourseDetailScreen from '../screens/courses/CourseDetailScreen';
 import LessonDetailScreen from '../screens/courses/LessonDetailScreen';
 
-const Stack = createStackNavigator();
+export type AuthStackParamList = {
+  Login: undefined;
+  Register: undefined;
+  ForgotPassword: undefined;
+};
+
+export type MainStackParamList = {
+  MainTabs: undefined;
+  CourseDetail: undefined;
+  LessonDetail: undefined;
+  Quiz: undefined;
+};
+
+const AuthStack = createStackNavigator<AuthStackParamList>();
+const MainStack = createStackNavigator<MainStackParamList>();
 const Tab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
 
@@ -68,7 +82,7 @@ const MainTabNavigator = () => {
 // Main Stack Navigator
 const MainStackNavigator = () => {
   return (
-    <Stack.Navigator
+    <MainStack.Navigator
       screenOptions={{
         headerStyle: {
           backgroundColor: '#2196F3',
@@ -79,34 +93,34 @@ const MainStackNavigator = () => {
         },
       }}
     >
-      <Stack.Screen 
+      <MainStack.Screen 
         name="MainTabs" 
         component={MainTabNavigator} 
         options={{ headerShown: false }}
       />
-      <Stack.Screen 
+      <MainStack.Screen 
         name="CourseDetail" 
         component={CourseDetailScreen}
         options={{ title: 'Course Details' }}
       />
-      <Stack.Screen 
+      <MainStack.Screen 
         name="LessonDetail" 
         component={LessonDetailScreen}
         options={{ title: 'Lesson' }}
       />
-      <Stack.Screen 
+      <MainStack.Screen 
         name="Quiz" 
         component={QuizScreen}
         options={{ title: 'Quiz' }}
       />
-    </Stack.Navigator>
+    </MainStack.Navigator>
   );
 };
 
 // Auth Stack Navigator
 const AuthStackNavigator = () => {
   return (
-    <Stack.Navigator
+    <AuthStack.Navigator
       screenOptions={{
         headerStyle: {
           backgroundColor: '#2196F3',
@@ -117,22 +131,22 @@ const AuthStackNavigator = () => {
         },
       }}
     >
-      <Stack.Screen 
+      <AuthStack.Screen 
         name="Login" 
         component={LoginScreen}
         options={{ headerShown: false }}
       />
-      <Stack.Screen 
+      <AuthStack.Screen 
         name="Register" 
         component={RegisterScreen}
         options={{ title: 'Create Account' }}
       />
-      <Stack.Screen 
+      <AuthStack.Screen 
         name="ForgotPassword" 
         component={ForgotPasswordScreen}
         options={{ title: 'Reset Password' }}
       />
-    </Stack.Navigator>
+    </AuthStack.Navigator>
   );
 };
 

@@ -45,11 +45,11 @@ const LoginScreen = () => {
   };
 
   const handleForgotPassword = () => {
-    navigation.navigate('ForgotPassword');
+    navigation.navigate('ForgotPassword' as never);
   };
 
   const handleRegister = () => {
-    navigation.navigate('Register');
+    navigation.navigate('Register' as never);
   };
 
   return (
