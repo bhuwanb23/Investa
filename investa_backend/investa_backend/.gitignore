@@ -1,0 +1,17 @@
+# Django settings
+local_settings.py
+*.log
+
+# Python
+*.pyc
+__pycache__/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
