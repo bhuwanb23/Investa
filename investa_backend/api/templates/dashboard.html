@@ -1,99 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Investa API Dashboard</title>
-    <style>
-        body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background:#f9fafb; color:#111827; }
-        header { background:#4f46e5; color:#fff; padding:16px 20px; }
-        main { padding:20px; max-width: 1000px; margin: 0 auto; }
-        .card { background:#fff; border-radius:12px; padding:16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom:16px; }
-        .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-        input, select { border:1px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; }
-        button { background:#4f46e5; color:#fff; border:none; border-radius:8px; padding:10px 14px; cursor:pointer; }
-        button:disabled { opacity:.6; cursor:not-allowed; }
-        pre { white-space: pre-wrap; word-break: break-word; background:#0b1020; color:#e5e7eb; padding:12px; border-radius:8px; overflow:auto; }
-        a { color:#4f46e5; text-decoration: none; }
-        .help { color:#6b7280; font-size: 12px; }
-        .badge { background:#eef2ff; color:#3730a3; padding:2px 8px; border-radius:999px; font-size:12px; }
-        .grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
-        @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
-    </style>
-    <script>
-        async function registerUser(evt){
-            evt.preventDefault();
-            const form = evt.target;
-            const email = form.email.value.trim();
-            const password = form.password.value;
-            const fullName = form.fullname.value.trim();
-            const [first_name, ...last_parts] = fullName.split(/\s+/);
-            const last_name = last_parts.join(' ');
-            const payload = { username: email, email, password, confirm_password: password, first_name, last_name };
-            const base = document.getElementById('baseUrl').value || 'http://127.0.0.1:8000/api';
-            const res = await fetch(base + '/auth/register/', { method:'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
-            const data = await res.json().catch(()=>({}));
-            document.getElementById('registerOutput').textContent = JSON.stringify({status: res.status, data}, null, 2);
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Investa Console</title>
+  <style>
+    :root {
+      --brand: #4f46e5;
+      --brand-600: #4338ca;
+      --ink: #111827;
+      --muted: #6b7280;
+      --bg: #f9fafb;
+      --card: #ffffff;
+      --border: #e5e7eb;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+    header { background: var(--brand); color:#fff; position: sticky; top:0; z-index: 10; }
+    .header-inner { max-width: 1100px; margin: 0 auto; padding: 16px 20px; display:flex; align-items:center; justify-content: space-between; gap: 12px; }
+    .brand { font-weight: 800; letter-spacing: .2px; }
+    .tabs { display:flex; gap: 8px; }
+    .tab { background: rgba(255,255,255,0.16); color:#fff; border: 1px solid rgba(255,255,255,0.25); padding: 8px 12px; border-radius: 999px; font-size: 13px; cursor: pointer; }
+    .tab.active { background: #fff; color: var(--brand); border-color: #fff; }
 
-        async function loginUser(evt){
-            evt.preventDefault();
-            const form = evt.target;
-            const username = form.username.value.trim();
-            const password = form.password.value;
-            const base = document.getElementById('baseUrl').value || 'http://127.0.0.1:8000/api';
-            const res = await fetch(base + '/auth/login/', { method:'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({username, password}) });
-            const data = await res.json().catch(()=>({}));
-            document.getElementById('loginOutput').textContent = JSON.stringify({status: res.status, data}, null, 2);
-        }
-    </script>
-    </head>
+    main { max-width: 1100px; margin: 0 auto; padding: 18px 20px 24px; }
+    .row { display:flex; gap: 12px; align-items:center; flex-wrap: wrap; }
+    .card { background: var(--card); border:1px solid var(--border); border-radius: 14px; padding: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+    h2 { margin: 0 0 8px 0; font-size: 18px; }
+    h3 { margin: 0 0 10px 0; font-size: 16px; }
+    label { font-size: 13px; color: var(--muted); }
+    input, select { border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:14px; outline: none; background:#fff; }
+    button { background: var(--brand); color:#fff; border:none; border-radius:10px; padding:10px 14px; font-weight:600; cursor:pointer; }
+    button:disabled { opacity:.6; cursor:not-allowed; }
+    a { color: var(--brand); text-decoration: none; }
+    .hint { color: var(--muted); font-size: 12px; }
+    pre { white-space: pre-wrap; word-break: break-word; background:#0b1020; color:#e5e7eb; padding:12px; border-radius:10px; overflow:auto; }
+
+    .toolbar { display:flex; gap:12px; align-items:center; justify-content: space-between; margin-bottom: 12px; }
+    .toolbar-left { display:flex; gap:12px; align-items:center; flex-wrap: wrap; }
+    .pill { padding: 6px 10px; border:1px solid var(--border); border-radius: 999px; background:#fff; color: var(--muted); font-size: 12px; }
+
+    /* Database explorer */
+    .controls { display:flex; gap:12px; align-items:center; flex-wrap: wrap; }
+    .table-wrap { overflow:auto; border-top:1px solid var(--border); background: #0b1020; border-radius: 10px; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    thead th { position: sticky; top: 0; background: #121a33; color: #cbd5e1; border-bottom:1px solid #1f2a44; padding: 10px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+    tbody td { border-bottom:1px solid #142042; padding: 10px 12px; font-size: 13px; color: #e2e8f0; white-space: nowrap; }
+    tbody tr:nth-child(odd) td { background: rgba(255,255,255,0.02); }
+    tbody tr:hover td { background: rgba(99,102,241,0.08); }
+    .null { color: #94a3b8; font-style: italic; }
+
+    .section { display: none; }
+    .section.active { display: block; }
+  </style>
+  <script>
+    // Simple tab router using hash
+    function setActiveTab(key){
+      document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.key===key));
+      document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active', s.id===key));
+      if(location.hash !== '#' + key){ location.hash = key; }
+    }
+    function initTabs(){
+      const key = (location.hash||'#api').replace('#','');
+      setActiveTab(key);
+      document.querySelectorAll('.tab').forEach(t=>{
+        t.addEventListener('click', ()=> setActiveTab(t.dataset.key));
+      });
+    }
+
+    async function registerUser(evt){
+      evt.preventDefault();
+      const form = evt.target;
+      const email = form.email.value.trim();
+      const password = form.password.value;
+      const fullName = form.fullname.value.trim();
+      const [first_name, ...last_parts] = fullName.split(/\s+/);
+      const last_name = last_parts.join(' ');
+      const payload = { username: email, email, password, confirm_password: password, first_name, last_name };
+      const base = document.getElementById('baseUrl').value || 'http://127.0.0.1:8000/api';
+      const res = await fetch(base + '/auth/register/', { method:'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+      const data = await res.json().catch(()=>({}));
+      document.getElementById('registerOutput').textContent = JSON.stringify({status: res.status, data}, null, 2);
+    }
+    async function loginUser(evt){
+      evt.preventDefault();
+      const form = evt.target;
+      const username = form.username.value.trim();
+      const password = form.password.value;
+      const base = document.getElementById('baseUrl').value || 'http://127.0.0.1:8000/api';
+      const res = await fetch(base + '/auth/login/', { method:'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({username, password}) });
+      const data = await res.json().catch(()=>({}));
+      document.getElementById('loginOutput').textContent = JSON.stringify({status: res.status, data}, null, 2);
+    }
+
+    // Database helpers
+    function toggleAll(open){
+      const items = document.querySelectorAll('details.model');
+      items.forEach(d => d.open = open);
+    }
+    function filterModels(ev){
+      const term = ev.target.value.trim().toLowerCase();
+      const items = document.querySelectorAll('details.model');
+      items.forEach(d => {
+        const key = (d.getAttribute('data-key') || '').toLowerCase();
+        d.style.display = key.includes(term) ? '' : 'none';
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', initTabs);
+  </script>
+</head>
 <body>
-    <header>
-        <h2>Investa API Dashboard <span class="badge">dev</span></h2>
-    </header>
-    <main>
-        <div class="card">
-            <div class="row">
-                <label>Base URL</label>
-                <input id="baseUrl" value="http://127.0.0.1:8000/api" style="min-width: 320px;" />
-                <a href="/api/database/">View Database</a>
-            </div>
-            <p class="help">For Android emulator, use http://10.0.2.2:8000/api</p>
+  <header>
+    <div class="header-inner">
+      <div class="brand">Investa Console</div>
+      <nav class="tabs">
+        <button class="tab" data-key="api">API Console</button>
+        <button class="tab" data-key="db">Database Explorer</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- API Console -->
+    <section id="api" class="section active">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <label for="baseUrl">Base URL</label>
+          <input id="baseUrl" value="http://127.0.0.1:8000/api" style="min-width: 320px;" />
+          <span class="pill">Tip: Android emulator → http://10.0.2.2:8000/api</span>
         </div>
+        <a class="pill" href="#db">Go to Database</a>
+      </div>
 
-        <div class="grid">
-            <div class="card">
-                <h3>Register</h3>
-                <form onsubmit="registerUser(event)">
-                    <div class="row"><input name="fullname" placeholder="Full Name" required /></div>
-                    <div class="row"><input type="email" name="email" placeholder="Email" required /></div>
-                    <div class="row"><input type="password" name="password" placeholder="Password" required /></div>
-                    <div class="row"><button type="submit">Create Account</button></div>
-                </form>
-                <pre id="registerOutput"></pre>
-            </div>
-
-            <div class="card">
-                <h3>Login</h3>
-                <form onsubmit="loginUser(event)">
-                    <div class="row"><input name="username" placeholder="Username (email)" required /></div>
-                    <div class="row"><input type="password" name="password" placeholder="Password" required /></div>
-                    <div class="row"><button type="submit">Login</button></div>
-                </form>
-                <pre id="loginOutput"></pre>
-            </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Register</h3>
+          <form onsubmit="registerUser(event)">
+            <div class="row"><input name="fullname" placeholder="Full Name" required /></div>
+            <div class="row"><input type="email" name="email" placeholder="Email" required /></div>
+            <div class="row"><input type="password" name="password" placeholder="Password" required /></div>
+            <div class="row"><button type="submit">Create Account</button></div>
+          </form>
+          <pre id="registerOutput"></pre>
         </div>
 
         <div class="card">
-            <h3>Helpful Endpoints</h3>
-            <ul>
-                <li><a href="/api/languages/">GET /api/languages/</a></li>
-                <li><a href="/api/courses/">GET /api/courses/</a> (auth required)</li>
-                <li><a href="/api/profiles/my_profile/">GET /api/profiles/my_profile/</a> (auth required)</li>
-            </ul>
+          <h3>Login</h3>
+          <form onsubmit="loginUser(event)">
+            <div class="row"><input name="username" placeholder="Username (email)" required /></div>
+            <div class="row"><input type="password" name="password" placeholder="Password" required /></div>
+            <div class="row"><button type="submit">Login</button></div>
+          </form>
+          <pre id="loginOutput"></pre>
         </div>
-    </main>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <h3>Helpful Endpoints</h3>
+        <ul>
+          <li><a href="/api/languages/">GET /api/languages/</a></li>
+          <li><a href="/api/courses/">GET /api/courses/</a> (auth required)</li>
+          <li><a href="/api/profiles/my_profile/">GET /api/profiles/my_profile/</a> (auth required)</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Database Explorer -->
+    <section id="db" class="section">
+      <div class="card">
+        <div class="row controls" style="justify-content: space-between;">
+          <div class="row">
+            <input type="search" placeholder="Filter by app, model, or table name" oninput="filterModels(event)" />
+            <button onclick="toggleAll(true)">Expand all</button>
+            <button onclick="toggleAll(false)" style="background:#fff; color:var(--ink); border:1px solid var(--border);">Collapse all</button>
+          </div>
+          <a class="pill" href="#api">Back to API</a>
+        </div>
+      </div>
+
+      {% for model in models %}
+      <details class="card model" data-key="{{ model.app_label }}.{{ model.model_name }} {{ model.table_name }}" {% if forloop.first %}open{% endif %}>
+        <summary class="row" style="justify-content: space-between; cursor: pointer;">
+          <div class="row">
+            <span class="pill">{{ model.app_label }}</span>
+            <strong style="margin-left:4px;">{{ model.model_name }}</strong>
+            <span class="hint" style="margin-left:8px;">table: {{ model.table_name }}</span>
+          </div>
+          <div class="hint">rows: {{ model.total_count }}</div>
+        </summary>
+        {% if model.rows and model.rows|length > 0 %}
+        <div class="table-wrap" style="margin-top:10px;">
+          <table>
+            <thead>
+              <tr>
+                {% for f in model.fields %}
+                <th>{{ f }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in model.rows %}
+              <tr>
+                {% for cell in row %}
+                <td>{% if cell is not none %}{{ cell }}{% else %}<span class="null">null</span>{% endif %}</td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="hint" style="padding: 10px;">No rows found.</div>
+        {% endif %}
+      </details>
+      {% endfor %}
+    </section>
+  </main>
 </body>
 </html>
 

@@ -9,6 +9,7 @@ from django.db.models import Q, Count, Avg
 from django.utils import timezone
 from datetime import timedelta
 from django.shortcuts import render
+from django.db import connection
 from django.apps import apps
 
 from .models import (
@@ -377,25 +378,51 @@ def dashboard(request):
 def database_view(request):
     """Render a page that shows all tables and sample contents"""
     model_entries = []
+    try:
+        existing_tables = set(connection.introspection.table_names())
+    except Exception:
+        existing_tables = set()
+
     for model in apps.get_models():
         if not getattr(model._meta, 'managed', True):
+            # Skip proxy/unmanaged models (no direct DB table)
             continue
+
+        app_label = model._meta.app_label
+        model_name = model.__name__
+        table_name = model._meta.db_table
+
+        fields = [field.name for field in model._meta.fields]
+        has_table = table_name in existing_tables
+
         try:
-            fields = [field.name for field in model._meta.fields]
-            queryset = model.objects.all()
-            raw_rows = list(queryset.values(*fields))
-            # Convert dict rows to ordered lists to simplify template rendering
-            rows = [[row.get(field) for field in fields] for row in raw_rows]
+            if has_table:
+                queryset = model.objects.all()
+                raw_rows = list(queryset.values(*fields)[:50])  # sample first 50 rows for performance
+                rows = [[row.get(field) for field in fields] for row in raw_rows]
+                total_count = queryset.count()
+            else:
+                rows = []
+                total_count = 0
+
             model_entries.append({
-                'app_label': model._meta.app_label,
-                'model_name': model.__name__,
-                'table_name': model._meta.db_table,
+                'app_label': app_label,
+                'model_name': model_name,
+                'table_name': table_name,
                 'fields': fields,
                 'rows': rows,
-                'total_count': queryset.count(),
+                'total_count': total_count,
             })
         except Exception:
-            continue
+            # If any error occurs querying this model, still include it with empty rows
+            model_entries.append({
+                'app_label': app_label,
+                'model_name': model_name,
+                'table_name': table_name,
+                'fields': fields,
+                'rows': [],
+                'total_count': 0,
+            })
 
     model_entries.sort(key=lambda m: (m['app_label'], m['model_name']))
     return render(request, 'database.html', { 'models': model_entries })

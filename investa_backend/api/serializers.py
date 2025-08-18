@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from django.contrib.auth.models import User
 from .models import (
     Language, UserProfile, Course, Lesson, Quiz, Question, Answer,
@@ -158,6 +159,17 @@ class QuizDetailSerializer(serializers.ModelSerializer):
 
 # Serializers for user registration and profile creation
 class UserRegistrationSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        validators=[
+            UniqueValidator(queryset=User.objects.all(), message="Username already taken.")
+        ]
+    )
+    email = serializers.EmailField(
+        required=True,
+        validators=[
+            UniqueValidator(queryset=User.objects.all(), message="Email already registered.")
+        ]
+    )
     password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
     
