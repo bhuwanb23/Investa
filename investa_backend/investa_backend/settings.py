@@ -25,7 +25,11 @@ SECRET_KEY = 'django-insecure-wco$)rsf4z@e9+il$)6%n7v=m(jk$6_@k278pw8d%5f5h@c@ae
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '10.0.2.2',
+]
 
 
 # Application definition
@@ -40,6 +44,7 @@ INSTALLED_APPS = [
     
     # Third party apps
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
     
     # Local apps
@@ -62,7 +67,7 @@ ROOT_URLCONF = 'investa_backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'api' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -136,7 +141,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
@@ -148,6 +153,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:19006",
     "http://127.0.0.1:19006",
+    "http://localhost:8081",
+    "http://127.0.0.1:8081",
 ]
 
 CORS_ALLOW_CREDENTIALS = True

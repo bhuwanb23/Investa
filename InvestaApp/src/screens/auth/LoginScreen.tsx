@@ -1,21 +1,26 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Alert,
+  SafeAreaView,
+  TextInput,
+  ActivityIndicator,
+  Pressable,
 } from 'react-native';
-import { TextInput, Button, Card, Title, Paragraph } from 'react-native-paper';
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { AuthStackParamList } from '../../navigation/AppNavigator';
 
 const LoginScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>();
   const [email, setEmail] = useState('');
+  const [emailTouched, setEmailTouched] = useState(false);
+  const isEmailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()), [email]);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,6 +28,7 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in all fields');
+      setEmailTouched(true);
       return;
     }
 
@@ -45,219 +51,321 @@ const LoginScreen = () => {
   };
 
   const handleForgotPassword = () => {
-    navigation.navigate('ForgotPassword' as never);
+    navigation.navigate('ForgotPassword');
   };
 
   const handleRegister = () => {
-    navigation.navigate('Register' as never);
+    navigation.navigate('Register');
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Ionicons name="trending-up" size={80} color="#2196F3" />
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.welcomeSection}>
+            <View style={styles.brandBadge}>
+              <Text style={styles.brandEmoji}>{'📈'}</Text>
+            </View>
+            <Text style={styles.titleText}>Welcome Back</Text>
+            <Text style={styles.subtitleText}>Sign in to continue your investment journey</Text>
           </View>
-          <Title style={styles.title}>Investa</Title>
-          <Paragraph style={styles.subtitle}>
-            Your Gateway to Smart Investing
-          </Paragraph>
-        </View>
 
-        <Card style={styles.loginCard}>
-          <Card.Content>
-            <Title style={styles.cardTitle}>Welcome Back</Title>
-            <Paragraph style={styles.cardSubtitle}>
-              Sign in to continue your investment journey
-            </Paragraph>
-
-            <TextInput
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              mode="outlined"
-              style={styles.input}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              left={<TextInput.Icon icon="email" />}
-            />
-
-            <TextInput
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              mode="outlined"
-              style={styles.input}
-              secureTextEntry={!showPassword}
-              left={<TextInput.Icon icon="lock" />}
-              right={
-                <TextInput.Icon
-                  icon={showPassword ? 'eye-off' : 'eye'}
-                  onPress={() => setShowPassword(!showPassword)}
+          <View style={styles.card}>
+            <View style={styles.fieldGroup}>
+              <Text style={styles.labelText}>Email Address</Text>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  value={email}
+                  onChangeText={setEmail}
+                  onBlur={() => setEmailTouched(true)}
+                  placeholder="Enter your email"
+                  placeholderTextColor="#9ca3af"
+                  style={[
+                    styles.textInput,
+                    emailTouched && !isEmailValid && styles.inputErrorBorder,
+                    emailTouched && isEmailValid && styles.inputSuccessBorder,
+                  ]}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  returnKeyType="next"
                 />
-              }
-            />
+              </View>
+              {emailTouched && !isEmailValid && (
+                <Text style={styles.errorText}>Please enter a valid email address</Text>
+              )}
+            </View>
 
-            <TouchableOpacity
-              onPress={handleForgotPassword}
-              style={styles.forgotPassword}
-            >
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-            </TouchableOpacity>
+            <View style={styles.fieldGroup}>
+              <Text style={styles.labelText}>Password</Text>
+              <View style={styles.passwordRow}>
+                <TextInput
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Enter your password"
+                  placeholderTextColor="#9ca3af"
+                  style={[styles.textInput, styles.passwordInput]}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  returnKeyType="done"
+                />
+                <Pressable onPress={() => setShowPassword(v => !v)} style={styles.togglePasswordButton} android_ripple={{ color: '#eee' }}>
+                  <Text style={styles.togglePasswordText}>{showPassword ? 'Hide' : 'Show'}</Text>
+                </Pressable>
+              </View>
+              <Pressable onPress={handleForgotPassword} style={styles.forgotPasswordPressable} android_ripple={{ color: '#eee' }}>
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              </Pressable>
+            </View>
 
-            <Button
-              mode="contained"
+            <Pressable
               onPress={handleLogin}
-              style={styles.loginButton}
-              loading={loading}
               disabled={loading}
+              style={({ pressed }) => [
+                styles.submitButton,
+                pressed && styles.submitButtonPressed,
+                loading && styles.submitButtonDisabled,
+              ]}
             >
-              Sign In
-            </Button>
+              {loading ? (
+                <View style={styles.submitContentRow}>
+                  <ActivityIndicator color="#ffffff" style={{ marginRight: 8 }} />
+                  <Text style={styles.submitButtonText}>Signing In...</Text>
+                </View>
+              ) : (
+                <View style={styles.submitContentRow}>
+                  <Text style={styles.submitButtonText}>Sign In</Text>
+                  <Text style={styles.arrowIcon}>{'→'}</Text>
+                </View>
+              )}
+            </Pressable>
 
-            <View style={styles.divider}>
+            <View style={styles.dividerRow}>
               <View style={styles.dividerLine} />
               <Text style={styles.dividerText}>OR</Text>
               <View style={styles.dividerLine} />
             </View>
 
-            <Button
-              mode="outlined"
-              onPress={handleLogin}
-              style={styles.googleButton}
-              icon="google"
-            >
-              Continue with Google
-            </Button>
+            <Pressable onPress={() => Alert.alert('Info', 'Google sign-in coming soon')} style={styles.googleButton} android_ripple={{ color: '#e5e7eb' }}>
+              <Text style={styles.googleIcon}>G</Text>
+              <Text style={styles.googleText}>Continue with Google</Text>
+            </Pressable>
 
-            <View style={styles.registerContainer}>
-              <Text style={styles.registerText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={handleRegister}>
-                <Text style={styles.registerLink}>Sign Up</Text>
-              </TouchableOpacity>
+            <View style={styles.registerRow}>
+              <Text style={styles.footerText}>Don't have an account? </Text>
+              <Pressable onPress={handleRegister} android_ripple={{ color: '#eee' }}>
+                <Text style={styles.linkTextBold}>Sign Up</Text>
+              </Pressable>
             </View>
-          </Card.Content>
-        </Card>
+          </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            By continuing, you agree to our Terms of Service and Privacy Policy
-          </Text>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <View style={styles.termsRow}>
+            <Text style={styles.termsText}>By continuing, you agree to our Terms of Service and Privacy Policy</Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f9fafb',
   },
-  scrollContainer: {
+  scrollContent: {
     flexGrow: 1,
-    padding: 20,
-  },
-  header: {
-    alignItems: 'center',
-    marginTop: 60,
-    marginBottom: 40,
-  },
-  logoContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#e3f2fd',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 24,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1976d2',
-    marginBottom: 8,
+  welcomeSection: {
+    alignItems: 'center',
+    marginTop: 0,
+    marginBottom: 16,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-  },
-  loginCard: {
-    elevation: 4,
+  brandBadge: {
+    height: 80,
+    width: 80,
     borderRadius: 16,
-    marginBottom: 20,
-  },
-  cardTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  cardSubtitle: {
-    textAlign: 'center',
-    color: '#666',
-    marginBottom: 24,
-  },
-  input: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#6366f1',
     marginBottom: 16,
   },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 24,
+  brandEmoji: {
+    fontSize: 28,
+    color: '#ffffff',
   },
-  forgotPasswordText: {
-    color: '#2196F3',
+  titleText: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  subtitleText: {
     fontSize: 14,
+    color: '#4b5563',
+    textAlign: 'center',
   },
-  loginButton: {
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 16,
+    elevation: 4,
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
+  },
+  fieldGroup: {
     marginBottom: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
   },
-  divider: {
+  labelText: {
+    fontSize: 12,
+    color: '#374151',
+    marginBottom: 6,
+    fontWeight: '600',
+  },
+  inputWrapper: {
+    position: 'relative',
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: '#111827',
+    backgroundColor: '#fff',
+  },
+  inputErrorBorder: {
+    borderColor: '#fca5a5',
+  },
+  inputSuccessBorder: {
+    borderColor: '#86efac',
+  },
+  errorText: {
+    marginTop: 6,
+    fontSize: 12,
+    color: '#ef4444',
+  },
+  passwordRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingRight: 72,
+  },
+  togglePasswordButton: {
+    position: 'absolute',
+    right: 8,
+    height: 40,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+  },
+  togglePasswordText: {
+    color: '#6b7280',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  forgotPasswordPressable: {
+    alignSelf: 'flex-end',
+    marginTop: 8,
+  },
+  forgotPasswordText: {
+    color: '#4f46e5',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  submitButton: {
+    marginTop: 16,
+    backgroundColor: '#4f46e5',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  submitButtonPressed: {
+    opacity: 0.92,
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
+  },
+  submitButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  submitContentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  arrowIcon: {
+    color: '#ffffff',
+    fontSize: 18,
+    marginLeft: 8,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 16,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#e5e7eb',
   },
   dividerText: {
-    marginHorizontal: 16,
-    color: '#666',
-    fontSize: 14,
+    marginHorizontal: 12,
+    color: '#6b7280',
+    fontSize: 12,
   },
   googleButton: {
-    marginBottom: 24,
-    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    paddingVertical: 12,
   },
-  registerContainer: {
+  googleIcon: {
+    color: '#ea4335',
+    fontWeight: '900',
+    fontSize: 16,
+    marginRight: 8,
+  },
+  googleText: {
+    color: '#111827',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  registerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 16,
   },
-  registerText: {
-    color: '#666',
-    fontSize: 14,
-  },
-  registerLink: {
-    color: '#2196F3',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  footer: {
-    alignItems: 'center',
-    marginTop: 20,
+  linkTextBold: {
+    color: '#4f46e5',
+    fontWeight: '700',
   },
   footerText: {
-    color: '#999',
+    color: '#6b7280',
+    fontSize: 12,
+  },
+  termsRow: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  termsText: {
+    color: '#9ca3af',
     fontSize: 12,
     textAlign: 'center',
     lineHeight: 18,

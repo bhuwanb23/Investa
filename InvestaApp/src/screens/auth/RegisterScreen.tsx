@@ -9,6 +9,7 @@ import {
   Text,
   TextInput,
   View,
+  Platform,
 } from 'react-native';
 
 type NavigationLike = {
@@ -42,6 +43,13 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
 
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [successVisible, setSuccessVisible] = useState<boolean>(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  const API_BASE_URL = Platform.select({
+    android: 'http://10.0.2.2:8000/api',
+    ios: 'http://127.0.0.1:8000/api',
+    default: 'http://127.0.0.1:8000/api',
+  }) as string;
 
   function handleBack() {
     if (navigation && typeof navigation.goBack === 'function') {
@@ -53,7 +61,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     setEmailTouched(true);
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const hasName = fullName.trim().length > 0;
     setNameErrorVisible(!hasName);
 
@@ -67,10 +75,53 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     }
 
     setSubmitting(true);
-    setTimeout(() => {
+    setApiError(null);
+
+    // Split full name into first and last name parts
+    const trimmedName = fullName.trim();
+    const [firstName, ...restName] = trimmedName.split(/\s+/);
+    const lastName = restName.join(' ');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/register/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: email.trim(),
+          email: email.trim(),
+          password: password,
+          confirm_password: password,
+          first_name: firstName ?? '',
+          last_name: lastName ?? '',
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok) {
+        setSuccessVisible(true);
+      } else {
+        // Extract error message(s)
+        let message = 'Registration failed. Please try again.';
+        if (data && typeof data === 'object') {
+          const parts: string[] = [];
+          Object.keys(data).forEach((key) => {
+            const val = (data as any)[key];
+            if (Array.isArray(val)) {
+              parts.push(`${key}: ${val.join(', ')}`);
+            } else if (typeof val === 'string') {
+              parts.push(`${key}: ${val}`);
+            }
+          });
+          if (parts.length > 0) message = parts.join('\n');
+        }
+        setApiError(message);
+      }
+    } catch (err) {
+      setApiError('Network error. Ensure the backend is running and reachable.');
+    } finally {
       setSubmitting(false);
-      setSuccessVisible(true);
-    }, 2000);
+    }
   }
 
   function handleContinue() {
@@ -231,6 +282,9 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
                 </View>
               )}
             </Pressable>
+            {apiError ? (
+              <Text style={styles.errorText}>{apiError}</Text>
+            ) : null}
           </View>
 
           <View style={styles.footerLinkRow}> 

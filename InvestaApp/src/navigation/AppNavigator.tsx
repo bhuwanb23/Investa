@@ -139,7 +139,7 @@ const AuthStackNavigator = () => {
       <AuthStack.Screen 
         name="Register" 
         component={RegisterScreen}
-        options={{ title: 'Create Account' }}
+        options={{ headerShown: false }}
       />
       <AuthStack.Screen 
         name="ForgotPassword" 

@@ -1,4 +1,5 @@
 from rest_framework import viewsets, status, permissions
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -7,6 +8,8 @@ from django.contrib.auth import authenticate, login
 from django.db.models import Q, Count, Avg
 from django.utils import timezone
 from datetime import timedelta
+from django.shortcuts import render
+from django.apps import apps
 
 from .models import (
     Language, UserProfile, Course, Lesson, Quiz, Question, Answer,
@@ -315,6 +318,8 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
 # Custom authentication views
 class CustomAuthToken(ObtainAuthToken):
     """Custom authentication token view"""
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
     
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
@@ -339,6 +344,7 @@ class UserRegistrationView(viewsets.GenericViewSet):
     """User registration view"""
     permission_classes = [permissions.AllowAny]
     serializer_class = UserRegistrationSerializer
+    authentication_classes = []
     
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -360,3 +366,36 @@ class UserRegistrationView(viewsets.GenericViewSet):
             }, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Simple HTML views for development
+def dashboard(request):
+    """Development dashboard to try API calls quickly"""
+    return render(request, 'dashboard.html')
+
+
+def database_view(request):
+    """Render a page that shows all tables and sample contents"""
+    model_entries = []
+    for model in apps.get_models():
+        if not getattr(model._meta, 'managed', True):
+            continue
+        try:
+            fields = [field.name for field in model._meta.fields]
+            queryset = model.objects.all()
+            raw_rows = list(queryset.values(*fields)[:100])
+            # Convert dict rows to ordered lists to simplify template rendering
+            rows = [[row.get(field) for field in fields] for row in raw_rows]
+            model_entries.append({
+                'app_label': model._meta.app_label,
+                'model_name': model.__name__,
+                'table_name': model._meta.db_table,
+                'fields': fields,
+                'rows': rows,
+                'total_count': queryset.count(),
+            })
+        except Exception:
+            continue
+
+    model_entries.sort(key=lambda m: (m['app_label'], m['model_name']))
+    return render(request, 'database.html', { 'models': model_entries })

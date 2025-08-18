@@ -18,4 +18,7 @@ urlpatterns = [
     path('auth/login/', views.CustomAuthToken.as_view(), name='api_token_auth'),
     path('auth/register/', views.UserRegistrationView.as_view({'post': 'create'}), name='user_registration'),
     path('auth/token/', obtain_auth_token, name='api_token'),
+    # Dev HTML pages
+    path('dashboard/', views.dashboard, name='api_dashboard'),
+    path('database/', views.database_view, name='api_database'),
 ]

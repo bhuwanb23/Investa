@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Database Explorer</title>
+    <style>
+        body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background:#f9fafb; color:#111827; }
+        header { background:#111827; color:#fff; padding:16px 20px; }
+        main { padding:20px; max-width: 1200px; margin: 0 auto; }
+        .card { background:#fff; border-radius:12px; padding:16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom:16px; }
+        table { width:100%; border-collapse: collapse; margin-top: 8px; }
+        th, td { border:1px solid #e5e7eb; padding:8px 10px; text-align: left; font-size: 13px; }
+        th { background:#f3f4f6; }
+        .meta { color:#6b7280; font-size:12px; }
+        details { margin-bottom: 16px; }
+        summary { cursor: pointer; font-weight: 600; }
+        a { color:#4f46e5; text-decoration: none; }
+        .row { display:flex; align-items:center; justify-content: space-between; gap: 12px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="row">
+            <h2>Database Explorer</h2>
+            <a href="/api/dashboard/" style="color:#fff">Back to Dashboard</a>
+        </div>
+    </header>
+    <main>
+        <div class="card">
+            <p class="meta">Showing up to 100 rows per model.</p>
+        </div>
+
+        {% for model in models %}
+        <details class="card">
+            <summary>{{ model.app_label }}.{{ model.model_name }} <span class="meta">(table: {{ model.table_name }}, rows: {{ model.total_count }})</span></summary>
+            {% if model.rows and model.rows|length > 0 %}
+            <div style="overflow:auto">
+                <table>
+                    <thead>
+                        <tr>
+                            {% for f in model.fields %}
+                            <th>{{ f }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in model.rows %}
+                        <tr>
+                            {% for cell in row %}
+                            <td>{% if cell is not none %}{{ cell }}{% else %}<span class="meta">null</span>{% endif %}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="meta">No rows found.</p>
+            {% endif %}
+        </details>
+        {% endfor %}
+    </main>
+</body>
+</html>
+
+
