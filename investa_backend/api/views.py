@@ -383,7 +383,7 @@ def database_view(request):
         try:
             fields = [field.name for field in model._meta.fields]
             queryset = model.objects.all()
-            raw_rows = list(queryset.values(*fields)[:100])
+            raw_rows = list(queryset.values(*fields))
             # Convert dict rows to ordered lists to simplify template rendering
             rows = [[row.get(field) for field in fields] for row in raw_rows]
             model_entries.append({

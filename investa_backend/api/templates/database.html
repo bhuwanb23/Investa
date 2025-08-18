@@ -1,66 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Database Explorer</title>
-    <style>
-        body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background:#f9fafb; color:#111827; }
-        header { background:#111827; color:#fff; padding:16px 20px; }
-        main { padding:20px; max-width: 1200px; margin: 0 auto; }
-        .card { background:#fff; border-radius:12px; padding:16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom:16px; }
-        table { width:100%; border-collapse: collapse; margin-top: 8px; }
-        th, td { border:1px solid #e5e7eb; padding:8px 10px; text-align: left; font-size: 13px; }
-        th { background:#f3f4f6; }
-        .meta { color:#6b7280; font-size:12px; }
-        details { margin-bottom: 16px; }
-        summary { cursor: pointer; font-weight: 600; }
-        a { color:#4f46e5; text-decoration: none; }
-        .row { display:flex; align-items:center; justify-content: space-between; gap: 12px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Database Explorer</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #0b1020;
+      --card: #0e1726;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --brand: #6366f1;
+      --brand-2: #22d3ee;
+      --border: #1f2a44;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: linear-gradient(180deg, var(--bg), #0b1120 40%, #0b1120); color: var(--text); }
+    a { color: var(--brand-2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    header {
+      background: radial-gradient(1200px 500px at 20% -10%, rgba(99,102,241,.35), transparent),
+                  radial-gradient(1200px 500px at 80% -10%, rgba(34,211,238,.35), transparent),
+                  linear-gradient(180deg, rgba(15,23,42,0.2), rgba(15,23,42,0));
+      border-bottom: 1px solid var(--border);
+      padding: 18px 22px;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .header-row { display:flex; align-items:center; justify-content: space-between; gap: 12px; max-width: 1200px; margin: 0 auto; }
+    .title { font-size: 20px; font-weight: 700; letter-spacing: .2px; }
+    .pill { padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); font-size: 12px; }
+
+    main { padding: 22px; max-width: 1200px; margin: 0 auto; }
+    .controls { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)); border:1px solid var(--border); border-radius: 14px; padding: 14px; display:flex; gap:12px; align-items:center; flex-wrap: wrap; }
+    .controls input { background:#0a1222; color: var(--text); border:1px solid var(--border); border-radius: 10px; padding:10px 12px; min-width: 260px; outline: none; }
+    .btn { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color:#0b1020; border:none; border-radius: 10px; padding:10px 12px; font-weight:600; cursor:pointer; }
+    .btn.secondary { background: #0a1222; color: var(--text); border:1px solid var(--border); }
+    .hint { color: var(--muted); font-size: 12px; }
+
+    details.model { margin: 16px 0; border:1px solid var(--border); border-radius: 14px; overflow: hidden; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)); }
+    details[open].model { box-shadow: 0 6px 24px rgba(0,0,0,0.25); }
+    summary.model-header { cursor: pointer; list-style: none; padding: 14px 16px; display:flex; align-items: center; justify-content: space-between; gap: 10px; }
+    summary.model-header::-webkit-details-marker { display:none; }
+    .model-left { display:flex; align-items:center; gap: 10px; }
+    .badge { background: rgba(99,102,241,.15); color: #c7d2fe; border:1px solid rgba(99,102,241,.35); padding:2px 8px; border-radius:999px; font-size: 12px; }
+    .meta { color: var(--muted); font-size: 12px; }
+
+    .table-wrap { overflow:auto; border-top:1px solid var(--border); background: #070d1b; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    thead th { position: sticky; top: 0; background: #0b1222; color: #cbd5e1; border-bottom:1px solid var(--border); padding: 10px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+    tbody td { border-bottom:1px solid #0f1a30; padding: 10px 12px; font-size: 13px; color: #e2e8f0; white-space: nowrap; }
+    tbody tr:nth-child(odd) td { background: rgba(255,255,255,0.01); }
+    tbody tr:hover td { background: rgba(99,102,241,0.05); }
+    .null { color: var(--muted); font-style: italic; }
+
+    .flex { display:flex; gap: 10px; align-items:center; flex-wrap: wrap; }
+  </style>
+  <script>
+    function toggleAll(open) {
+      const items = document.querySelectorAll('details.model');
+      items.forEach(d => d.open = open);
+    }
+    function filterModels(ev) {
+      const term = ev.target.value.trim().toLowerCase();
+      const items = document.querySelectorAll('details.model');
+      items.forEach(d => {
+        const key = (d.getAttribute('data-key') || '').toLowerCase();
+        d.style.display = key.includes(term) ? '' : 'none';
+      });
+    }
+  </script>
 </head>
 <body>
-    <header>
-        <div class="row">
-            <h2>Database Explorer</h2>
-            <a href="/api/dashboard/" style="color:#fff">Back to Dashboard</a>
-        </div>
-    </header>
-    <main>
-        <div class="card">
-            <p class="meta">Showing up to 100 rows per model.</p>
-        </div>
+  <header>
+    <div class="header-row">
+      <div class="title">Database Explorer</div>
+      <div class="flex">
+        <a class="pill" href="/dashboard/">Dashboard</a>
+        <span class="pill">Showing up to 100 rows per model</span>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="controls">
+      <input type="search" placeholder="Filter by app, model, or table name" oninput="filterModels(event)" />
+      <button class="btn" onclick="toggleAll(true)">Expand all</button>
+      <button class="btn secondary" onclick="toggleAll(false)">Collapse all</button>
+      <span class="hint">Tip: Use the filter to quickly find a specific model or table.</span>
+    </div>
 
-        {% for model in models %}
-        <details class="card">
-            <summary>{{ model.app_label }}.{{ model.model_name }} <span class="meta">(table: {{ model.table_name }}, rows: {{ model.total_count }})</span></summary>
-            {% if model.rows and model.rows|length > 0 %}
-            <div style="overflow:auto">
-                <table>
-                    <thead>
-                        <tr>
-                            {% for f in model.fields %}
-                            <th>{{ f }}</th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in model.rows %}
-                        <tr>
-                            {% for cell in row %}
-                            <td>{% if cell is not none %}{{ cell }}{% else %}<span class="meta">null</span>{% endif %}</td>
-                            {% endfor %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <p class="meta">No rows found.</p>
-            {% endif %}
-        </details>
-        {% endfor %}
-    </main>
+    {% for model in models %}
+    <details class="model" data-key="{{ model.app_label }}.{{ model.model_name }} {{ model.table_name }}" {% if forloop.first %}open{% endif %}>
+      <summary class="model-header">
+        <div class="model-left">
+          <span class="badge">{{ model.app_label }}</span>
+          <strong>{{ model.model_name }}</strong>
+          <span class="meta">table: {{ model.table_name }}</span>
+        </div>
+        <div class="meta">rows: {{ model.total_count }}</div>
+      </summary>
+      {% if model.rows and model.rows|length > 0 %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              {% for f in model.fields %}
+              <th>{{ f }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in model.rows %}
+            <tr>
+              {% for cell in row %}
+              <td>{% if cell is not none %}{{ cell }}{% else %}<span class="null">null</span>{% endif %}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="meta" style="padding: 14px 16px;">No rows found.</div>
+      {% endif %}
+    </details>
+    {% endfor %}
+  </main>
 </body>
 </html>
 
