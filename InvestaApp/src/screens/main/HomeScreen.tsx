@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  FlatList,
   TouchableOpacity,
   Dimensions,
   Alert,
@@ -200,10 +201,14 @@ const HomeScreen = () => {
   const renderQuickAccess = () => (
     <View style={styles.quickAccessSection}>
       <Text style={styles.sectionTitle}>Quick Access</Text>
-      <View style={styles.quickAccessGrid}>
-        {quickAccessItems.map((item) => (
+      <FlatList
+        data={quickAccessItems}
+        keyExtractor={(item) => item.id.toString()}
+        numColumns={2}
+        scrollEnabled={false}
+        columnWrapperStyle={{ justifyContent: 'space-between' }}
+        renderItem={({ item }) => (
           <TouchableOpacity
-            key={item.id}
             style={styles.quickAccessCard}
             onPress={item.onPress}
             activeOpacity={0.8}
@@ -215,8 +220,8 @@ const HomeScreen = () => {
             <Text style={styles.quickAccessSubtitle}>{item.subtitle}</Text>
             <Text style={[styles.quickAccessBadge, { color: item.color }]}>{item.badge}</Text>
           </TouchableOpacity>
-        ))}
-      </View>
+        )}
+      />
     </View>
   );
 
