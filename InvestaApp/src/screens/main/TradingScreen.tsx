@@ -8,13 +8,30 @@ import {
   Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
 const TEXT_DARK = '#111827';
 const TEXT_MUTED = '#6b7280';
 
+// Define navigation types
+type RootStackParamList = {
+  MarketWatchlist: undefined;
+  StockDetail: { stockSymbol: string; stockName: string };
+  PlaceOrder: { stockSymbol: string; stockName: string; currentPrice: number };
+  Portfolio: undefined;
+  OrderHistory: undefined;
+  Leaderboard: undefined;
+};
+
+type NavigationProp = {
+  navigate: (screen: keyof RootStackParamList, params?: any) => void;
+};
+
 const TradingScreen = () => {
+  const navigation = useNavigation<NavigationProp>();
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -32,6 +49,53 @@ const TradingScreen = () => {
             <View style={styles.kpiCard}>
               <Text style={styles.kpiLabel}>P/L Today</Text>
               <Text style={[styles.kpiValue, { color: '#16a34a' }]}>+ $240</Text>
+            </View>
+          </View>
+
+          {/* Trading Navigation Cards */}
+          <View style={styles.navigationSection}>
+            <Text style={styles.sectionTitle}>Trading Tools</Text>
+            
+            <View style={styles.navGrid}>
+              <Pressable 
+                style={styles.navCard} 
+                onPress={() => navigation.navigate('MarketWatchlist')}
+                android_ripple={{ color: '#e5e7eb' }}
+              >
+                <Ionicons name="trending-up" size={24} color={PRIMARY} />
+                <Text style={styles.navCardTitle}>Market Watchlist</Text>
+                <Text style={styles.navCardSubtitle}>View stocks & indices</Text>
+              </Pressable>
+
+              <Pressable 
+                style={styles.navCard} 
+                onPress={() => navigation.navigate('Portfolio')}
+                android_ripple={{ color: '#e5e7eb' }}
+              >
+                <Ionicons name="pie-chart" size={24} color={PRIMARY} />
+                <Text style={styles.navCardTitle}>Portfolio</Text>
+                <Text style={styles.navCardSubtitle}>Your holdings & P&L</Text>
+              </Pressable>
+
+              <Pressable 
+                style={styles.navCard} 
+                onPress={() => navigation.navigate('OrderHistory')}
+                android_ripple={{ color: '#e5e7eb' }}
+              >
+                <Ionicons name="time" size={24} color={PRIMARY} />
+                <Text style={styles.navCardTitle}>Order History</Text>
+                <Text style={styles.navCardSubtitle}>Past trades</Text>
+              </Pressable>
+
+              <Pressable 
+                style={styles.navCard} 
+                onPress={() => navigation.navigate('Leaderboard')}
+                android_ripple={{ color: '#e5e7eb' }}
+              >
+                <Ionicons name="trophy" size={24} color={PRIMARY} />
+                <Text style={styles.navCardTitle}>Leaderboard</Text>
+                <Text style={styles.navCardSubtitle}>Compare performance</Text>
+              </Pressable>
             </View>
           </View>
 
@@ -113,6 +177,38 @@ const styles = StyleSheet.create({
     color: TEXT_DARK,
     fontSize: 18,
     fontWeight: '800',
+  },
+  navigationSection: {
+    marginTop: 16,
+  },
+  navGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  navCard: {
+    width: '48%',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  navCardTitle: {
+    color: TEXT_DARK,
+    fontSize: 14,
+    fontWeight: '700',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  navCardSubtitle: {
+    color: TEXT_MUTED,
+    fontSize: 12,
+    marginTop: 4,
+    textAlign: 'center',
   },
   actionRow: {
     flexDirection: 'row',

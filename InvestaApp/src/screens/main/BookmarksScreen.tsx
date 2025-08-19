@@ -6,237 +6,250 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
+  Dimensions,
+  PanGestureHandler,
+  State,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import SearchBar from '../../components/SearchBar';
+import EmptyState from '../../components/EmptyState';
+
+const { width } = Dimensions.get('window');
 
 const BookmarksScreen = () => {
   const navigation = useNavigation();
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const categories = [
-    { id: 'all', name: 'All', icon: 'bookmark' },
-    { id: 'lessons', name: 'Lessons', icon: 'school' },
-    { id: 'articles', name: 'Articles', icon: 'document-text' },
-    { id: 'videos', name: 'Videos', icon: 'play-circle' },
+  const filterTabs = [
+    { id: 'all', name: 'All' },
+    { id: 'in-progress', name: 'In Progress' },
+    { id: 'completed', name: 'Completed' },
+    { id: 'recent', name: 'Recent' },
+    { id: 'math', name: 'Math' },
+    { id: 'science', name: 'Science' },
   ];
 
-  const bookmarkedItems = [
+  const bookmarkedLessons = [
     {
       id: 1,
-      type: 'lessons',
-      title: 'What is a Stock?',
-      description: 'Learn the fundamental concept of stocks and how they represent ownership in a company.',
-      category: 'Stock Market Basics',
-      duration: '15 min',
-      icon: 'business',
-      color: '#3B82F6',
-      bookmarkedAt: '2 days ago',
+      title: 'Advanced Algebra: Quadratic Equations',
+      category: 'Mathematics',
+      addedAt: '2 days ago',
+      progress: 65,
+      icon: 'calculator',
+      iconColor: '#3B82F6',
+      iconBg: '#DBEAFE',
     },
     {
       id: 2,
-      type: 'articles',
-      title: 'SEBI Guidelines for Retail Investors',
-      description: 'Important regulatory updates and guidelines that every retail investor should know.',
-      category: 'Regulatory',
-      duration: '8 min read',
-      icon: 'document-text',
-      color: '#DC2626',
-      bookmarkedAt: '1 week ago',
+      title: 'Photosynthesis Process',
+      category: 'Biology',
+      addedAt: '1 week ago',
+      progress: 100,
+      icon: 'leaf',
+      iconColor: '#10B981',
+      iconBg: '#D1FAE5',
     },
     {
       id: 3,
-      type: 'videos',
-      title: 'Technical Analysis Fundamentals',
-      description: 'Master the basics of chart reading and technical indicators.',
-      category: 'Technical Analysis',
-      duration: '25 min',
-      icon: 'analytics',
-      color: '#7C3AED',
-      bookmarkedAt: '3 days ago',
+      title: 'Chemical Bonding Basics',
+      category: 'Chemistry',
+      addedAt: '3 days ago',
+      progress: 25,
+      icon: 'flask',
+      iconColor: '#8B5CF6',
+      iconBg: '#EDE9FE',
     },
     {
       id: 4,
-      type: 'lessons',
-      title: 'Portfolio Diversification',
-      description: 'Understand the importance of diversification and how to build a balanced portfolio.',
-      category: 'Portfolio Management',
-      duration: '20 min',
-      icon: 'pie-chart',
-      color: '#F59E0B',
-      bookmarkedAt: '5 days ago',
+      title: 'World War II Timeline',
+      category: 'History',
+      addedAt: '5 days ago',
+      progress: 45,
+      icon: 'globe',
+      iconColor: '#F59E0B',
+      iconBg: '#FEF3C7',
     },
     {
       id: 5,
-      type: 'articles',
-      title: 'Market Psychology and Emotions',
-      description: 'How to control emotions and make rational investment decisions.',
-      category: 'Psychology',
-      duration: '12 min read',
-      icon: 'brain',
-      color: '#10B981',
-      bookmarkedAt: '2 weeks ago',
-    },
-    {
-      id: 6,
-      type: 'videos',
-      title: 'Risk Management Strategies',
-      description: 'Essential risk management techniques for protecting your capital.',
-      category: 'Risk Management',
-      duration: '18 min',
-      icon: 'shield-checkmark',
-      color: '#EF4444',
-      bookmarkedAt: '1 week ago',
+      title: "Shakespeare's Hamlet Analysis",
+      category: 'Literature',
+      addedAt: '1 week ago',
+      progress: 10,
+      icon: 'book',
+      iconColor: '#EF4444',
+      iconBg: '#FEE2E2',
     },
   ];
 
-  const filteredItems = selectedCategory === 'all' 
-    ? bookmarkedItems 
-    : bookmarkedItems.filter(item => item.type === selectedCategory);
+  const filteredLessons = bookmarkedLessons.filter(lesson => {
+    const matchesSearch = lesson.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         lesson.category.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (selectedFilter === 'all') return matchesSearch;
+    if (selectedFilter === 'completed') return lesson.progress === 100 && matchesSearch;
+    if (selectedFilter === 'in-progress') return lesson.progress > 0 && lesson.progress < 100 && matchesSearch;
+    if (selectedFilter === 'recent') return lesson.addedAt.includes('days') && parseInt(lesson.addedAt) <= 3 && matchesSearch;
+    if (selectedFilter === 'math') return lesson.category === 'Mathematics' && matchesSearch;
+    if (selectedFilter === 'science') return ['Biology', 'Chemistry'].includes(lesson.category) && matchesSearch;
+    
+    return matchesSearch;
+  });
 
-  const renderCategoryButton = (category: any) => (
+  const renderFilterTab = (tab: any) => (
     <TouchableOpacity
-      key={category.id}
+      key={tab.id}
       style={[
-        styles.categoryButton,
-        selectedCategory === category.id && styles.selectedCategory,
+        styles.filterTab,
+        selectedFilter === tab.id && styles.activeFilterTab,
       ]}
-      onPress={() => setSelectedCategory(category.id)}
+      onPress={() => setSelectedFilter(tab.id)}
     >
-      <Ionicons 
-        name={category.icon as any} 
-        size={20} 
-        color={selectedCategory === category.id ? 'white' : '#6B7280'} 
-      />
       <Text style={[
-        styles.categoryText,
-        selectedCategory === category.id && styles.selectedCategoryText,
+        styles.filterTabText,
+        selectedFilter === tab.id && styles.activeFilterTabText,
       ]}>
-        {category.name}
+        {tab.name}
       </Text>
     </TouchableOpacity>
   );
 
   const renderBookmarkItem = (item: any) => (
-    <TouchableOpacity
-      key={item.id}
-      style={styles.bookmarkItem}
-      onPress={() => {
-        // Navigate based on item type
-        if (item.type === 'lessons') {
-          navigation.navigate('ModuleDetail', { moduleId: item.id });
-        } else if (item.type === 'videos') {
-          navigation.navigate('VideoPlayer', { videoId: item.id });
-        } else {
-          navigation.navigate('ArticleDetail', { articleId: item.id });
-        }
-      }}
-      activeOpacity={0.8}
-    >
-      <View style={styles.bookmarkHeader}>
-        <View style={[styles.itemIcon, { backgroundColor: item.color + '20' }]}>
-          <Ionicons name={item.icon as any} size={24} color={item.color} />
+    <View key={item.id} style={styles.bookmarkItem}>
+      <View style={styles.bookmarkContent}>
+        <View style={[styles.lessonIcon, { backgroundColor: item.iconBg }]}>
+          <Ionicons name={item.icon as any} size={24} color={item.iconColor} />
         </View>
         
-        <View style={styles.itemInfo}>
-          <Text style={styles.itemTitle}>{item.title}</Text>
-          <Text style={styles.itemDescription} numberOfLines={2}>
-            {item.description}
-          </Text>
-          <View style={styles.itemMeta}>
-            <View style={styles.metaItem}>
-              <Ionicons name="folder-outline" size={16} color="#6B7280" />
-              <Text style={styles.metaText}>{item.category}</Text>
+        <View style={styles.lessonInfo}>
+          <View style={styles.lessonHeader}>
+            <View style={styles.lessonTitleContainer}>
+              <Text style={styles.lessonTitle}>{item.title}</Text>
+              <Text style={styles.lessonCategory}>{item.category} • Added {item.addedAt}</Text>
             </View>
-            <View style={styles.metaItem}>
-              <Ionicons 
-                name={item.type === 'videos' ? 'time-outline' : 'document-text'} 
-                size={16} 
-                color="#6B7280" 
-              />
-              <Text style={styles.metaText}>{item.duration}</Text>
+            <TouchableOpacity style={styles.heartButton}>
+              <Ionicons name="heart" size={20} color="#EF4444" />
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.lessonFooter}>
+            <View style={styles.progressContainer}>
+              <View style={styles.progressBar}>
+                <View 
+                  style={[
+                    styles.progressFill, 
+                    { 
+                      width: `${item.progress}%`,
+                      backgroundColor: item.progress === 100 ? '#10B981' : '#3B82F6'
+                    }
+                  ]} 
+                />
+              </View>
+              <Text style={[
+                styles.progressText,
+                item.progress === 100 && styles.completedProgressText
+              ]}>
+                {item.progress === 100 ? 'Complete' : `${item.progress}%`}
+              </Text>
             </View>
+            
+            <TouchableOpacity style={[
+              styles.actionButton,
+              item.progress === 100 ? styles.reviewButton : styles.resumeButton
+            ]}>
+              <Text style={[
+                styles.actionButtonText,
+                item.progress === 100 ? styles.reviewButtonText : styles.resumeButtonText
+              ]}>
+                {item.progress === 100 ? 'Review' : 'Resume'}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
-
-        <TouchableOpacity style={styles.bookmarkButton}>
-          <Ionicons name="bookmark" size={20} color={item.color} />
-        </TouchableOpacity>
       </View>
-
-      <View style={styles.bookmarkFooter}>
-        <Text style={styles.bookmarkedAt}>Bookmarked {item.bookmarkedAt}</Text>
-        
-        <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="share-outline" size={16} color="#6B7280" />
-            <Text style={styles.actionButtonText}>Share</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="remove-circle-outline" size={16} color="#EF4444" />
-            <Text style={[styles.actionButtonText, { color: '#EF4444' }]}>Remove</Text>
-          </TouchableOpacity>
-        </View>
+      
+      {/* Swipe to delete area */}
+      <View style={styles.deleteArea}>
+        <Ionicons name="trash" size={24} color="white" />
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
+  const getEmptyStateMessage = () => {
+    if (searchQuery) {
+      return `No bookmarks match "${searchQuery}"`;
+    }
+    if (selectedFilter === 'all') {
+      return 'Start bookmarking your favorite lessons to access them quickly later.';
+    }
+    return `No ${selectedFilter.replace('-', ' ')} bookmarks yet.`;
+  };
+
   return (
-    <View style={styles.container}>
+    <GestureHandlerRootView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()} 
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Bookmarks</Text>
-        <TouchableOpacity style={styles.sortButton}>
-          <Ionicons name="funnel-outline" size={24} color="#1F2937" />
-        </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Bookmarks</Text>
+          <View style={styles.headerActions}>
+            <TouchableOpacity style={styles.searchButton}>
+              <Ionicons name="search" size={20} color="#6B7280" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.filterButton}>
+              <Ionicons name="filter" size={20} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
-      <View style={styles.categoriesContainer}>
+      {/* Search Bar */}
+      <View style={styles.searchSection}>
+        <SearchBar
+          placeholder="Search bookmarked lessons..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
+      {/* Filter Tabs */}
+      <View style={styles.filterSection}>
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesScroll}
+          contentContainerStyle={styles.filterTabsContainer}
         >
-          {categories.map(renderCategoryButton)}
+          {filterTabs.map(renderFilterTab)}
         </ScrollView>
       </View>
 
+      {/* Bookmark Count */}
+      <View style={styles.countSection}>
+        <Text style={styles.countText}>{filteredLessons.length} bookmarked lessons</Text>
+      </View>
+
+      {/* Bookmarked Lessons List */}
       <FlatList
-        data={filteredItems}
+        data={filteredLessons}
         renderItem={({ item }) => renderBookmarkItem(item)}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.bookmarksList}
         showsVerticalScrollIndicator={false}
       />
 
-      {filteredItems.length === 0 && (
-        <View style={styles.emptyState}>
-          <Ionicons name="bookmark-outline" size={64} color="#9CA3AF" />
-          <Text style={styles.emptyStateTitle}>No Bookmarks Yet</Text>
-          <Text style={styles.emptyStateMessage}>
-            {selectedCategory === 'all' 
-              ? 'Start bookmarking your favorite lessons, articles, and videos to access them quickly later.'
-              : `No ${categories.find(c => c.id === selectedCategory)?.name.toLowerCase()} bookmarked yet.`
-            }
-          </Text>
-          
-          {selectedCategory !== 'all' && (
-            <TouchableOpacity 
-              style={styles.browseButton}
-              onPress={() => setSelectedCategory('all')}
-            >
-              <Text style={styles.browseButtonText}>Browse All</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+      {filteredLessons.length === 0 && (
+        <EmptyState
+          icon="bookmark-outline"
+          title="No Bookmarks Found"
+          message={getEmptyStateMessage()}
+        />
       )}
-    </View>
+    </GestureHandlerRootView>
   );
 };
 
@@ -246,175 +259,195 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
   header: {
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    paddingTop: 60,
+    paddingBottom: 16,
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    paddingHorizontal: 16,
   },
   backButton: {
     padding: 8,
+    marginLeft: -8,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
   },
-  sortButton: {
-    padding: 8,
-  },
-  categoriesContainer: {
-    backgroundColor: 'white',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  categoriesScroll: {
-    paddingHorizontal: 20,
-  },
-  categoryButton: {
+  headerActions: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    marginRight: 12,
     gap: 8,
   },
-  selectedCategory: {
-    backgroundColor: '#0891B2',
+  searchButton: {
+    padding: 8,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 20,
   },
-  categoryText: {
-    fontSize: 14,
+  filterButton: {
+    padding: 8,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 20,
+  },
+  searchSection: {
+    backgroundColor: 'white',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  filterSection: {
+    backgroundColor: 'white',
+    paddingVertical: 12,
+  },
+  filterTabsContainer: {
+    paddingHorizontal: 16,
+  },
+  filterTab: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+  },
+  activeFilterTab: {
+    backgroundColor: '#DBEAFE',
+  },
+  filterTabText: {
+    fontSize: 13,
     fontWeight: '500',
     color: '#6B7280',
   },
-  selectedCategoryText: {
-    color: 'white',
+  activeFilterTabText: {
+    color: '#1D4ED8',
+  },
+  countSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#F9FAFB',
+  },
+  countText: {
+    fontSize: 14,
+    color: '#6B7280',
   },
   bookmarksList: {
-    padding: 20,
+    padding: 16,
   },
   bookmarkItem: {
     backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
+    borderRadius: 12,
+    marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+    overflow: 'hidden',
   },
-  bookmarkHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 16,
+  bookmarkContent: {
+    padding: 16,
   },
-  itemIcon: {
+  lessonIcon: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginBottom: 12,
   },
-  itemInfo: {
+  lessonInfo: {
     flex: 1,
-    marginRight: 12,
   },
-  itemTitle: {
+  lessonHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  lessonTitleContainer: {
+    flex: 1,
+    marginRight: 8,
+  },
+  lessonTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 6,
-    lineHeight: 22,
-  },
-  itemDescription: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 12,
+    color: '#111827',
+    marginBottom: 4,
     lineHeight: 20,
   },
-  itemMeta: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  metaText: {
+  lessonCategory: {
     fontSize: 12,
     color: '#6B7280',
-    fontWeight: '500',
   },
-  bookmarkButton: {
+  heartButton: {
     padding: 4,
+    marginTop: -4,
+    marginRight: -4,
   },
-  bookmarkFooter: {
+  lessonFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
   },
-  bookmarkedAt: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    fontWeight: '500',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  actionButton: {
+  progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 8,
+  },
+  progressBar: {
+    width: 64,
+    height: 6,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 3,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  completedProgressText: {
+    color: '#10B981',
+    fontWeight: '500',
+  },
+  actionButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  resumeButton: {
+    backgroundColor: '#3B82F6',
+  },
+  reviewButton: {
+    backgroundColor: '#F3F4F6',
   },
   actionButtonText: {
     fontSize: 12,
-    color: '#6B7280',
     fontWeight: '500',
   },
-  emptyState: {
-    flex: 1,
+  resumeButtonText: {
+    color: 'white',
+  },
+  reviewButtonText: {
+    color: '#6B7280',
+  },
+  deleteArea: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 80,
+    backgroundColor: '#EF4444',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  emptyStateTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#374151',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyStateMessage: {
-    fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 24,
-  },
-  browseButton: {
-    backgroundColor: '#0891B2',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  browseButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
+    transform: [{ translateX: 80 }],
   },
 });
 

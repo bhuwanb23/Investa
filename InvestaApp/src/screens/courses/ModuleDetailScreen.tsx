@@ -31,6 +31,7 @@ const ModuleDetailScreen = () => {
     difficulty: 'Beginner',
     icon: 'business',
     color: '#3B82F6',
+    bgColor: '#DBEAFE',
     lessons: [
       {
         id: 1,
@@ -38,7 +39,7 @@ const ModuleDetailScreen = () => {
         duration: '5 min',
         type: 'video',
         completed: true,
-        content: 'Stocks represent ownership in a company. When you buy a stock, you become a shareholder and own a piece of that company.',
+        content: 'Stocks represent ownership in a company. When you buy a stock, you become a shareholder and own a piece of that company. This ownership comes with certain rights, including voting rights on company decisions and the potential to receive dividends.',
       },
       {
         id: 2,
@@ -46,7 +47,7 @@ const ModuleDetailScreen = () => {
         duration: '6 min',
         type: 'text',
         completed: false,
-        content: 'As a shareholder, you have certain rights including voting rights, dividend payments, and the ability to sell your shares.',
+        content: 'As a shareholder, you have certain rights including voting rights, dividend payments, and the ability to sell your shares. The value of your shares can increase or decrease based on the company\'s performance and market conditions.',
       },
       {
         id: 3,
@@ -54,7 +55,7 @@ const ModuleDetailScreen = () => {
         duration: '4 min',
         type: 'quiz',
         completed: false,
-        content: 'Common stocks and preferred stocks have different characteristics and benefits for investors.',
+        content: 'Common stocks and preferred stocks have different characteristics and benefits for investors. Common stocks typically offer voting rights and potential for growth, while preferred stocks often provide more stable dividend payments.',
       },
     ],
   };
@@ -71,10 +72,15 @@ const ModuleDetailScreen = () => {
       activeOpacity={0.8}
     >
       <View style={styles.lessonHeader}>
-        <View style={styles.lessonNumber}>
+        <View style={[
+          styles.lessonNumber,
+          lesson.completed && styles.completedLessonNumber,
+          currentLesson === index && styles.activeLessonNumber,
+        ]}>
           <Text style={[
             styles.lessonNumberText,
             lesson.completed && styles.completedLessonText,
+            currentLesson === index && styles.activeLessonText,
           ]}>
             {index + 1}
           </Text>
@@ -84,6 +90,7 @@ const ModuleDetailScreen = () => {
           <Text style={[
             styles.lessonTitle,
             lesson.completed && styles.completedLessonText,
+            currentLesson === index && styles.activeLessonText,
           ]}>
             {lesson.title}
           </Text>
@@ -95,11 +102,12 @@ const ModuleDetailScreen = () => {
                   lesson.type === 'quiz' ? 'help-circle' : 'document-text'
                 } 
                 size={16} 
-                color={lesson.completed ? '#10B981' : '#6B7280'} 
+                color={lesson.completed ? '#10B981' : currentLesson === index ? '#3B82F6' : '#6B7280'} 
               />
               <Text style={[
                 styles.lessonTypeText,
                 lesson.completed && styles.completedLessonText,
+                currentLesson === index && styles.activeLessonText,
               ]}>
                 {lesson.type.charAt(0).toUpperCase() + lesson.type.slice(1)}
               </Text>
@@ -107,6 +115,7 @@ const ModuleDetailScreen = () => {
             <Text style={[
               styles.lessonDuration,
               lesson.completed && styles.completedLessonText,
+              currentLesson === index && styles.activeLessonText,
             ]}>
               {lesson.duration}
             </Text>
@@ -118,7 +127,11 @@ const ModuleDetailScreen = () => {
             <Ionicons name="checkmark-circle" size={24} color="#10B981" />
           </View>
         ) : (
-          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          <Ionicons 
+            name="chevron-forward" 
+            size={20} 
+            color={currentLesson === index ? '#3B82F6' : '#9CA3AF'} 
+          />
         )}
       </View>
     </TouchableOpacity>
@@ -149,36 +162,58 @@ const ModuleDetailScreen = () => {
           </View>
         </View>
 
-        <View style={styles.contentBody}>
+        <ScrollView style={styles.contentBody} showsVerticalScrollIndicator={false}>
           <Text style={styles.contentText}>{lesson.content}</Text>
           
           {lesson.type === 'video' && (
             <View style={styles.videoPlaceholder}>
-              <Ionicons name="play-circle" size={60} color={moduleData.color} />
+              <View style={[styles.videoIcon, { backgroundColor: moduleData.bgColor }]}>
+                <Ionicons name="play-circle" size={60} color={moduleData.color} />
+              </View>
               <Text style={styles.videoPlaceholderText}>Video Content</Text>
+              <Text style={styles.videoDescription}>
+                Watch the video to learn about {lesson.title.toLowerCase()}
+              </Text>
             </View>
           )}
 
           {lesson.type === 'quiz' && (
-            <TouchableOpacity style={styles.quizButton}>
-              <Text style={styles.quizButtonText}>Start Quiz</Text>
-              <Ionicons name="arrow-forward" size={20} color="white" />
-            </TouchableOpacity>
+            <View style={styles.quizSection}>
+              <View style={[styles.quizIcon, { backgroundColor: moduleData.bgColor }]}>
+                <Ionicons name="help-circle" size={40} color={moduleData.color} />
+              </View>
+              <Text style={styles.quizTitle}>Ready to test your knowledge?</Text>
+              <Text style={styles.quizDescription}>
+                Take this quiz to reinforce what you've learned about {lesson.title.toLowerCase()}
+              </Text>
+              <TouchableOpacity style={[styles.quizButton, { backgroundColor: moduleData.color }]}>
+                <Text style={styles.quizButtonText}>Start Quiz</Text>
+                <Ionicons name="arrow-forward" size={20} color="white" />
+              </TouchableOpacity>
+            </View>
           )}
-        </View>
+        </ScrollView>
 
         <View style={styles.contentFooter}>
           <TouchableOpacity 
-            style={styles.previousButton}
+            style={[
+              styles.navigationButton,
+              styles.previousButton,
+              currentLesson === 0 && styles.disabledButton
+            ]}
             disabled={currentLesson === 0}
             onPress={() => setCurrentLesson(currentLesson - 1)}
           >
-            <Ionicons name="arrow-back" size={20} color="#6B7280" />
-            <Text style={styles.previousButtonText}>Previous</Text>
+            <Ionicons name="arrow-back" size={20} color={currentLesson === 0 ? '#9CA3AF' : '#6B7280'} />
+            <Text style={[
+              styles.navigationButtonText,
+              currentLesson === 0 && styles.disabledButtonText
+            ]}>Previous</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={[
+              styles.navigationButton,
               styles.nextButton,
               { backgroundColor: moduleData.color }
             ]}
@@ -207,41 +242,47 @@ const ModuleDetailScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()} 
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {moduleData.title}
-        </Text>
-        <TouchableOpacity style={styles.bookmarkButton}>
-          <Ionicons name="bookmark-outline" size={24} color="#1F2937" />
-        </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle} numberOfLines={1}>
+            {moduleData.title}
+          </Text>
+          <TouchableOpacity style={styles.bookmarkButton}>
+            <Ionicons name="bookmark-outline" size={24} color="#1F2937" />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <View style={styles.progressBar}>
-        <View style={styles.progressFill}>
-          <View 
-            style={[
-              styles.progressIndicator, 
-              { width: `${moduleData.progress * 100}%`, backgroundColor: moduleData.color }
-            ]} 
-          />
+      {/* Progress Bar */}
+      <View style={styles.progressSection}>
+        <View style={styles.progressBar}>
+          <View style={styles.progressFill}>
+            <View 
+              style={[
+                styles.progressIndicator, 
+                { width: `${moduleData.progress * 100}%`, backgroundColor: moduleData.color }
+              ]} 
+            />
+          </View>
         </View>
         <Text style={styles.progressText}>
           {Math.round(moduleData.progress * 100)}% Complete
         </Text>
       </View>
 
+      {/* Main Content */}
       <View style={styles.mainContent}>
+        {/* Lessons List */}
         <View style={styles.lessonsList}>
           <Text style={styles.lessonsTitle}>Lessons</Text>
           {moduleData.lessons.map((lesson, index) => renderLessonItem(lesson, index))}
         </View>
 
+        {/* Lesson Content */}
         {renderLessonContent()}
       </View>
     </View>
@@ -254,43 +295,52 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
   header: {
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    paddingTop: 60,
+    paddingBottom: 16,
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    paddingHorizontal: 16,
   },
   backButton: {
     padding: 8,
+    marginLeft: -8,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
     flex: 1,
     textAlign: 'center',
     marginHorizontal: 16,
   },
   bookmarkButton: {
     padding: 8,
+    marginRight: -8,
   },
-  progressBar: {
+  progressSection: {
     backgroundColor: 'white',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: '#F3F4F6',
   },
-  progressFill: {
+  progressBar: {
     height: 8,
     backgroundColor: '#F3F4F6',
     borderRadius: 4,
     marginBottom: 8,
     overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 4,
   },
   progressIndicator: {
     height: '100%',
@@ -300,6 +350,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     textAlign: 'center',
+    fontWeight: '500',
   },
   mainContent: {
     flex: 1,
@@ -309,7 +360,7 @@ const styles = StyleSheet.create({
     width: width * 0.4,
     backgroundColor: 'white',
     borderRightWidth: 1,
-    borderRightColor: '#E5E7EB',
+    borderRightColor: '#F3F4F6',
     paddingTop: 20,
   },
   lessonsTitle: {
@@ -328,7 +379,7 @@ const styles = StyleSheet.create({
   activeLesson: {
     backgroundColor: '#F0F9FF',
     borderRightWidth: 3,
-    borderRightColor: '#0891B2',
+    borderRightColor: '#3B82F6',
   },
   completedLesson: {
     backgroundColor: '#F0FDF4',
@@ -346,6 +397,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
+  completedLessonNumber: {
+    backgroundColor: '#D1FAE5',
+  },
+  activeLessonNumber: {
+    backgroundColor: '#DBEAFE',
+  },
   lessonNumberText: {
     fontSize: 14,
     fontWeight: '600',
@@ -353,6 +410,9 @@ const styles = StyleSheet.create({
   },
   completedLessonText: {
     color: '#10B981',
+  },
+  activeLessonText: {
+    color: '#3B82F6',
   },
   lessonInfo: {
     flex: 1,
@@ -436,16 +496,58 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 24,
   },
+  videoIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   videoPlaceholderText: {
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  videoDescription: {
+    fontSize: 14,
     color: '#6B7280',
-    marginTop: 12,
+    textAlign: 'center',
+  },
+  quizSection: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    marginBottom: 24,
+  },
+  quizIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  quizTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  quizDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
   },
   quizButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0891B2',
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 12,
@@ -462,27 +564,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 24,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: '#F3F4F6',
   },
-  previousButton: {
+  navigationButton: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
+    borderRadius: 12,
     gap: 8,
   },
-  previousButtonText: {
+  previousButton: {
+    backgroundColor: '#F3F4F6',
+  },
+  nextButton: {
+    backgroundColor: '#3B82F6',
+  },
+  disabledButton: {
+    backgroundColor: '#F9FAFB',
+  },
+  navigationButtonText: {
     fontSize: 16,
     color: '#6B7280',
     fontWeight: '500',
   },
-  nextButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    gap: 8,
+  disabledButtonText: {
+    color: '#9CA3AF',
   },
   nextButtonText: {
     color: 'white',

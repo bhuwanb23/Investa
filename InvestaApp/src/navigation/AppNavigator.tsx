@@ -16,7 +16,7 @@ import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import HomeScreen from '../screens/main/HomeScreen';
 import CoursesScreen from '../screens/main/CoursesScreen';
 import LessonsScreen from '../screens/main/LessonsScreen';
-import QuizScreen from '../screens/main/QuizScreen';
+import QuizScreen from '../screens/quiz/QuizScreen';
 import TradingScreen from '../screens/main/TradingScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 import ProgressScreen from '../screens/main/ProgressScreen';
@@ -24,6 +24,25 @@ import ProgressScreen from '../screens/main/ProgressScreen';
 // Course Screens
 import CourseDetailScreen from '../screens/courses/CourseDetailScreen';
 import LessonDetailScreen from '../screens/courses/LessonDetailScreen';
+import LearningHomeScreen from '../screens/courses/LearningHomeScreen';
+import ModuleDetailScreen from '../screens/courses/ModuleDetailScreen';
+import ModuleProgressScreen from '../screens/courses/ModuleProgressScreen';
+
+// Quiz Screens
+import QuizStartScreen from '../screens/quiz/QuizStartScreen';
+import QuizQuestionScreen from '../screens/quiz/QuizQuestionScreen';
+import QuizResultScreen from '../screens/quiz/QuizResultScreen';
+
+// Trading Screens
+import MarketWatchlistScreen from '../screens/trading/MarketWatchlistScreen';
+import StockDetailScreen from '../screens/trading/StockDetailScreen';
+import PlaceOrderScreen from '../screens/trading/PlaceOrderScreen';
+import PortfolioScreen from '../screens/trading/PortfolioScreen';
+import OrderHistoryScreen from '../screens/trading/OrderHistoryScreen';
+import LeaderboardScreen from '../screens/trading/LeaderboardScreen';
+
+// Bookmark Screen
+import BookmarksScreen from '../screens/main/BookmarksScreen';
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -33,9 +52,33 @@ export type AuthStackParamList = {
 
 export type MainStackParamList = {
   MainTabs: undefined;
-  CourseDetail: undefined;
-  LessonDetail: undefined;
+  CourseDetail: { courseId: string };
+  LessonDetail: { lessonId: string };
   Quiz: undefined;
+  LearningHome: undefined;
+  ModuleDetail: { moduleId: number };
+  ModuleProgress: { moduleId: number };
+  QuizStart: undefined;
+  QuizQuestion: { 
+    quizId: string; 
+    quizTitle: string; 
+    timeLimit: number; 
+  };
+  QuizResult: { 
+    score: number; 
+    totalQuestions: number; 
+    correctAnswers: number; 
+    timeTaken: number; 
+    quizId: string; 
+  };
+  Bookmarks: undefined;
+  // Trading Navigation
+  MarketWatchlist: undefined;
+  StockDetail: { stockSymbol: string; stockName: string };
+  PlaceOrder: { stockSymbol: string; stockName: string; currentPrice: number };
+  Portfolio: undefined;
+  OrderHistory: undefined;
+  Leaderboard: undefined;
 };
 
 const AuthStack = createStackNavigator<AuthStackParamList>();
@@ -114,6 +157,72 @@ const MainStackNavigator = () => {
         name="Quiz" 
         component={QuizScreen}
         options={{ title: 'Quiz' }}
+      />
+      <MainStack.Screen 
+        name="LearningHome" 
+        component={LearningHomeScreen}
+        options={{ title: 'Learning Modules', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="ModuleDetail" 
+        component={ModuleDetailScreen}
+        options={{ title: 'Module Details', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="ModuleProgress" 
+        component={ModuleProgressScreen}
+        options={{ title: 'Module Progress', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="QuizStart" 
+        component={QuizStartScreen}
+        options={{ title: 'Quiz Topics', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="QuizQuestion" 
+        component={QuizQuestionScreen}
+        options={{ title: 'Quiz', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="QuizResult" 
+        component={QuizResultScreen}
+        options={{ title: 'Quiz Results', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="Bookmarks" 
+        component={BookmarksScreen}
+        options={{ title: 'Bookmarks', headerShown: false }}
+      />
+      {/* Trading Screens */}
+      <MainStack.Screen 
+        name="MarketWatchlist" 
+        component={MarketWatchlistScreen}
+        options={{ title: 'Market Watchlist', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="StockDetail" 
+        component={StockDetailScreen}
+        options={{ title: 'Stock Details', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="PlaceOrder" 
+        component={PlaceOrderScreen}
+        options={{ title: 'Place Order', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="Portfolio" 
+        component={PortfolioScreen}
+        options={{ title: 'Portfolio', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="OrderHistory" 
+        component={OrderHistoryScreen}
+        options={{ title: 'Order History', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="Leaderboard" 
+        component={LeaderboardScreen}
+        options={{ title: 'Leaderboard', headerShown: false }}
       />
     </MainStack.Navigator>
   );

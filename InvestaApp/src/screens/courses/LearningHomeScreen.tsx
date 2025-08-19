@@ -10,12 +10,15 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import SearchBar from '../../components/SearchBar';
+import EmptyState from '../../components/EmptyState';
 
 const { width } = Dimensions.get('window');
 
 const LearningHomeScreen = () => {
   const navigation = useNavigation();
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const categories = [
     { id: 'all', name: 'All Modules', icon: 'grid' },
@@ -36,6 +39,7 @@ const LearningHomeScreen = () => {
       difficulty: 'Beginner',
       icon: 'business',
       color: '#3B82F6',
+      bgColor: '#DBEAFE',
     },
     {
       id: 2,
@@ -48,6 +52,7 @@ const LearningHomeScreen = () => {
       difficulty: 'Beginner',
       icon: 'trending-up',
       color: '#059669',
+      bgColor: '#D1FAE5',
     },
     {
       id: 3,
@@ -60,6 +65,7 @@ const LearningHomeScreen = () => {
       difficulty: 'Intermediate',
       icon: 'analytics',
       color: '#7C3AED',
+      bgColor: '#EDE9FE',
     },
     {
       id: 4,
@@ -72,6 +78,7 @@ const LearningHomeScreen = () => {
       difficulty: 'Intermediate',
       icon: 'list',
       color: '#DC2626',
+      bgColor: '#FEE2E2',
     },
     {
       id: 5,
@@ -84,6 +91,7 @@ const LearningHomeScreen = () => {
       difficulty: 'Advanced',
       icon: 'pie-chart',
       color: '#F59E0B',
+      bgColor: '#FEF3C7',
     },
     {
       id: 6,
@@ -96,12 +104,17 @@ const LearningHomeScreen = () => {
       difficulty: 'Advanced',
       icon: 'shield-checkmark',
       color: '#10B981',
+      bgColor: '#D1FAE5',
     },
   ];
 
-  const filteredModules = selectedCategory === 'all' 
-    ? learningModules 
-    : learningModules.filter(module => module.category === selectedCategory);
+  const filteredModules = learningModules.filter(module => {
+    const matchesSearch = module.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         module.description.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (selectedCategory === 'all') return matchesSearch;
+    return module.category === selectedCategory && matchesSearch;
+  });
 
   const renderCategoryButton = (category: any) => (
     <TouchableOpacity
@@ -134,7 +147,7 @@ const LearningHomeScreen = () => {
       activeOpacity={0.8}
     >
       <View style={styles.moduleHeader}>
-        <View style={[styles.moduleIcon, { backgroundColor: module.color + '20' }]}>
+        <View style={[styles.moduleIcon, { backgroundColor: module.bgColor }]}>
           <Ionicons name={module.icon as any} size={24} color={module.color} />
         </View>
         <View style={styles.moduleBadge}>
@@ -175,30 +188,50 @@ const LearningHomeScreen = () => {
             <Text style={styles.progressText}>{Math.round(module.progress * 100)}%</Text>
           </View>
         ) : (
-          <View style={styles.startButton}>
+          <TouchableOpacity style={[styles.startButton, { borderColor: module.color }]}>
             <Text style={[styles.startButtonText, { color: module.color }]}>Start</Text>
             <Ionicons name="play" size={16} color={module.color} />
-          </View>
+          </TouchableOpacity>
         )}
       </View>
     </TouchableOpacity>
   );
 
+  const getEmptyStateMessage = () => {
+    if (searchQuery) {
+      return `No modules match "${searchQuery}"`;
+    }
+    if (selectedCategory === 'all') {
+      return 'No learning modules available at the moment.';
+    }
+    return `No ${selectedCategory} modules available.`;
+  };
+
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()} 
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Learning Modules</Text>
-        <TouchableOpacity style={styles.bookmarkButton}>
-          <Ionicons name="bookmark-outline" size={24} color="#1F2937" />
-        </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Learning Modules</Text>
+          <TouchableOpacity style={styles.bookmarkButton}>
+            <Ionicons name="bookmark-outline" size={24} color="#1F2937" />
+          </TouchableOpacity>
+        </View>
       </View>
 
+      {/* Search Bar */}
+      <View style={styles.searchSection}>
+        <SearchBar
+          placeholder="Search modules..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
+      {/* Categories */}
       <View style={styles.categoriesContainer}>
         <ScrollView 
           horizontal 
@@ -209,6 +242,12 @@ const LearningHomeScreen = () => {
         </ScrollView>
       </View>
 
+      {/* Module Count */}
+      <View style={styles.countSection}>
+        <Text style={styles.countText}>{filteredModules.length} modules available</Text>
+      </View>
+
+      {/* Modules List */}
       <FlatList
         data={filteredModules}
         renderItem={({ item }) => renderModuleCard(item)}
@@ -216,6 +255,14 @@ const LearningHomeScreen = () => {
         contentContainerStyle={styles.modulesList}
         showsVerticalScrollIndicator={false}
       />
+
+      {filteredModules.length === 0 && (
+        <EmptyState
+          icon="school-outline"
+          title="No Modules Found"
+          message={getEmptyStateMessage()}
+        />
+      )}
     </View>
   );
 };
@@ -226,35 +273,46 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
   header: {
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    paddingTop: 60,
+    paddingBottom: 16,
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    paddingHorizontal: 16,
   },
   backButton: {
     padding: 8,
+    marginLeft: -8,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
   },
   bookmarkButton: {
     padding: 8,
+    marginRight: -8,
+  },
+  searchSection: {
+    backgroundColor: 'white',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
   categoriesContainer: {
     backgroundColor: 'white',
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: '#F3F4F6',
   },
   categoriesScroll: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   categoryButton: {
     flexDirection: 'row',
@@ -277,8 +335,17 @@ const styles = StyleSheet.create({
   selectedCategoryText: {
     color: 'white',
   },
+  countSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#F9FAFB',
+  },
+  countText: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
   modulesList: {
-    padding: 20,
+    padding: 16,
   },
   moduleCard: {
     backgroundColor: 'white',
@@ -300,7 +367,7 @@ const styles = StyleSheet.create({
   moduleIcon: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -370,6 +437,10 @@ const styles = StyleSheet.create({
   startButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
     gap: 4,
   },
   startButtonText: {

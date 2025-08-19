@@ -11,8 +11,19 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
+// Define navigation types
+type RootStackParamList = {
+  StockDetail: { stockSymbol: string; stockName: string };
+  Home: undefined;
+};
+
+type NavigationProp = {
+  navigate: (screen: keyof RootStackParamList, params?: any) => void;
+  goBack: () => void;
+};
+
 const MarketWatchlistScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState('nifty');
 
@@ -123,7 +134,10 @@ const MarketWatchlistScreen = () => {
     <TouchableOpacity
       key={stock.id}
       style={styles.stockItem}
-      onPress={() => navigation.navigate('StockDetail', { stockId: stock.id })}
+      onPress={() => navigation.navigate('StockDetail', { 
+        stockSymbol: stock.symbol, 
+        stockName: stock.name 
+      })}
       activeOpacity={0.8}
     >
       <View style={styles.stockHeader}>
