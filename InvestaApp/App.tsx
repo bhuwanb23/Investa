@@ -1,10 +1,9 @@
-import 'react-native-reanimated';
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView, View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import AppNavigator from './src/navigation/AppNavigator';
-import { AuthProvider } from './src/context/AuthContext';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { NavigationContainer, DefaultTheme, DarkTheme, createNavigationContainerRef } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
@@ -19,43 +18,52 @@ export default function App() {
 		<AuthProvider>
 			<PaperProvider>
 				<SafeAreaView style={{ flex: 1 }}>
-					<View style={{ flex: 1 }}>
-						<NavigationContainer ref={navigationRef} theme={theme}>
-							<View style={{ flex: 1, paddingBottom: NAVBAR_HEIGHT + 24 }}>
-								<AppNavigator />
-							</View>
-						</NavigationContainer>
-						<View style={styles.navbarWrapper} pointerEvents="box-none">
-							<View style={styles.navbar}>
-								<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Home')}>
-									<Ionicons name="home" size={20} color="#4f46e5" />
-									<Text style={styles.navLabel}>Home</Text>
-								</TouchableOpacity>
-								<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Courses')}>
-									<Ionicons name="library" size={20} color="#6B7280" />
-									<Text style={styles.navLabel}>Courses</Text>
-								</TouchableOpacity>
-								<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Trading')}>
-									<Ionicons name="trending-up" size={20} color="#6B7280" />
-									<Text style={styles.navLabel}>Trading</Text>
-								</TouchableOpacity>
-								<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Progress')}>
-									<Ionicons name="analytics" size={20} color="#6B7280" />
-									<Text style={styles.navLabel}>Progress</Text>
-								</TouchableOpacity>
-								<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Profile')}>
-									<Ionicons name="person" size={20} color="#6B7280" />
-									<Text style={styles.navLabel}>Profile</Text>
-								</TouchableOpacity>
-							</View>
-						</View>
-					</View>
+					<AppShell theme={theme} />
 				</SafeAreaView>
 				<StatusBar style="auto" />
 			</PaperProvider>
 		</AuthProvider>
 	);
 }
+
+const AppShell = ({ theme }: { theme: any }) => {
+	const { user } = useAuth();
+	return (
+		<View style={{ flex: 1 }}>
+			<NavigationContainer ref={navigationRef} theme={theme}>
+				<View style={{ flex: 1, paddingBottom: user ? NAVBAR_HEIGHT + 24 : 0 }}>
+					<AppNavigator />
+				</View>
+			</NavigationContainer>
+			{user && (
+				<View style={styles.navbarWrapper} pointerEvents="box-none">
+					<View style={styles.navbar}>
+						<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Home')}>
+							<Ionicons name="home" size={20} color="#4f46e5" />
+							<Text style={styles.navLabel}>Home</Text>
+						</TouchableOpacity>
+						<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Courses')}>
+							<Ionicons name="library" size={20} color="#6B7280" />
+							<Text style={styles.navLabel}>Courses</Text>
+						</TouchableOpacity>
+						<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Trading')}>
+							<Ionicons name="trending-up" size={20} color="#6B7280" />
+							<Text style={styles.navLabel}>Trading</Text>
+						</TouchableOpacity>
+						<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Progress')}>
+							<Ionicons name="analytics" size={20} color="#6B7280" />
+							<Text style={styles.navLabel}>Progress</Text>
+						</TouchableOpacity>
+						<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Profile')}>
+							<Ionicons name="person" size={20} color="#6B7280" />
+							<Text style={styles.navLabel}>Profile</Text>
+						</TouchableOpacity>
+					</View>
+				</View>
+			)}
+		</View>
+	);
+};
 
 const styles = StyleSheet.create({
 	navbarWrapper: {

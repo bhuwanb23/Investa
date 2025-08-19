@@ -88,26 +88,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       return { success: true, message: 'Login successful!' };
     } catch (error: any) {
-      console.error('❌ Login error:', error);
-      console.error('❌ Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        config: error.config
-      });
-      
-      if (error.response?.data?.non_field_errors) {
-        return { success: false, message: error.response.data.non_field_errors[0] };
-      } else if (error.response?.status === 400) {
-        return { success: false, message: 'Invalid credentials. Please try again.' };
-      } else if (error.response?.status === 500) {
-        return { success: false, message: 'Server error. Please try again later.' };
-      } else if (error.code === 'NETWORK_ERROR' || error.message?.includes('Network Error')) {
-        return { success: false, message: 'Network error. Please check your connection and try again.' };
-      } else {
-        return { success: false, message: `Error: ${error.message || 'Unknown error occurred'}` };
+      // Don't spam console in production
+      if (__DEV__) {
+        console.error('❌ Login error:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          config: error.config
+        });
       }
+
+      const friendly = (msg: string) => ({ success: false, message: msg });
+      if (error?.response?.data?.non_field_errors) {
+        return friendly(error.response.data.non_field_errors[0]);
+      }
+      const status = error?.response?.status;
+      if (status === 400) return friendly('Invalid credentials. Please try again.');
+      if (status === 401) return friendly('Unauthorized. Please check your credentials.');
+      if (status === 500) return friendly('Server error. Please try again later.');
+
+      const code = error?.code || '';
+      const msg = (error?.message || '').toLowerCase();
+      if (code === 'ECONNABORTED' || msg.includes('timeout')) {
+        return friendly('Request timed out. Please try again.');
+      }
+      if (code === 'ERR_NETWORK' || msg.includes('network error')) {
+        return friendly('Cannot reach server. Ensure the backend is running and your device is on the same network.');
+      }
+
+      return friendly('Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }
