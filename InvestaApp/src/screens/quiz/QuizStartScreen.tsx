@@ -2,195 +2,140 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
+  TouchableOpacity,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
-  Dimensions,
-  FlatList,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { MainStackParamList } from '../../navigation/AppNavigator';
-
-const { width } = Dimensions.get('window');
+import { QUIZ_TOPICS, QUIZ_SETTINGS } from './constants/quizData';
+import QuizHeader from './components/QuizHeader';
+import QuizTopicCard from './components/QuizTopicCard';
 
 type QuizStartScreenNavigationProp = StackNavigationProp<MainStackParamList, 'QuizStart'>;
 
 const QuizStartScreen = () => {
   const navigation = useNavigation<QuizStartScreenNavigationProp>();
-  const [selectedTopic, setSelectedTopic] = useState('');
+  const [selectedTopic, setSelectedTopic] = useState<string>('');
 
-  const quizTopics = [
-    {
-      id: '1',
-      title: 'Stock Market Basics',
-      description: 'Test your knowledge of fundamental stock market concepts',
-      questions: 10,
-      timeLimit: 15,
-      difficulty: 'Beginner',
-      icon: 'business',
-      color: '#3B82F6',
-      completed: false,
-      bestScore: 0,
-    },
-    {
-      id: '2',
-      title: 'Technical Analysis',
-      description: 'Charts, patterns, and technical indicators',
-      questions: 15,
-      timeLimit: 20,
-      difficulty: 'Intermediate',
-      icon: 'analytics',
-      color: '#059669',
-      completed: false,
-      bestScore: 0,
-    },
-    {
-      id: '3',
-      title: 'Risk Management',
-      description: 'Portfolio protection and risk assessment',
-      questions: 12,
-      timeLimit: 18,
-      difficulty: 'Advanced',
-      icon: 'shield-checkmark',
-      color: '#DC2626',
-      completed: false,
-      bestScore: 0,
-    },
-    {
-      id: '4',
-      title: 'Market Orders',
-      description: 'Different types of trading orders',
-      questions: 8,
-      timeLimit: 12,
-      difficulty: 'Intermediate',
-      icon: 'list',
-      color: '#7C3AED',
-      completed: false,
-      bestScore: 0,
-    },
-    {
-      id: '5',
-      title: 'Portfolio Diversification',
-      description: 'Building balanced investment portfolios',
-      questions: 10,
-      timeLimit: 15,
-      difficulty: 'Advanced',
-      icon: 'pie-chart',
-      color: '#F59E0B',
-      completed: false,
-      bestScore: 0,
-    },
-  ];
+  const handleTopicSelect = (topicId: string) => {
+    setSelectedTopic(topicId);
+  };
 
   const handleStartQuiz = () => {
-    if (selectedTopic) {
-      const selectedQuiz = quizTopics.find(topic => topic.id === selectedTopic);
-      if (selectedQuiz) {
-        navigation.navigate('QuizQuestion', {
-          quizId: selectedQuiz.id,
-          quizTitle: selectedQuiz.title,
-          timeLimit: selectedQuiz.timeLimit,
-        });
-      }
+    if (!selectedTopic) {
+      Alert.alert('Please select a topic', 'Choose a quiz topic to continue');
+      return;
+    }
+
+    const topic = QUIZ_TOPICS.find(t => t.id === selectedTopic);
+    if (topic) {
+      navigation.navigate('QuizQuestion', {
+        quizId: selectedTopic,
+        quizTitle: topic.title,
+        timeLimit: topic.timeLimit,
+      });
     }
   };
 
-  const renderTopicCard = (topic: any) => (
-    <TouchableOpacity
-      key={topic.id}
-      style={[
-        styles.topicCard,
-        selectedTopic === topic.id && styles.selectedTopic,
-      ]}
-      onPress={() => setSelectedTopic(topic.id)}
-      activeOpacity={0.8}
-    >
-      <View style={styles.topicHeader}>
-        <View style={[styles.topicIcon, { backgroundColor: topic.color + '20' }]}>
-          <Ionicons name={topic.icon as any} size={24} color={topic.color} />
-        </View>
-        <View style={styles.topicInfo}>
-          <Text style={styles.topicTitle}>{topic.title}</Text>
-          <Text style={styles.topicDescription}>{topic.description}</Text>
-          <View style={styles.topicMeta}>
-            <View style={styles.metaItem}>
-              <Ionicons name="help-circle-outline" size={16} color="#6B7280" />
-              <Text style={styles.metaText}>{topic.questions} questions</Text>
-            </View>
-            <View style={styles.metaItem}>
-              <Ionicons name="time-outline" size={16} color="#6B7280" />
-              <Text style={styles.metaText}>{topic.timeLimit} min</Text>
-            </View>
-            <View style={styles.metaItem}>
-              <Ionicons name="trending-up-outline" size={16} color="#6B7280" />
-              <Text style={styles.metaText}>{topic.difficulty}</Text>
-            </View>
-          </View>
-        </View>
-        {topic.completed && (
-          <View style={styles.completedBadge}>
-            <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-          </View>
-        )}
-      </View>
-      
-      {topic.bestScore > 0 && (
-        <View style={styles.scoreInfo}>
-          <Text style={styles.scoreText}>Best Score: {topic.bestScore}%</Text>
-        </View>
-      )}
-    </TouchableOpacity>
-  );
+  const handleBack = () => {
+    navigation.goBack();
+  };
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()} 
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Quiz Topics</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <QuizHeader
+        title="Quiz Center"
+        onBack={handleBack}
+        showMenuButton={true}
+      />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.introSection}>
-          <Text style={styles.introTitle}>Test Your Knowledge</Text>
-          <Text style={styles.introDescription}>
-            Choose a topic to start your quiz. Each quiz contains multiple-choice questions to test your understanding of investment concepts.
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <View style={styles.heroIcon}>
+            <Ionicons name="bulb" size={48} color="#3B82F6" />
+          </View>
+          <Text style={styles.heroTitle}>Financial Knowledge Quiz</Text>
+          <Text style={styles.heroSubtitle}>
+            Test your understanding and boost your financial literacy with our interactive quiz
           </Text>
         </View>
 
-        <View style={styles.topicsSection}>
-          <Text style={styles.sectionTitle}>Available Topics</Text>
-          {quizTopics.map(renderTopicCard)}
+        {/* Instructions Section */}
+        <View style={styles.instructionsSection}>
+          <View style={styles.instructionHeader}>
+            <View style={styles.instructionIcon}>
+              <Ionicons name="information-circle" size={20} color="#3B82F6" />
+            </View>
+            <View style={styles.instructionContent}>
+              <Text style={styles.instructionTitle}>How it works</Text>
+              <Text style={styles.instructionText}>
+                Choose a topic, answer questions, and get instant feedback on your performance
+              </Text>
+            </View>
+          </View>
+          
+          <View style={styles.instructionStats}>
+            <View style={styles.stat}>
+              <Ionicons name="time-outline" size={16} color="#6B7280" />
+              <Text style={styles.statText}>5-10 min</Text>
+            </View>
+            <View style={styles.stat}>
+              <Ionicons name="help-circle-outline" size={16} color="#6B7280" />
+              <Text style={styles.statText}>10 questions</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Topic Selection */}
+        <View style={styles.topicSection}>
+          <Text style={styles.sectionTitle}>Choose Your Topic</Text>
+          
+          {QUIZ_TOPICS.map((topic) => (
+            <QuizTopicCard
+              key={topic.id}
+              topic={topic}
+              isSelected={selectedTopic === topic.id}
+              onPress={() => handleTopicSelect(topic.id)}
+            />
+          ))}
+        </View>
+
+        {/* Progress Section */}
+        <View style={styles.progressSection}>
+          <View style={styles.progressHeader}>
+            <Text style={styles.progressTitle}>Quiz Attempts</Text>
+            <Text style={styles.progressSubtitle}>
+              {QUIZ_SETTINGS.maxAttemptsPerDay} left today
+            </Text>
+          </View>
+          <View style={styles.progressBar}>
+            <View style={[styles.progressFill, { width: '60%' }]} />
+          </View>
+          <Text style={styles.progressNote}>Resets at midnight</Text>
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      {/* Bottom Action */}
+      <View style={styles.bottomSection}>
         <TouchableOpacity
           style={[
             styles.startButton,
-            !selectedTopic && styles.startButtonDisabled,
+            !selectedTopic && styles.disabledButton,
           ]}
           onPress={handleStartQuiz}
           disabled={!selectedTopic}
         >
-          <Text style={[
-            styles.startButtonText,
-            !selectedTopic && styles.startButtonTextDisabled,
-          ]}>
-            Start Quiz
+          <Text style={styles.startButtonText}>
+            {selectedTopic 
+              ? `Start ${QUIZ_TOPICS.find(t => t.id === selectedTopic)?.title} Quiz`
+              : 'Select a topic to start'
+            }
           </Text>
-          <Ionicons 
-            name="arrow-forward" 
-            size={20} 
-            color={selectedTopic ? 'white' : '#9CA3AF'} 
-          />
         </TouchableOpacity>
       </View>
     </View>
@@ -202,49 +147,94 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2937',
-  },
-  headerSpacer: {
-    width: 40,
-  },
   content: {
     flex: 1,
   },
-  introSection: {
-    padding: 20,
-    backgroundColor: 'white',
+  heroSection: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 32,
+  },
+  heroIcon: {
+    width: 64,
+    height: 64,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 16,
   },
-  introTitle: {
+  heroTitle: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: 'bold',
     color: '#1F2937',
     marginBottom: 8,
+    textAlign: 'center',
   },
-  introDescription: {
+  heroSubtitle: {
     fontSize: 16,
     color: '#6B7280',
+    textAlign: 'center',
     lineHeight: 24,
-  },
-  topicsSection: {
     paddingHorizontal: 20,
+  },
+  instructionsSection: {
+    backgroundColor: 'white',
+    marginHorizontal: 16,
+    marginBottom: 24,
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  instructionHeader: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  instructionIcon: {
+    width: 32,
+    height: 32,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  instructionContent: {
+    flex: 1,
+  },
+  instructionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  instructionText: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+  },
+  instructionStats: {
+    flexDirection: 'row',
+    gap: 24,
+  },
+  stat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  statText: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  topicSection: {
+    paddingHorizontal: 16,
+    marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 18,
@@ -252,102 +242,64 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     marginBottom: 16,
   },
-  topicCard: {
+  progressSection: {
     backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  selectedTopic: {
-    borderWidth: 2,
-    borderColor: '#3B82F6',
-  },
-  topicHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  topicIcon: {
-    width: 48,
-    height: 48,
+    marginHorizontal: 16,
+    marginBottom: 24,
+    padding: 16,
     borderRadius: 12,
-    justifyContent: 'center',
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginRight: 16,
+    marginBottom: 12,
   },
-  topicInfo: {
-    flex: 1,
-  },
-  topicTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+  progressTitle: {
+    fontSize: 14,
+    fontWeight: '500',
     color: '#1F2937',
-    marginBottom: 4,
   },
-  topicDescription: {
+  progressSubtitle: {
     fontSize: 14,
     color: '#6B7280',
-    marginBottom: 12,
-    lineHeight: 20,
   },
-  topicMeta: {
-    flexDirection: 'row',
-    gap: 16,
+  progressBar: {
+    width: '100%',
+    height: 8,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    marginBottom: 8,
   },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#10B981',
+    borderRadius: 4,
   },
-  metaText: {
+  progressNote: {
     fontSize: 12,
     color: '#6B7280',
-    fontWeight: '500',
   },
-  completedBadge: {
-    marginLeft: 'auto',
-  },
-  scoreInfo: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-  },
-  scoreText: {
-    fontSize: 14,
-    color: '#10B981',
-    fontWeight: '600',
-  },
-  footer: {
+  bottomSection: {
     padding: 20,
     backgroundColor: 'white',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
   },
   startButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: '#3B82F6',
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 12,
-    gap: 8,
+    alignItems: 'center',
   },
-  startButtonDisabled: {
-    backgroundColor: '#F3F4F6',
+  disabledButton: {
+    backgroundColor: '#D1D5DB',
   },
   startButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
-  },
-  startButtonTextDisabled: {
-    color: '#9CA3AF',
   },
 });
 

@@ -1,20 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   ScrollView,
   Alert,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
-import { ProgressBar } from 'react-native-paper';
 import { MainStackParamList } from '../../navigation/AppNavigator';
-
-const { width, height } = Dimensions.get('window');
+import { QUIZ_QUESTIONS } from './constants/quizData';
+import { useQuizTimer } from './hooks/useQuizTimer';
+import { useQuizProgress } from './hooks/useQuizProgress';
+import QuizHeader from './components/QuizHeader';
+import QuizTimer from './components/QuizTimer';
+import QuizProgressBar from './components/QuizProgressBar';
+import QuizQuestionCard from './components/QuizQuestionCard';
+import QuizOptionButton from './components/QuizOptionButton';
+import QuizExplanation from './components/QuizExplanation';
 
 type QuizQuestionScreenNavigationProp = StackNavigationProp<MainStackParamList, 'QuizQuestion'>;
 type QuizQuestionScreenRouteProp = RouteProp<MainStackParamList, 'QuizQuestion'>;
@@ -24,156 +29,66 @@ const QuizQuestionScreen = () => {
   const route = useRoute<QuizQuestionScreenRouteProp>();
   const { quizId, quizTitle, timeLimit } = route.params;
 
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [answers, setAnswers] = useState<number[]>([]);
-  const [timeLeft, setTimeLeft] = useState(timeLimit * 60); // Convert to seconds
-  const [isAnswered, setIsAnswered] = useState(false);
-  const [showExplanation, setShowExplanation] = useState(false);
+  const questions = QUIZ_QUESTIONS[quizId] || [];
+  const totalTime = timeLimit * 60; // Convert to seconds
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const {
+    timeLeft,
+    formatTime,
+    startTimer,
+    pauseTimer,
+    resetTimer,
+  } = useQuizTimer({
+    initialTime: totalTime,
+    onTimeUp: handleTimeUp,
+    autoStart: true,
+  });
 
-  // Mock quiz questions
-  const questions = [
-    {
-      id: 1,
-      question: "What is a stock?",
-      options: [
-        "A type of bond issued by companies",
-        "A share of ownership in a company",
-        "A government security",
-        "A type of mutual fund"
-      ],
-      correctAnswer: 1,
-      explanation: "A stock represents a share of ownership in a company. When you buy a stock, you're purchasing a small piece of that company, called a share."
-    },
-    {
-      id: 2,
-      question: "What is the primary purpose of a stock exchange?",
-      options: [
-        "To provide loans to companies",
-        "To facilitate buying and selling of securities",
-        "To regulate company operations",
-        "To provide insurance for investors"
-      ],
-      correctAnswer: 1,
-      explanation: "Stock exchanges provide a marketplace where buyers and sellers can trade securities like stocks, bonds, and other financial instruments."
-    },
-    {
-      id: 3,
-      question: "What does 'bull market' refer to?",
-      options: [
-        "A market where prices are falling",
-        "A market where prices are rising",
-        "A market with high volatility",
-        "A market with low trading volume"
-      ],
-      correctAnswer: 1,
-      explanation: "A bull market is characterized by rising stock prices and optimistic investor sentiment, typically lasting for an extended period."
-    },
-    {
-      id: 4,
-      question: "What is a dividend?",
-      options: [
-        "A fee paid to brokers",
-        "A portion of company profits paid to shareholders",
-        "A type of stock option",
-        "A government tax on investments"
-      ],
-      correctAnswer: 1,
-      explanation: "A dividend is a distribution of profits by a corporation to its shareholders, usually paid in cash or additional shares."
-    },
-    {
-      id: 5,
-      question: "What is market capitalization?",
-      options: [
-        "The total number of shares outstanding",
-        "The total value of a company's shares",
-        "The price of a single share",
-        "The annual revenue of a company"
-      ],
-      correctAnswer: 1,
-      explanation: "Market capitalization is calculated by multiplying the current share price by the total number of outstanding shares."
-    }
-  ];
+  const {
+    currentQuestionIndex,
+    selectedAnswers,
+    isAnswered,
+    showExplanation,
+    progress,
+    selectAnswer,
+    nextQuestion,
+    previousQuestion,
+    submitQuiz,
+    canGoNext,
+    canGoPrevious,
+    isLastQuestion,
+  } = useQuizProgress({
+    questions,
+    onComplete: handleQuizComplete,
+  });
 
-  useEffect(() => {
-    // Start timer
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          // Time's up, submit quiz
-          handleSubmitQuiz();
-          return 0;
+  const currentQuestion = questions[currentQuestionIndex];
+
+  function handleTimeUp() {
+    Alert.alert(
+      "Time's Up!",
+      "The quiz time has expired. Your answers will be submitted automatically.",
+      [
+        {
+          text: "OK",
+          onPress: () => {
+            const result = submitQuiz();
+            navigation.navigate('QuizResult', {
+              ...result,
+              timeTaken: totalTime - timeLeft,
+            });
+          }
         }
-        return prev - 1;
-      });
-    }, 1000);
+      ]
+    );
+  }
 
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, []);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const handleAnswerSelect = (answerIndex: number) => {
-    if (!isAnswered) {
-      setSelectedAnswer(answerIndex);
-    }
-  };
-
-  const handleNextQuestion = () => {
-    if (selectedAnswer !== null) {
-      // Save answer
-      const newAnswers = [...answers];
-      newAnswers[currentQuestionIndex] = selectedAnswer;
-      setAnswers(newAnswers);
-
-      // Move to next question or finish
-      if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-        setSelectedAnswer(null);
-        setIsAnswered(false);
-        setShowExplanation(false);
-      } else {
-        handleSubmitQuiz();
-      }
-    }
-  };
-
-  const handleSubmitQuiz = () => {
-    // Calculate results
-    let correctAnswers = 0;
-    answers.forEach((answer, index) => {
-      if (answer === questions[index].correctAnswer) {
-        correctAnswers++;
-      }
-    });
-
-    const score = Math.round((correctAnswers / questions.length) * 100);
-    const timeTaken = (timeLimit * 60) - timeLeft;
-
-    // Clear timer
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-
-    // Navigate to results
+  function handleQuizComplete(result: any) {
     navigation.navigate('QuizResult', {
-      score,
-      totalQuestions: questions.length,
-      correctAnswers,
-      timeTaken,
-      quizId,
+      ...result,
+      timeTaken: totalTime - timeLeft,
     });
-  };
+  }
 
   const handleExitQuiz = () => {
     Alert.alert(
@@ -185,9 +100,7 @@ const QuizQuestionScreen = () => {
           text: "Exit", 
           style: "destructive",
           onPress: () => {
-            if (timerRef.current) {
-              clearInterval(timerRef.current);
-            }
+            resetTimer();
             navigation.goBack();
           }
         }
@@ -195,122 +108,121 @@ const QuizQuestionScreen = () => {
     );
   };
 
-  const currentQuestion = questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  const handleSkipQuestion = () => {
+    if (!isAnswered) {
+      selectAnswer(-1); // -1 indicates skipped
+    }
+  };
+
+  const handleNextQuestion = () => {
+    if (isLastQuestion) {
+      const result = submitQuiz();
+      navigation.navigate('QuizResult', {
+        ...result,
+        timeTaken: totalTime - timeLeft,
+      });
+    } else {
+      nextQuestion();
+    }
+  };
+
+  const handleHint = () => {
+    Alert.alert(
+      "Hint",
+      "Read the question carefully and eliminate obviously wrong answers first.",
+      [{ text: "OK" }]
+    );
+  };
+
+  if (!currentQuestion) {
+    return (
+      <View style={styles.container}>
+        <QuizHeader title="Quiz" onBack={handleExitQuiz} />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>No questions available for this quiz.</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleExitQuiz} style={styles.exitButton}>
-          <Ionicons name="close" size={24} color="#1F2937" />
-        </TouchableOpacity>
-        <View style={styles.headerInfo}>
-          <Text style={styles.quizTitle}>{quizTitle}</Text>
-          <Text style={styles.questionCounter}>
-            Question {currentQuestionIndex + 1} of {questions.length}
-          </Text>
-        </View>
-        <View style={styles.timerContainer}>
-          <Ionicons name="time-outline" size={20} color="#EF4444" />
-          <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
-        </View>
-      </View>
+      <QuizHeader 
+        title="Quiz" 
+        onBack={handleExitQuiz}
+        rightComponent={
+          <QuizTimer timeLeft={timeLeft} formatTime={formatTime} />
+        }
+      />
 
-      {/* Progress Bar */}
-      <View style={styles.progressSection}>
-        <ProgressBar 
-          progress={progress / 100} 
-          color="#3B82F6" 
-          style={styles.progressBar}
-        />
-        <Text style={styles.progressText}>{Math.round(progress)}% Complete</Text>
-      </View>
+      <QuizProgressBar
+        progress={progress}
+        currentQuestion={currentQuestionIndex + 1}
+        totalQuestions={questions.length}
+      />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Question */}
-        <View style={styles.questionSection}>
-          <Text style={styles.questionText}>{currentQuestion.question}</Text>
+        <QuizQuestionCard
+          question={currentQuestion.question}
+          questionNumber={currentQuestionIndex + 1}
+          totalQuestions={questions.length}
+        />
+
+        <View style={styles.optionsContainer}>
+          {currentQuestion.options.map((option, index) => (
+            <QuizOptionButton
+              key={index}
+              option={option}
+              optionIndex={index}
+              isSelected={selectedAnswers[currentQuestionIndex] === index}
+              isCorrect={index === currentQuestion.correctAnswer}
+              showResult={isAnswered}
+              onPress={() => selectAnswer(index)}
+              disabled={isAnswered}
+            />
+          ))}
         </View>
 
-        {/* Answer Options */}
-        <View style={styles.optionsSection}>
-          {currentQuestion.options.map((option, index) => {
-            const isSelected = selectedAnswer === index;
-            const isCorrect = currentQuestion.correctAnswer === index;
-            const showResult = isAnswered && (isSelected || isCorrect);
-
-            return (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.optionButton,
-                  isSelected && styles.selectedOption,
-                  showResult && isCorrect && styles.correctOption,
-                  showResult && isSelected && !isCorrect && styles.incorrectOption,
-                ]}
-                onPress={() => handleAnswerSelect(index)}
-                disabled={isAnswered}
-              >
-                <View style={styles.optionContent}>
-                  <Text style={[
-                    styles.optionText,
-                    isSelected && styles.selectedOptionText,
-                    showResult && isCorrect && styles.correctOptionText,
-                    showResult && isSelected && !isCorrect && styles.incorrectOptionText,
-                  ]}>
-                    {option}
-                  </Text>
-                  {showResult && (
-                    <Ionicons 
-                      name={isCorrect ? "checkmark-circle" : "close-circle"} 
-                      size={24} 
-                      color={isCorrect ? "#10B981" : "#EF4444"} 
-                    />
-                  )}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* Explanation */}
-        {showExplanation && (
-          <View style={styles.explanationSection}>
-            <Text style={styles.explanationTitle}>Explanation</Text>
-            <Text style={styles.explanationText}>{currentQuestion.explanation}</Text>
-          </View>
-        )}
+        <QuizExplanation
+          explanation={currentQuestion.explanation}
+          isVisible={showExplanation}
+        />
       </ScrollView>
 
-      {/* Footer */}
+      {/* Navigation Footer */}
       <View style={styles.footer}>
-        {!isAnswered ? (
+        <View style={styles.footerContent}>
+          <TouchableOpacity
+            style={styles.skipButton}
+            onPress={handleSkipQuestion}
+            disabled={isAnswered}
+          >
+            <Text style={styles.skipButtonText}>Skip</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={[
               styles.nextButton,
-              selectedAnswer === null && styles.disabledButton,
+              !canGoNext && styles.disabledButton,
             ]}
-            onPress={() => {
-              setIsAnswered(true);
-              setShowExplanation(true);
-            }}
-            disabled={selectedAnswer === null}
-          >
-            <Text style={styles.nextButtonText}>Check Answer</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={styles.nextButton}
             onPress={handleNextQuestion}
+            disabled={!canGoNext}
           >
             <Text style={styles.nextButtonText}>
-              {currentQuestionIndex === questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
+              {isLastQuestion ? 'Finish Quiz' : 'Next Question'}
             </Text>
             <Ionicons name="arrow-forward" size={20} color="white" />
           </TouchableOpacity>
-        )}
+        </View>
       </View>
+
+      {/* Floating Hint Button */}
+      <TouchableOpacity
+        style={styles.hintButton}
+        onPress={handleHint}
+      >
+        <Ionicons name="bulb" size={24} color="#92400E" />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -320,146 +232,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  exitButton: {
-    padding: 8,
-  },
-  headerInfo: {
+  errorContainer: {
     flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
-  quizTitle: {
+  errorText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 2,
-  },
-  questionCounter: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  timerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  timerText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#EF4444',
-  },
-  progressSection: {
-    backgroundColor: 'white',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  progressBar: {
-    height: 8,
-    borderRadius: 4,
-    marginBottom: 8,
-  },
-  progressText: {
-    fontSize: 12,
     color: '#6B7280',
     textAlign: 'center',
   },
   content: {
     flex: 1,
   },
-  questionSection: {
-    backgroundColor: 'white',
-    margin: 16,
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  questionText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-    lineHeight: 26,
-  },
-  optionsSection: {
+  optionsContainer: {
     paddingHorizontal: 16,
     marginBottom: 16,
-  },
-  optionButton: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-  },
-  selectedOption: {
-    borderColor: '#3B82F6',
-    backgroundColor: '#EFF6FF',
-  },
-  correctOption: {
-    borderColor: '#10B981',
-    backgroundColor: '#ECFDF5',
-  },
-  incorrectOption: {
-    borderColor: '#EF4444',
-    backgroundColor: '#FEF2F2',
-  },
-  optionContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  optionText: {
-    fontSize: 16,
-    color: '#374151',
-    flex: 1,
-    lineHeight: 22,
-  },
-  selectedOptionText: {
-    color: '#1E40AF',
-    fontWeight: '600',
-  },
-  correctOptionText: {
-    color: '#065F46',
-    fontWeight: '600',
-  },
-  incorrectOptionText: {
-    color: '#991B1B',
-    fontWeight: '600',
-  },
-  explanationSection: {
-    backgroundColor: '#F0F9FF',
-    margin: 16,
-    padding: 16,
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: '#3B82F6',
-  },
-  explanationTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1E40AF',
-    marginBottom: 8,
-  },
-  explanationText: {
-    fontSize: 14,
-    color: '#374151',
-    lineHeight: 20,
   },
   footer: {
     padding: 20,
@@ -467,12 +256,25 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
   },
+  footerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  skipButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  skipButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
   nextButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: '#3B82F6',
-    paddingVertical: 16,
+    paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,
     gap: 8,
@@ -481,9 +283,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#D1D5DB',
   },
   nextButtonText: {
-    color: 'white',
     fontSize: 16,
     fontWeight: '600',
+    color: 'white',
+  },
+  hintButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 20,
+    width: 48,
+    height: 48,
+    backgroundColor: '#FCD34D',
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
   },
 });
 
