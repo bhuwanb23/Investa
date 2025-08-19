@@ -1,10 +1,8 @@
 import React from 'react';
-import { NavigationContainer, DefaultTheme, DarkTheme, useTheme } from '@react-navigation/native';
+// import { useTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createDrawerNavigator } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, View, useColorScheme } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
 // Auth Screens
@@ -40,6 +38,7 @@ import PlaceOrderScreen from '../screens/trading/PlaceOrderScreen';
 import PortfolioScreen from '../screens/trading/PortfolioScreen';
 import OrderHistoryScreen from '../screens/trading/OrderHistoryScreen';
 import LeaderboardScreen from '../screens/trading/LeaderboardScreen';
+import NotificationsScreen from '../screens/main/NotificationsScreen';
 
 // Bookmark Screen
 import BookmarksScreen from '../screens/main/BookmarksScreen';
@@ -51,7 +50,11 @@ export type AuthStackParamList = {
 };
 
 export type MainStackParamList = {
-  MainTabs: undefined;
+  Home: undefined;
+  Courses: undefined;
+  Trading: undefined;
+  Progress: undefined;
+  Profile: undefined;
   CourseDetail: { courseId: string };
   LessonDetail: { lessonId: string };
   Quiz: undefined;
@@ -79,127 +82,34 @@ export type MainStackParamList = {
   Portfolio: undefined;
   OrderHistory: undefined;
   Leaderboard: undefined;
+  Notifications: undefined;
 };
 
 const AuthStack = createStackNavigator<AuthStackParamList>();
 const MainStack = createStackNavigator<MainStackParamList>();
-const Tab = createBottomTabNavigator();
-const Drawer = createDrawerNavigator();
-
-// Theme
-const LightTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    primary: '#4f46e5',
-    background: '#F8FAFC',
-    card: '#FFFFFF',
-    text: '#111827',
-    border: '#E5E7EB',
-    notification: '#F59E0B',
-  },
-};
-
-const DarkThemeCustom = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    primary: '#8B5CF6',
-    background: '#0B1220',
-    card: '#111827',
-    text: '#F3F4F6',
-    border: '#1F2937',
-    notification: '#F59E0B',
-  },
-};
-
-// Main Tab Navigator
-const MainTabNavigator = () => {
-  const { colors } = useTheme();
-  return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName: keyof typeof Ionicons.glyphMap;
-
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Courses') {
-            iconName = focused ? 'library' : 'library-outline';
-          } else if (route.name === 'Trading') {
-            iconName = focused ? 'trending-up' : 'trending-up-outline';
-          } else if (route.name === 'Progress') {
-            iconName = focused ? 'analytics' : 'analytics-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
-          } else {
-            iconName = 'help-outline';
-          }
-
-          return (
-            <View style={{
-              padding: 8,
-              borderRadius: 12,
-              backgroundColor: focused ? 'rgba(79,70,229,0.12)' : 'transparent',
-            }}>
-              <Ionicons name={iconName} size={size} color={color} />
-            </View>
-          );
-        },
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: '#9CA3AF',
-        tabBarShowLabel: true,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '700', marginBottom: 6 },
-        tabBarStyle: {
-          position: 'absolute',
-          left: 12,
-          right: 12,
-          bottom: 12,
-          height: 60,
-          borderRadius: 16,
-          backgroundColor: colors.card,
-          borderTopWidth: 0,
-          elevation: 8,
-          shadowColor: '#000',
-          shadowOpacity: 0.08,
-          shadowRadius: 8,
-          shadowOffset: { width: 0, height: 2 },
-        },
-        headerShown: false,
-        tabBarHideOnKeyboard: true,
-      })}
-    >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Courses" component={CoursesScreen} />
-      <Tab.Screen name="Trading" component={TradingScreen} />
-      <Tab.Screen name="Progress" component={ProgressScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
-    </Tab.Navigator>
-  );
-};
+// Bottom tabs removed. Stack-only navigation.
 
 // Main Stack Navigator
 const MainStackNavigator = () => {
-  const { colors } = useTheme();
   return (
     <MainStack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: colors.card,
+          backgroundColor: '#FFFFFF',
           shadowColor: 'transparent',
           elevation: 0,
         },
-        headerTintColor: colors.text,
+        headerTintColor: '#111827',
         headerTitleStyle: {
           fontWeight: '800',
         },
       }}
     >
-      <MainStack.Screen 
-        name="MainTabs" 
-        component={MainTabNavigator} 
-        options={{ headerShown: false }}
-      />
+      <MainStack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+      <MainStack.Screen name="Courses" component={CoursesScreen} options={{ headerShown: false }} />
+      <MainStack.Screen name="Trading" component={TradingScreen} options={{ headerShown: false }} />
+      <MainStack.Screen name="Progress" component={ProgressScreen} options={{ headerShown: false }} />
+      <MainStack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
       <MainStack.Screen 
         name="CourseDetail" 
         component={CourseDetailScreen}
@@ -249,6 +159,11 @@ const MainStackNavigator = () => {
         name="Bookmarks" 
         component={BookmarksScreen}
         options={{ title: 'Bookmarks', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="Notifications" 
+        component={NotificationsScreen}
+        options={{ title: 'Notifications', headerShown: false }}
       />
       {/* Trading Screens */}
       <MainStack.Screen 
@@ -321,7 +236,6 @@ const AuthStackNavigator = () => {
 // Root Navigator
 const AppNavigator = () => {
   const { user, isLoading } = useAuth();
-  const colorScheme = useColorScheme();
 
   console.log('🧭 AppNavigator - Auth state:', { user: !!user, isLoading });
 
@@ -336,11 +250,7 @@ const AppNavigator = () => {
 
   console.log('🎯 AppNavigator - Rendering navigator, user:', user ? 'logged in' : 'not logged in');
   
-  return (
-    <NavigationContainer theme={colorScheme === 'dark' ? DarkThemeCustom : LightTheme}>
-      {user ? <MainStackNavigator /> : <AuthStackNavigator />}
-    </NavigationContainer>
-  );
+  return user ? <MainStackNavigator /> : <AuthStackNavigator />;
 };
 
 export default AppNavigator;

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
 type Props = {
@@ -9,6 +10,8 @@ type Props = {
   onProfilePress?: () => void;
   showBadge?: boolean;
   avatarUri?: string;
+  showBackButton?: boolean;
+  onBackPress?: () => void;
 };
 
 const PRIMARY = '#4f46e5';
@@ -20,18 +23,33 @@ const MainHeader: React.FC<Props> = ({
   onProfilePress,
   showBadge = true,
   avatarUri = 'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg',
+  showBackButton = false,
+  onBackPress,
 }) => {
+  const navigation = useNavigation<any>();
   return (
     <View style={styles.container}>
       <View style={styles.content}>
         <View style={styles.leftRow}>
-          <View style={styles.iconWrap}>
-            <Ionicons name={iconName as any} size={18} color="#fff" />
-          </View>
+          {showBackButton ? (
+            <TouchableOpacity
+              onPress={onBackPress || (() => navigation.goBack())}
+              style={styles.iconWrap}
+            >
+              <Ionicons name="arrow-back" size={18} color="#fff" />
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.iconWrap}>
+              <Ionicons name={iconName as any} size={18} color="#fff" />
+            </View>
+          )}
           <Text style={styles.title}>{title}</Text>
         </View>
         <View style={styles.actions}>
-          <TouchableOpacity onPress={onNotificationsPress} style={styles.actionIcon}>
+          <TouchableOpacity
+            onPress={onNotificationsPress || (() => navigation.navigate('Notifications'))}
+            style={styles.actionIcon}
+          >
             <Ionicons name="notifications" size={20} color="#6B7280" />
             {showBadge && <View style={styles.badge} />}
           </TouchableOpacity>

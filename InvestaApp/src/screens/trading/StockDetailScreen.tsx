@@ -22,6 +22,7 @@ type RootStackParamList = {
   PlaceOrder: { stockSymbol: string; stockName: string; currentPrice: number };
   Home: undefined;
   StockDetail: { stockSymbol: string; stockName: string };
+  Trading: undefined;
 };
 
 type NavigationProp = {
@@ -53,7 +54,7 @@ const StockDetailScreen = () => {
   };
 
   const handleBack = () => {
-    navigation.goBack();
+    navigation.navigate('Trading');
   };
 
   const handleToggleBookmark = () => {

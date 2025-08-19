@@ -23,6 +23,7 @@ type RootStackParamList = {
   StockDetail: { stockSymbol: string; stockName: string };
   PlaceOrder: { stockSymbol: string; stockName: string; currentPrice: number };
   Home: undefined;
+  Trading: undefined;
 };
 
 type NavigationProp = {
@@ -66,7 +67,7 @@ const PlaceOrderScreen = () => {
   const newCash = isBuyMode ? currentCash - totalCost : currentCash + totalCost;
 
   const handleBack = () => {
-    navigation.goBack();
+    navigation.navigate('Trading');
   };
 
   const handleHelp = () => {

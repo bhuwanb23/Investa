@@ -126,10 +126,14 @@ const ProgressScreen = () => {
             <View style={styles.kpiGrid3}>
               {[{ label: 'Accuracy', val: 90, color: SUCCESS }, { label: 'Speed', val: 85, color: PRIMARY }, { label: 'Overall', val: 92, color: '#a855f7' }].map((k, idx) => (
                 <View key={idx} style={styles.ringCard}>
-                  <View style={[styles.ringOuter, { borderColor: '#e5e7eb' }]}> 
-                    <View style={[styles.ringInner, { backgroundColor: k.color, width: `${Math.min(100, k.val)}%` }]} />
+                  <View style={styles.ringWrap}>
+                    <View style={styles.ringOuter}>
+                      <View style={[styles.ringInner, { backgroundColor: k.color, width: `${Math.min(100, k.val)}%` }]} />
+                    </View>
+                    <View style={[styles.scoreBubble, { left: `${Math.min(100, k.val)}%`, borderColor: k.color }]}> 
+                      <Text style={[styles.scoreText, { color: k.color }]}>{k.val}%</Text>
+                    </View>
                   </View>
-                  <Text style={styles.ringValue}>{k.val}%</Text>
                   <Text style={styles.smallMuted}>{k.label}</Text>
                 </View>
               ))}
@@ -387,11 +391,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 12,
   },
+  ringWrap: {
+    width: 72,
+    position: 'relative',
+    paddingVertical: 6,
+  },
   ringOuter: {
-    width: 64,
-    height: 8,
+    width: 72,
+    height: 10,
     borderRadius: 999,
-    borderWidth: 0,
     backgroundColor: '#e5e7eb',
     overflow: 'hidden',
   },
@@ -399,10 +407,26 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 999,
   },
-  ringValue: {
-    marginTop: 8,
-    fontWeight: '800',
-    color: TEXT_DARK,
+  scoreBubble: {
+    position: 'absolute',
+    top: -6,
+    transform: [{ translateX: -16 }],
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  scoreText: {
+    fontWeight: '900',
+    fontSize: 11,
   },
   sparklineRow: {
     flexDirection: 'row',

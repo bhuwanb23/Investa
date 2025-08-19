@@ -15,6 +15,7 @@ import { LEADERBOARD_DATA } from './constants/tradingConstants';
 // Define navigation types
 type RootStackParamList = {
   Home: undefined;
+  Trading: undefined;
 };
 
 type NavigationProp = {
@@ -32,7 +33,7 @@ const LeaderboardScreen = () => {
   const topUsers = LEADERBOARD_DATA.filter(user => !user.isCurrentUser).slice(0, 8);
 
   const handleBack = () => {
-    navigation.goBack();
+    navigation.navigate('Trading');
   };
 
   const handleTimeframeChange = (timeframe: string) => {

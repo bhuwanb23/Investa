@@ -17,11 +17,13 @@ import {
   CategoryTabs,
   SearchBar,
 } from './components';
+import MainHeader from '../../components/MainHeader';
 
 // Define navigation types
 type RootStackParamList = {
   StockDetail: { stockSymbol: string; stockName: string };
   Home: undefined;
+  Trading: undefined;
 };
 
 type NavigationProp = {
@@ -80,18 +82,7 @@ const MarketWatchlistScreen = () => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <Text style={styles.title}>Watchlist</Text>
-          <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.headerButton}>
-              <Ionicons name="notifications-outline" size={24} color="#6B7280" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.headerButton}>
-              <Ionicons name="person-circle-outline" size={24} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
-        </View>
-        
+        <MainHeader title="Watchlist" iconName="trending-up" showBackButton onBackPress={() => navigation.navigate('Trading')} />
         <SearchBar
           value={searchQuery}
           onChangeText={searchStocks}
@@ -160,6 +151,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 12,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  backButton: {
+    padding: 4,
+    marginLeft: -8,
   },
   title: {
     fontSize: 20,

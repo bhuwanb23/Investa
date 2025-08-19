@@ -16,6 +16,7 @@ import { ORDER_HISTORY } from './constants/tradingConstants';
 type RootStackParamList = {
   StockDetail: { stockSymbol: string; stockName: string };
   Home: undefined;
+  Trading: undefined;
 };
 
 type NavigationProp = {
@@ -31,7 +32,7 @@ const OrderHistoryScreen = () => {
   const filters = ['All', 'Buy', 'Sell', 'This Week', 'This Month'];
 
   const handleBack = () => {
-    navigation.goBack();
+    navigation.navigate('Trading');
   };
 
   const handleFilterChange = (filter: string) => {
