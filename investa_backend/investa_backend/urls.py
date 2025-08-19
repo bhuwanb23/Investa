@@ -19,15 +19,11 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
-from api import views as api_views
 
 urlpatterns = [
     path('', RedirectView.as_view(url='/api/', permanent=False)),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
-    # Root-level helpers for dev pages
-    path('dashboard/', api_views.dashboard, name='root_dashboard'),
-    path('database/', api_views.database_view, name='root_database'),
 ]
 
 # Serve media files during development
