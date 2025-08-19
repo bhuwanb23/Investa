@@ -97,6 +97,8 @@ The API will be available at `http://localhost:8000/api/`
 - `POST /api/auth/register/` - User registration
 - `POST /api/auth/login/` - User login
 - `POST /api/auth/token/` - Get authentication token
+- `GET /api/auth/me/` - Get current authenticated user and profile
+- `POST /api/auth/logout/` - Logout and invalidate token
 
 ### Languages
 - `GET /api/languages/` - List all supported languages
@@ -138,6 +140,12 @@ The API will be available at `http://localhost:8000/api/`
 - `GET /api/notifications/` - List user notifications
 - `POST /api/notifications/{id}/mark_read/` - Mark notification as read
 - `POST /api/notifications/mark_all_read/` - Mark all notifications as read
+- `GET /api/notifications/unread_count/` - Get unread notifications count
+- `GET /api/notifications/by_type/?type={notification_type}` - Filter notifications by type
+
+### Developer Tools (Development only)
+- `GET /api/dashboard/` - Simple dashboard to explore available models
+- `GET /api/database/` - Visualize tables and sample rows from the database
 
 ## Database Models
 
@@ -177,6 +185,26 @@ Access the Django admin at `http://localhost:8000/admin/` to:
 ### Running Tests
 ```bash
 python manage.py test
+```
+
+### Seeding Sample Data
+- Populate languages, courses, lessons, quizzes, progress, trades, and notifications:
+```bash
+python populate_sample_data.py
+```
+
+- Create a ready-to-use test user (`test@example.com` / `testpass123`):
+```bash
+python create_test_user.py
+```
+
+After seeding, you can log in via:
+```http
+POST /api/auth/login/
+{
+  "username": "test@example.com",
+  "password": "testpass123"
+}
 ```
 
 ### Code Style

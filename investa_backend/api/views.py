@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
+from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login
 from django.db.models import Q, Count, Avg
 from django.utils import timezone
@@ -394,6 +395,22 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return Notification.objects.filter(user=self.request.user)
     
+    @action(detail=False, methods=['get'])
+    def unread_count(self, request):
+        """Return count of unread notifications"""
+        count = self.get_queryset().filter(read=False).count()
+        return Response({ 'unread_count': count })
+
+    @action(detail=False, methods=['get'])
+    def by_type(self, request):
+        """Filter notifications by type, e.g. ?type=course_update"""
+        notification_type = request.query_params.get('type')
+        queryset = self.get_queryset()
+        if notification_type:
+            queryset = queryset.filter(notification_type=notification_type)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     @action(detail=True, methods=['post'])
     def mark_read(self, request, pk=None):
         """Mark a notification as read"""
@@ -460,6 +477,35 @@ class UserRegistrationView(viewsets.GenericViewSet):
             }, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MeView(APIView):
+    """Return current authenticated user and profile"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        return Response({
+            'user_id': user.pk,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'profile': UserProfileSerializer(profile).data,
+        })
+
+
+class LogoutView(APIView):
+    """Invalidate user's auth token (optional for clients that store tokens locally)"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        try:
+            Token.objects.filter(user=request.user).delete()
+        except Exception:
+            pass
+        return Response({ 'detail': 'Logged out' })
 
 
 # Simple HTML views for development
