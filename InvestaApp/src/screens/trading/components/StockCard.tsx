@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Stock } from '../hooks/useTradingData';
@@ -22,29 +21,6 @@ const StockCard: React.FC<StockCardProps> = ({
   onToggleFavorite,
   showChart = true,
 }) => {
-  const pulseAnim = React.useRef(new Animated.Value(1)).current;
-
-  React.useEffect(() => {
-    // Simulate price update animation
-    const pulseAnimation = Animated.sequence([
-      Animated.timing(pulseAnim, {
-        toValue: 1.05,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(pulseAnim, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]);
-
-    const interval = setInterval(() => {
-      pulseAnimation.start();
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [pulseAnim]);
 
   return (
     <TouchableOpacity
@@ -66,14 +42,9 @@ const StockCard: React.FC<StockCardProps> = ({
           </Text>
           
           <View style={styles.priceRow}>
-            <Animated.Text 
-              style={[
-                styles.price,
-                { transform: [{ scale: pulseAnim }] }
-              ]}
-            >
+            <Text style={styles.price}>
               {stock.price}
-            </Animated.Text>
+            </Text>
             <Text
               style={[
                 styles.change,
