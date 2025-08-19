@@ -378,51 +378,111 @@ def dashboard(request):
 def database_view(request):
     """Render a page that shows all tables and sample contents"""
     model_entries = []
+    
     try:
-        existing_tables = set(connection.introspection.table_names())
-    except Exception:
-        existing_tables = set()
-
-    for model in apps.get_models():
-        if not getattr(model._meta, 'managed', True):
-            # Skip proxy/unmanaged models (no direct DB table)
-            continue
-
-        app_label = model._meta.app_label
-        model_name = model.__name__
-        table_name = model._meta.db_table
-
-        fields = [field.name for field in model._meta.fields]
-        has_table = table_name in existing_tables
-
+        # Get all installed apps and their models
+        from django.apps import apps
+        from django.db import connection
+        
+        # Get existing tables from database
         try:
-            if has_table:
-                queryset = model.objects.all()
-                raw_rows = list(queryset.values(*fields)[:50])  # sample first 50 rows for performance
-                rows = [[row.get(field) for field in fields] for row in raw_rows]
-                total_count = queryset.count()
-            else:
-                rows = []
-                total_count = 0
+            existing_tables = set(connection.introspection.table_names())
+        except Exception as e:
+            print(f"Error getting table names: {e}")
+            existing_tables = set()
 
-            model_entries.append({
-                'app_label': app_label,
-                'model_name': model_name,
-                'table_name': table_name,
-                'fields': fields,
-                'rows': rows,
-                'total_count': total_count,
-            })
-        except Exception:
-            # If any error occurs querying this model, still include it with empty rows
-            model_entries.append({
-                'app_label': app_label,
-                'model_name': model_name,
-                'table_name': table_name,
-                'fields': fields,
-                'rows': [],
-                'total_count': 0,
-            })
+        # Get all models from all apps
+        all_models = []
+        for app_config in apps.get_app_configs():
+            if app_config.name not in ['admin', 'contenttypes', 'sessions', 'auth']:  # Skip Django system apps
+                try:
+                    app_models = app_config.get_models()
+                    all_models.extend(app_models)
+                except Exception as e:
+                    print(f"Error getting models from {app_config.name}: {e}")
+                    continue
 
-    model_entries.sort(key=lambda m: (m['app_label'], m['model_name']))
+        # Add our custom models explicitly
+        from .models import Language, UserProfile, Course, Lesson, Quiz, Question, Answer, UserProgress, QuizAttempt, SimulatedTrade, Notification
+        custom_models = [Language, UserProfile, Course, Lesson, Quiz, Question, Answer, UserProgress, QuizAttempt, SimulatedTrade, Notification]
+        
+        # Combine all models
+        all_models.extend(custom_models)
+        
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_models = []
+        for model in all_models:
+            if model not in seen:
+                seen.add(model)
+                unique_models.append(model)
+
+        for model in unique_models:
+            try:
+                if not getattr(model._meta, 'managed', True):
+                    # Skip proxy/unmanaged models (no direct DB table)
+                    continue
+
+                app_label = model._meta.app_label
+                model_name = model.__name__
+                table_name = model._meta.db_table
+
+                # Get all fields including related fields
+                fields = []
+                for field in model._meta.fields:
+                    fields.append(field.name)
+                
+                # Check if table exists in database
+                has_table = table_name in existing_tables
+
+                try:
+                    if has_table:
+                        # Try to get actual data
+                        queryset = model.objects.all()
+                        raw_rows = list(queryset.values(*fields)[:50])  # sample first 50 rows for performance
+                        rows = [[row.get(field) for field in fields] for row in raw_rows]
+                        total_count = queryset.count()
+                    else:
+                        rows = []
+                        total_count = 0
+
+                    model_entries.append({
+                        'app_label': app_label,
+                        'model_name': model_name,
+                        'table_name': table_name,
+                        'fields': fields,
+                        'rows': rows,
+                        'total_count': total_count,
+                        'has_table': has_table,
+                    })
+                    
+                except Exception as e:
+                    print(f"Error querying model {model_name}: {e}")
+                    # Still include the model with empty data
+                    model_entries.append({
+                        'app_label': app_label,
+                        'model_name': model_name,
+                        'table_name': table_name,
+                        'fields': fields,
+                        'rows': [],
+                        'total_count': 0,
+                        'has_table': has_table,
+                    })
+                    
+            except Exception as e:
+                print(f"Error processing model {model}: {e}")
+                continue
+
+        # Sort models by app label and model name
+        model_entries.sort(key=lambda m: (m['app_label'], m['model_name']))
+        
+        print(f"Found {len(model_entries)} models")
+        for entry in model_entries:
+            print(f"  - {entry['app_label']}.{entry['model_name']}: {entry['total_count']} records")
+            
+    except Exception as e:
+        print(f"Error in database_view: {e}")
+        # Return empty list if there's an error
+        model_entries = []
+
     return render(request, 'database.html', { 'models': model_entries })

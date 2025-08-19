@@ -53,6 +53,88 @@
 
     .section { display: none; }
     .section.active { display: block; }
+
+    /* Model tabs styling */
+    .model-tabs { 
+      display: flex; 
+      gap: 8px; 
+      overflow-x: auto; 
+      padding: 16px 0; 
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .model-tab { 
+      background: #fff; 
+      color: var(--muted); 
+      border: 1px solid var(--border); 
+      padding: 10px 16px; 
+      border-radius: 12px; 
+      font-size: 13px; 
+      cursor: pointer; 
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .model-tab:hover { 
+      background: #f8fafc; 
+      border-color: var(--brand);
+    }
+    .model-tab.active { 
+      background: var(--brand); 
+      color: #fff; 
+      border-color: var(--brand);
+    }
+    .model-tab .count { 
+      background: rgba(255,255,255,0.2); 
+      padding: 2px 6px; 
+      border-radius: 8px; 
+      font-size: 11px; 
+      margin-left: 6px;
+    }
+    .model-tab.active .count { 
+      background: rgba(255,255,255,0.3);
+    }
+
+    .model-content { 
+      display: none; 
+      animation: fadeIn 0.3s ease;
+    }
+    .model-content.active { 
+      display: block; 
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .model-header {
+      background: #f8fafc;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+    }
+    .model-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .model-meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .meta-item strong {
+      color: var(--ink);
+    }
   </style>
   <script>
     function setActiveTab(key){
@@ -94,18 +176,30 @@
       document.getElementById('loginOutput').textContent = JSON.stringify({status: res.status, data}, null, 2);
     }
 
-    function toggleAll(open){
-      const items = document.querySelectorAll('details.model');
-      items.forEach(d => d.open = open);
-    }
-    function filterModels(ev){
-      const term = ev.target.value.trim().toLowerCase();
-      const items = document.querySelectorAll('details.model');
-      items.forEach(d => {
-        const key = (d.getAttribute('data-key') || '').toLowerCase();
-        d.style.display = key.includes(term) ? '' : 'none';
+    function setActiveModel(modelKey) {
+      // Update active tab
+      document.querySelectorAll('.model-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.model === modelKey);
+      });
+      
+      // Update active content
+      document.querySelectorAll('.model-content').forEach(content => {
+        content.classList.toggle('active', content.dataset.model === modelKey);
       });
     }
+
+    function initModelTabs() {
+      // Set first model as active by default
+      const firstModel = document.querySelector('.model-tab');
+      if (firstModel) {
+        setActiveModel(firstModel.dataset.model);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', function() {
+      initTabs();
+      initModelTabs();
+    });
   </script>
 </head>
 <body>
@@ -166,18 +260,39 @@
         </div>
       </div>
 
+      <!-- Model Tabs -->
+      <div class="model-tabs">
+        {% for model in models %}
+        <div class="model-tab" data-model="{{ model.app_label }}.{{ model.model_name }}" onclick="setActiveModel('{{ model.app_label }}.{{ model.model_name }}')">
+          {{ model.model_name }}
+          <span class="count">{{ model.total_count }}</span>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Model Content -->
       {% for model in models %}
-      <details class="card model" data-key="{{ model.app_label }}.{{ model.model_name }} {{ model.table_name }}" {% if forloop.first %}open{% endif %}>
-        <summary class="row" style="justify-content: space-between; cursor: pointer;">
-          <div class="row">
-            <span class="pill">{{ model.app_label }}</span>
-            <strong style="margin-left:4px;">{{ model.model_name }}</strong>
-            <span class="hint" style="margin-left:8px;">table: {{ model.table_name }}</span>
+      <div class="model-content" data-model="{{ model.app_label }}.{{ model.model_name }}">
+        <div class="model-header">
+          <div class="model-title">{{ model.model_name }}</div>
+          <div class="model-meta">
+            <div class="meta-item">
+              <strong>App:</strong> {{ model.app_label }}
+            </div>
+            <div class="meta-item">
+              <strong>Table:</strong> {{ model.table_name }}
+            </div>
+            <div class="meta-item">
+              <strong>Fields:</strong> {{ model.fields|length }}
+            </div>
+            <div class="meta-item">
+              <strong>Records:</strong> {{ model.total_count }}
+            </div>
           </div>
-          <div class="hint">rows: {{ model.total_count }}</div>
-        </summary>
+        </div>
+
         {% if model.rows and model.rows|length > 0 %}
-        <div class="table-wrap" style="margin-top:10px;">
+        <div class="table-wrap">
           <table>
             <thead>
               <tr>
@@ -198,12 +313,40 @@
           </table>
         </div>
         {% else %}
-        <div class="hint" style="padding: 10px;">No rows found.</div>
+        <div class="hint" style="padding: 20px; text-align: center; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+          No records found in this table.
+        </div>
         {% endif %}
-      </details>
+      </div>
       {% endfor %}
     </section>
   </main>
+
+  <script>
+    function filterModels(ev) {
+      const term = ev.target.value.trim().toLowerCase();
+      const tabs = document.querySelectorAll('.model-tab');
+      const contents = document.querySelectorAll('.model-content');
+      
+      tabs.forEach((tab, index) => {
+        const modelKey = tab.dataset.model.toLowerCase();
+        const shouldShow = modelKey.includes(term);
+        
+        tab.style.display = shouldShow ? 'flex' : 'none';
+        contents[index].style.display = shouldShow ? 'block' : 'none';
+      });
+      
+      // Show first visible model
+      const firstVisible = document.querySelector('.model-tab[style*="flex"]');
+      if (firstVisible) {
+        setActiveModel(firstVisible.dataset.model);
+      }
+    }
+
+    function toggleAll(open) {
+      // This function is kept for compatibility but not needed with new tab system
+    }
+  </script>
 </body>
 </html>
 
