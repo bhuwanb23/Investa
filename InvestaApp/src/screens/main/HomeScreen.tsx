@@ -7,16 +7,30 @@ import {
   TouchableOpacity,
   Dimensions,
   Alert,
+  Image,
 } from 'react-native';
-import { Card, Title, Paragraph, Button, ProgressBar } from 'react-native-paper';
+import { ProgressBar } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
+// Define navigation types
+type RootStackParamList = {
+  Courses: undefined;
+  Quiz: undefined;
+  Trading: undefined;
+  Progress: undefined;
+  Profile: undefined;
+};
+
+type NavigationProp = {
+  navigate: (screen: keyof RootStackParamList) => void;
+};
+
 const HomeScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const { user, logout } = useAuth();
 
   const handleLogout = () => {
@@ -40,200 +54,243 @@ const HomeScreen = () => {
     totalLessons: 25,
     currentStreak: 5,
     totalPoints: 850,
+    overallProgress: 0.73,
   };
 
-  const recommendedCourses = [
+  const quickAccessItems = [
     {
       id: 1,
-      title: 'Stock Market Basics',
-      description: 'Learn the fundamentals of stock market investing',
-      difficulty: 'Beginner',
-      duration: '2 hours',
-      progress: 0.6,
-      language: 'English',
-      icon: 'trending-up',
-      color: '#4CAF50',
+      title: 'Learn',
+      subtitle: 'Master trading basics',
+      icon: 'school',
+      color: '#3B82F6',
+      bgColor: '#DBEAFE',
+      badge: '3 new lessons',
+      onPress: () => navigation.navigate('Courses'),
     },
     {
       id: 2,
-      title: 'Portfolio Diversification',
-      description: 'Master the art of building a balanced portfolio',
-      difficulty: 'Intermediate',
-      duration: '3 hours',
-      progress: 0.3,
-      language: 'Hindi',
-      icon: 'pie-chart',
-      color: '#FF9800',
+      title: 'Quiz',
+      subtitle: 'Test your knowledge',
+      icon: 'help-circle',
+      color: '#059669',
+      bgColor: '#DCFCE7',
+      badge: '85% accuracy',
+      onPress: () => navigation.navigate('Quiz'),
+    },
+    {
+      id: 3,
+      title: 'Trade',
+      subtitle: 'Practice trading',
+      icon: 'trending-up',
+      color: '#06B6D4',
+      bgColor: '#CFFAFE',
+      badge: '$12,450 profit',
+      onPress: () => navigation.navigate('Trading'),
+    },
+    {
+      id: 4,
+      title: 'Progress',
+      subtitle: 'Track performance',
+      icon: 'analytics',
+      color: '#7C3AED',
+      bgColor: '#F3E8FF',
+      badge: 'Level 7',
+      onPress: () => navigation.navigate('Progress'),
+    },
+  ];
+
+  const learningPathItems = [
+    {
+      id: 1,
+      title: 'Trading Fundamentals',
+      status: 'completed',
+      description: 'Completed',
+      icon: 'checkmark',
+      color: '#059669',
+    },
+    {
+      id: 2,
+      title: 'Technical Analysis',
+      status: 'in-progress',
+      description: 'In Progress (60%)',
+      icon: 'play',
+      color: '#0891B2',
     },
     {
       id: 3,
       title: 'Risk Management',
-      description: 'Understand how to manage investment risks',
-      difficulty: 'Advanced',
-      duration: '4 hours',
-      progress: 0,
-      language: 'English',
-      icon: 'shield-checkmark',
-      color: '#9C27B0',
+      status: 'locked',
+      description: 'Locked',
+      icon: 'lock-closed',
+      color: '#9CA3AF',
     },
   ];
 
-  const quickActions = [
+  const portfolioData = {
+    totalValue: '$12,450',
+    profit: '+$1,250',
+    profitPercentage: '+12.5%',
+    totalTrades: 8,
+  };
+
+  const achievements = [
     {
-      title: 'Take Quiz',
-      icon: 'help-circle',
-      color: '#4CAF50',
-      onPress: () => navigation.navigate('Quiz'),
+      id: 1,
+      title: 'First Trade',
+      icon: 'trophy',
+      bgColor: '#FEF3C7',
+      iconColor: '#D97706',
     },
     {
-      title: 'Practice Trading',
-      icon: 'trending-up',
-      color: '#FF9800',
-      onPress: () => navigation.navigate('Trading'),
+      id: 2,
+      title: 'Quiz Master',
+      icon: 'medal',
+      bgColor: '#DBEAFE',
+      iconColor: '#2563EB',
     },
     {
-      title: 'View Progress',
-      icon: 'analytics',
-      color: '#2196F3',
-      onPress: () => navigation.navigate('Progress'),
+      id: 3,
+      title: '7 Day Streak',
+      icon: 'star',
+      bgColor: '#DCFCE7',
+      iconColor: '#16A34A',
     },
     {
-      title: 'Browse Courses',
-      icon: 'library',
-      color: '#9C27B0',
-      onPress: () => navigation.navigate('Courses'),
+      id: 4,
+      title: 'Expert Level',
+      icon: 'diamond',
+      bgColor: '#F3E8FF',
+      iconColor: '#7C3AED',
     },
   ];
 
-  const renderProgressCard = () => (
-    <View style={styles.progressCard}>
-      <View style={styles.progressHeader}>
-        <View>
-          <Text style={styles.progressTitle}>Your Progress</Text>
-          <Text style={styles.progressSubtitle}>Keep up the great work!</Text>
-        </View>
-        <View style={styles.trophyContainer}>
-          <Ionicons name="trophy" size={28} color="#FFD700" />
+  const renderWelcomeSection = () => (
+    <View style={styles.welcomeSection}>
+      <View style={styles.welcomeHeader}>
+        <View style={styles.profileSection}>
+          <Image
+            source={{ uri: 'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg' }}
+            style={styles.profileImage}
+          />
+          <View style={styles.welcomeText}>
+            <Text style={styles.welcomeTitle}>Welcome back, {user?.username || 'Sarah'}!</Text>
+            <Text style={styles.welcomeSubtitle}>Ready to level up your trading skills?</Text>
+          </View>
         </View>
       </View>
       
-      <View style={styles.progressStats}>
-        <View style={styles.progressItem}>
-          <View style={styles.progressNumberContainer}>
-            <Text style={styles.progressNumber}>{userProgress.completedLessons}</Text>
-            <Text style={styles.progressTotal}>/{userProgress.totalLessons}</Text>
-          </View>
-          <Text style={styles.progressLabel}>Lessons</Text>
+      <View style={styles.progressContainer}>
+        <View style={styles.progressHeader}>
+          <Text style={styles.progressLabel}>Learning Progress</Text>
+          <Text style={styles.progressPercentage}>{Math.round(userProgress.overallProgress * 100)}%</Text>
         </View>
-        <View style={styles.progressDivider} />
-        <View style={styles.progressItem}>
-          <View style={styles.progressNumberContainer}>
-            <Text style={styles.progressNumber}>{userProgress.currentStreak}</Text>
-          </View>
-          <Text style={styles.progressLabel}>Day Streak</Text>
+        <View style={styles.progressBarBackground}>
+          <View 
+            style={[
+              styles.progressBarFill, 
+              { width: `${userProgress.overallProgress * 100}%` }
+            ]} 
+          />
         </View>
-        <View style={styles.progressDivider} />
-        <View style={styles.progressItem}>
-          <View style={styles.progressNumberContainer}>
-            <Text style={styles.progressNumber}>{userProgress.totalPoints}</Text>
-          </View>
-          <Text style={styles.progressLabel}>Points</Text>
-        </View>
-      </View>
-
-      <View style={styles.progressBarContainer}>
-        <View style={styles.progressBarHeader}>
-          <Text style={styles.progressBarLabel}>Overall Progress</Text>
-          <Text style={styles.progressPercentage}>
-            {Math.round((userProgress.completedLessons / userProgress.totalLessons) * 100)}%
-          </Text>
-        </View>
-        <ProgressBar
-          progress={userProgress.completedLessons / userProgress.totalLessons}
-          color="#4CAF50"
-          style={styles.progressBar}
-        />
       </View>
     </View>
   );
 
-  const renderQuickActions = () => (
-    <View style={styles.quickActionsCard}>
-      <Text style={styles.sectionTitle}>Quick Actions</Text>
-      <View style={styles.quickActionsGrid}>
-        {quickActions.map((action, index) => (
+  const renderQuickAccess = () => (
+    <View style={styles.quickAccessSection}>
+      <Text style={styles.sectionTitle}>Quick Access</Text>
+      <View style={styles.quickAccessGrid}>
+        {quickAccessItems.map((item) => (
           <TouchableOpacity
-            key={index}
-            style={styles.quickActionItem}
-            onPress={action.onPress}
-            activeOpacity={0.7}
+            key={item.id}
+            style={styles.quickAccessCard}
+            onPress={item.onPress}
+            activeOpacity={0.8}
           >
-            <View style={[styles.quickActionIcon, { backgroundColor: action.color }]}>
-              <Ionicons name={action.icon as any} size={24} color="white" />
+            <View style={[styles.quickAccessIcon, { backgroundColor: item.bgColor }]}>
+              <Ionicons name={item.icon as any} size={24} color={item.color} />
             </View>
-            <Text style={styles.quickActionTitle}>{action.title}</Text>
+            <Text style={styles.quickAccessTitle}>{item.title}</Text>
+            <Text style={styles.quickAccessSubtitle}>{item.subtitle}</Text>
+            <Text style={[styles.quickAccessBadge, { color: item.color }]}>{item.badge}</Text>
           </TouchableOpacity>
         ))}
       </View>
     </View>
   );
 
-  const renderRecommendedCourses = () => (
-    <View style={styles.coursesCard}>
-      <View style={styles.coursesHeader}>
-        <Text style={styles.sectionTitle}>Recommended for You</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Courses')} style={styles.viewAllButton}>
-          <Text style={styles.viewAllText}>View All</Text>
-          <Ionicons name="arrow-forward" size={16} color="#4F46E5" />
-        </TouchableOpacity>
+  const renderLearningPath = () => (
+    <View style={styles.learningPathSection}>
+      <Text style={styles.sectionTitle}>Learning Path</Text>
+      <View style={styles.learningPathList}>
+        {learningPathItems.map((item) => (
+          <View key={item.id} style={styles.learningPathItem}>
+            <View style={[styles.learningPathIcon, { backgroundColor: item.color }]}>
+              <Ionicons 
+                name={item.icon as any} 
+                size={16} 
+                color="white" 
+              />
+            </View>
+            <View style={styles.learningPathContent}>
+              <Text style={[
+                styles.learningPathTitle, 
+                { color: item.status === 'locked' ? '#9CA3AF' : '#1F2937' }
+              ]}>
+                {item.title}
+              </Text>
+              <Text style={[
+                styles.learningPathDescription, 
+                { color: item.status === 'locked' ? '#9CA3AF' : '#6B7280' }
+              ]}>
+                {item.description}
+              </Text>
+            </View>
+          </View>
+        ))}
       </View>
-      
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.coursesScrollContainer}>
-        {recommendedCourses.map((course) => (
-          <TouchableOpacity
-            key={course.id}
-            style={styles.courseCard}
-            onPress={() => navigation.navigate('CourseDetail', { courseId: course.id })}
-            activeOpacity={0.8}
-          >
-            <View style={styles.courseHeader}>
-              <View style={[styles.courseIconContainer, { backgroundColor: course.color + '20' }]}>
-                <Ionicons name={course.icon as any} size={20} color={course.color} />
-              </View>
-              <View style={styles.courseBadge}>
-                <Text style={styles.courseBadgeText}>{course.difficulty}</Text>
-              </View>
+    </View>
+  );
+
+  const renderPortfolioSnapshot = () => (
+    <View style={styles.portfolioSection}>
+      <View style={styles.portfolioHeader}>
+        <Text style={styles.sectionTitle}>Simulated Portfolio</Text>
+        <Text style={styles.portfolioProfit}>{portfolioData.profitPercentage}</Text>
+      </View>
+      <View style={styles.portfolioStats}>
+        <View style={styles.portfolioStat}>
+          <Text style={styles.portfolioValue}>{portfolioData.totalValue}</Text>
+          <Text style={styles.portfolioLabel}>Total Value</Text>
+        </View>
+        <View style={styles.portfolioStat}>
+          <Text style={styles.portfolioProfitValue}>{portfolioData.profit}</Text>
+          <Text style={styles.portfolioLabel}>Profit</Text>
+        </View>
+        <View style={styles.portfolioStat}>
+          <Text style={styles.portfolioValue}>{portfolioData.totalTrades}</Text>
+          <Text style={styles.portfolioLabel}>Trades</Text>
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderAchievements = () => (
+    <View style={styles.achievementsSection}>
+      <Text style={styles.sectionTitle}>Your Achievements</Text>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.achievementsScrollContainer}
+      >
+        {achievements.map((achievement) => (
+          <View key={achievement.id} style={styles.achievementCard}>
+            <View style={[styles.achievementIcon, { backgroundColor: achievement.bgColor }]}>
+              <Ionicons name={achievement.icon as any} size={24} color={achievement.iconColor} />
             </View>
-            
-            <Text style={styles.courseTitle} numberOfLines={2}>
-              {course.title}
-            </Text>
-            
-            <Text style={styles.courseDescription} numberOfLines={2}>
-              {course.description}
-            </Text>
-            
-            <View style={styles.courseFooter}>
-              <View style={styles.courseMeta}>
-                <Ionicons name="time-outline" size={14} color="#6B7280" />
-                <Text style={styles.courseDuration}>{course.duration}</Text>
-                <Ionicons name="language-outline" size={14} color="#6B7280" style={{ marginLeft: 8 }} />
-                <Text style={styles.courseLanguage}>{course.language}</Text>
-              </View>
-              {course.progress > 0 && (
-                <View style={styles.courseProgressContainer}>
-                  <ProgressBar
-                    progress={course.progress}
-                    color={course.color}
-                    style={styles.courseProgressBar}
-                  />
-                  <Text style={styles.courseProgressText}>
-                    {Math.round(course.progress * 100)}% Complete
-                  </Text>
-                </View>
-              )}
-            </View>
-          </TouchableOpacity>
+            <Text style={styles.achievementTitle}>{achievement.title}</Text>
+          </View>
         ))}
       </ScrollView>
     </View>
@@ -241,28 +298,35 @@ const HomeScreen = () => {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <View>
-            <Text style={styles.greeting}>Good Morning! 👋</Text>
-            <Text style={styles.userName}>{user?.username || 'User'}</Text>
+      {/* Top Navigation Bar */}
+      <View style={styles.topNav}>
+        <View style={styles.topNavContent}>
+          <View style={styles.logoSection}>
+            <View style={styles.logoIcon}>
+              <Ionicons name="trending-up" size={20} color="white" />
+            </View>
+            <Text style={styles.logoText}>TradeMentor</Text>
           </View>
-          <View style={styles.headerActions}>
-            <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.profileButton}>
-              <View style={styles.profileAvatar}>
-                <Ionicons name="person" size={24} color="#4F46E5" />
-              </View>
+          <View style={styles.topNavActions}>
+            <TouchableOpacity style={styles.languageButton}>
+              <Text style={styles.languageText}>EN</Text>
+              <Ionicons name="chevron-down" size={12} color="#6B7280" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-              <Ionicons name="log-out-outline" size={24} color="#EF4444" />
-            </TouchableOpacity>
+            <View style={styles.notificationButton}>
+              <TouchableOpacity style={styles.notificationIcon}>
+                <Ionicons name="notifications" size={20} color="#6B7280" />
+              </TouchableOpacity>
+              <View style={styles.notificationBadge} />
+            </View>
           </View>
         </View>
       </View>
 
-      {renderProgressCard()}
-      {renderQuickActions()}
-      {renderRecommendedCourses()}
+      {renderWelcomeSection()}
+      {renderQuickAccess()}
+      {renderLearningPath()}
+      {renderPortfolioSnapshot()}
+      {renderAchievements()}
 
       <View style={styles.bottomSpacing} />
     </ScrollView>
@@ -272,326 +336,321 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F9FAFB',
   },
-  header: {
-    backgroundColor: '#F8FAFC',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+  topNav: {
+    backgroundColor: 'white',
+    paddingTop: 50,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  headerContent: {
+  topNavContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  headerActions: {
+  logoSection: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  profileButton: {
-    marginRight: 12,
+  logoIcon: {
+    width: 32,
+    height: 32,
+    backgroundColor: '#0891B2',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
   },
-  logoutButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: '#FEF2F2',
-  },
-  greeting: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  userName: {
-    fontSize: 28,
+  logoText: {
+    fontSize: 18,
     fontWeight: '700',
     color: '#1F2937',
   },
-  profileAvatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#EEF2FF',
+  topNavActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  languageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  languageText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6B7280',
+    marginRight: 4,
+  },
+  notificationButton: {
+    position: 'relative',
+  },
+  notificationIcon: {
+    width: 40,
+    height: 40,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E0E7FF',
   },
-  progressCard: {
-    backgroundColor: '#FFFFFF',
-    margin: 20,
-    marginTop: 20,
+  notificationBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 12,
+    height: 12,
+    backgroundColor: '#EF4444',
+    borderRadius: 6,
+  },
+  welcomeSection: {
+    margin: 16,
+    backgroundColor: '#0891B2',
+    borderRadius: 16,
     padding: 24,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
+  },
+  welcomeHeader: {
+    marginBottom: 16,
+  },
+  profileSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profileImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    marginRight: 12,
+  },
+  welcomeText: {
+    flex: 1,
+  },
+  welcomeTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'white',
+    marginBottom: 4,
+  },
+  welcomeSubtitle: {
+    fontSize: 14,
+    color: '#CFFAFE',
+  },
+  progressContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    padding: 16,
   },
   progressHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
-  },
-  progressTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  progressSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  trophyContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#FEF3C7',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  progressStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  progressItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  progressNumberContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  progressNumber: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#4F46E5',
-  },
-  progressTotal: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#9CA3AF',
-    marginLeft: 2,
+    marginBottom: 8,
   },
   progressLabel: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginTop: 6,
-    fontWeight: '500',
-  },
-  progressDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: '#E5E7EB',
-  },
-  progressBarContainer: {
-    marginTop: 8,
-  },
-  progressBarHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  progressBarLabel: {
-    fontSize: 15,
-    color: '#374151',
-    fontWeight: '600',
-  },
-  progressBar: {
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#F3F4F6',
+    fontSize: 14,
+    color: '#CFFAFE',
   },
   progressPercentage: {
-    fontSize: 15,
-    color: '#4F46E5',
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'white',
   },
-  quickActionsCard: {
-    backgroundColor: '#FFFFFF',
-    margin: 20,
+  progressBarBackground: {
+    width: '100%',
+    height: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: 'white',
+    borderRadius: 4,
+  },
+  quickAccessSection: {
+    margin: 16,
     marginTop: 0,
-    padding: 24,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '600',
     color: '#1F2937',
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  quickActionsGrid: {
+  quickAccessGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
-  quickActionItem: {
-    width: (width - 88) / 2,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  quickActionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  quickActionTitle: {
-    fontSize: 13,
-    color: '#374151',
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  coursesCard: {
-    backgroundColor: '#FFFFFF',
-    margin: 20,
-    marginTop: 0,
-    padding: 24,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  coursesHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  viewAllButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    backgroundColor: '#EEF2FF',
-  },
-  viewAllText: {
-    color: '#4F46E5',
-    fontSize: 14,
-    fontWeight: '600',
-    marginRight: 4,
-  },
-  coursesScrollContainer: {
-    paddingRight: 20,
-  },
-  courseCard: {
-    width: 220,
-    backgroundColor: '#FFFFFF',
+  quickAccessCard: {
+    width: (width - 64) / 2,
+    backgroundColor: 'white',
     borderRadius: 16,
-    padding: 20,
-    marginRight: 16,
+    padding: 16,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
+    shadowRadius: 8,
+    elevation: 4,
   },
-  courseHeader: {
+  quickAccessIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  quickAccessTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  quickAccessSubtitle: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginBottom: 12,
+  },
+  quickAccessBadge: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  learningPathSection: {
+    margin: 16,
+    marginTop: 0,
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  learningPathList: {
+    gap: 16,
+  },
+  learningPathItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  learningPathIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  learningPathContent: {
+    flex: 1,
+  },
+  learningPathTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  learningPathDescription: {
+    fontSize: 14,
+  },
+  portfolioSection: {
+    margin: 16,
+    marginTop: 0,
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  portfolioHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
   },
-  courseIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
+  portfolioProfit: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#059669',
+  },
+  portfolioStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  portfolioStat: {
     alignItems: 'center',
+    flex: 1,
   },
-  courseBadge: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  courseBadgeText: {
-    fontSize: 10,
-    color: '#374151',
-    fontWeight: '600',
-    textTransform: 'capitalize',
-  },
-  courseTitle: {
-    fontSize: 16,
+  portfolioValue: {
+    fontSize: 24,
     fontWeight: '700',
     color: '#1F2937',
-    marginBottom: 8,
-    lineHeight: 22,
+    marginBottom: 4,
   },
-  courseDescription: {
-    fontSize: 13,
+  portfolioProfitValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#059669',
+    marginBottom: 4,
+  },
+  portfolioLabel: {
+    fontSize: 14,
     color: '#6B7280',
-    marginBottom: 16,
-    lineHeight: 18,
   },
-  courseFooter: {
-    alignItems: 'flex-start',
+  achievementsSection: {
+    margin: 16,
+    marginTop: 0,
+    marginBottom: 100,
   },
-  courseMeta: {
-    flexDirection: 'row',
+  achievementsScrollContainer: {
+    paddingRight: 16,
+  },
+  achievementCard: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 16,
+    marginRight: 12,
     alignItems: 'center',
-    marginBottom: 12,
+    minWidth: 120,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  courseDuration: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginLeft: 4,
+  achievementIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  achievementTitle: {
+    fontSize: 14,
     fontWeight: '500',
-  },
-  courseLanguage: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginLeft: 4,
-    fontWeight: '500',
-  },
-  courseProgressContainer: {
-    width: '100%',
-  },
-  courseProgressBar: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#F3F4F6',
-    marginBottom: 6,
-  },
-  courseProgressText: {
-    fontSize: 11,
-    color: '#6B7280',
-    fontWeight: '500',
+    color: '#1F2937',
+    textAlign: 'center',
   },
   bottomSpacing: {
-    height: 30,
+    height: 100,
   },
 });
 
 export default HomeScreen;
+
