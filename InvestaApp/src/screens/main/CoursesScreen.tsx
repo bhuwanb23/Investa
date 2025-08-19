@@ -11,6 +11,7 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import MainHeader from '../../components/MainHeader';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -56,11 +57,7 @@ const CoursesScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Explore Courses</Text>
-            <Text style={styles.subtitle}>Grow your skills with curated content</Text>
-          </View>
+          <MainHeader title="Courses" iconName="library" />
 
           {/* Search */}
           <View style={styles.searchRow}>

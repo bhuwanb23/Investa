@@ -9,6 +9,7 @@ import {
   Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import MainHeader from '../../components/MainHeader';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -28,10 +29,7 @@ const LessonsScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Course Lessons</Text>
-            <Text style={styles.subtitle}>Complete the modules in order to progress</Text>
-          </View>
+          <MainHeader title="Lessons" iconName="book" />
 
           <View style={styles.progressCard}>
             <View style={styles.progressRow}>

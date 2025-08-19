@@ -9,6 +9,7 @@ import {
   Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import MainHeader from '../../components/MainHeader';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -20,10 +21,7 @@ const ProfileScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Your Profile</Text>
-            <Text style={styles.subtitle}>Manage your account and preferences</Text>
-          </View>
+          <MainHeader title="Profile" iconName="person" />
 
           <View style={styles.profileCard}>
             <Image

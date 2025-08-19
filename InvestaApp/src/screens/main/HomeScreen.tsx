@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { ProgressBar } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
+import MainHeader from '../../components/MainHeader';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 
@@ -303,29 +304,7 @@ const HomeScreen = () => {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Top Navigation Bar */}
-      <View style={styles.topNav}>
-        <View style={styles.topNavContent}>
-          <View style={styles.logoSection}>
-            <View style={styles.logoIcon}>
-              <Ionicons name="trending-up" size={20} color="white" />
-            </View>
-            <Text style={styles.logoText}>TradeMentor</Text>
-          </View>
-          <View style={styles.topNavActions}>
-            <TouchableOpacity style={styles.languageButton}>
-              <Text style={styles.languageText}>EN</Text>
-              <Ionicons name="chevron-down" size={12} color="#6B7280" />
-            </TouchableOpacity>
-            <View style={styles.notificationButton}>
-              <TouchableOpacity style={styles.notificationIcon}>
-                <Ionicons name="notifications" size={20} color="#6B7280" />
-              </TouchableOpacity>
-              <View style={styles.notificationBadge} />
-            </View>
-          </View>
-        </View>
-      </View>
+      <MainHeader title="Home" iconName="home" />
 
       {renderWelcomeSection()}
       {renderQuickAccess()}
@@ -342,79 +321,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
-  },
-  topNav: {
-    backgroundColor: 'white',
-    paddingTop: 50,
-    paddingBottom: 16,
-    paddingHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  topNavContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  logoSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoIcon: {
-    width: 32,
-    height: 32,
-    backgroundColor: '#0891B2',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  logoText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1F2937',
-  },
-  topNavActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  languageButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginRight: 12,
-  },
-  languageText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#6B7280',
-    marginRight: 4,
-  },
-  notificationButton: {
-    position: 'relative',
-  },
-  notificationIcon: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  notificationBadge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 12,
-    height: 12,
-    backgroundColor: '#EF4444',
-    borderRadius: 6,
   },
   welcomeSection: {
     margin: 16,

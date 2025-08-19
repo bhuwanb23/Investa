@@ -7,6 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import MainHeader from '../../components/MainHeader';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -35,16 +36,7 @@ const ProgressScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.headerRow}>
-              <View style={styles.headerIconWrap}>
-                <Ionicons name="trending-up" size={16} color="#fff" />
-              </View>
-              <Text style={styles.title}>Your Progress</Text>
-            </View>
-            <Text style={styles.subtitle}>Track your learning journey</Text>
-          </View>
+          <MainHeader title="Your Progress" iconName="analytics" />
 
           {/* XP Level */}
           <View style={styles.xpCard}>

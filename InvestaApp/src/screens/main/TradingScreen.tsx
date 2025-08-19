@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import MainHeader from '../../components/MainHeader';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -63,22 +64,7 @@ const TradingScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.headerRow}>
-              <View style={styles.headerLeft}>
-                <View style={styles.headerIconWrap}>
-                  <Ionicons name="bar-chart" size={18} color="#fff" />
-                </View>
-                <Text style={styles.title}>Trading</Text>
-              </View>
-              <Pressable style={styles.headerAction} android_ripple={{ color: '#e5e7eb' }} onPress={() => navigation.navigate('Leaderboard')}>
-                <Ionicons name="trophy" size={18} color={PRIMARY} />
-                <Text style={styles.headerActionText}>Leaderboard</Text>
-              </Pressable>
-            </View>
-            <Text style={styles.subtitle}>Practice and track your simulated trades</Text>
-          </View>
+          <MainHeader title="Trading" iconName="trending-up" onNotificationsPress={() => navigation.navigate('OrderHistory')} onProfilePress={() => navigation.navigate('Portfolio')} />
 
           {/* Sections (Navigation) */}
           <View style={styles.sectionsRow}>

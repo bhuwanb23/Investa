@@ -13,6 +13,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import MainHeader from '../../components/MainHeader';
 import SearchBar from '../../components/SearchBar';
 import EmptyState from '../../components/EmptyState';
 
@@ -190,23 +191,7 @@ const BookmarksScreen = () => {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#1F2937" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Bookmarks</Text>
-          <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.searchButton}>
-              <Ionicons name="search" size={20} color="#6B7280" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.filterButton}>
-              <Ionicons name="filter" size={20} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+      <MainHeader title="Bookmarks" iconName="bookmark" />
 
       {/* Search Bar */}
       <View style={styles.searchSection}>
