@@ -11,6 +11,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { PORTFOLIO_DATA, PORTFOLIO_HOLDINGS, SECTOR_ALLOCATION } from './constants/tradingConstants';
+import MainHeader from '../../components/MainHeader';
 
 // Define navigation types
 type RootStackParamList = {
@@ -40,10 +41,8 @@ const PortfolioScreen = () => {
 
   const renderHeader = () => (
     <View style={styles.header}>
+      <MainHeader title="Portfolio" iconName="wallet" showBackButton onBackPress={() => navigation.navigate('Trading')} />
       <View style={styles.headerTop}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Trading')}>
-          <Ionicons name="arrow-back" size={24} color="#374151" />
-        </TouchableOpacity>
         <View style={styles.profileSection}>
           <Image
             source={{ uri: 'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg' }}
@@ -258,10 +257,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 24,
-  },
-  backButton: {
-    padding: 8,
-    marginLeft: -8,
   },
   profileSection: {
     flexDirection: 'row',

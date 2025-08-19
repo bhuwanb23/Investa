@@ -16,6 +16,7 @@ import {
   TradingButtons,
 } from './components';
 import { STOCK_DETAIL_DATA } from './constants/tradingConstants';
+import MainHeader from '../../components/MainHeader';
 
 // Define navigation types
 type RootStackParamList = {
@@ -95,13 +96,7 @@ const StockDetailScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StockDetailHeader
-        stock={stock}
-        onBack={handleBack}
-        onToggleBookmark={handleToggleBookmark}
-        onShare={handleShare}
-        isBookmarked={isBookmarked}
-      />
+      <MainHeader title={stock.name} iconName="trending-up" showBackButton onBackPress={handleBack} />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <ChartSection

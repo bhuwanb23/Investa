@@ -11,6 +11,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { ORDER_HISTORY } from './constants/tradingConstants';
+import MainHeader from '../../components/MainHeader';
 
 // Define navigation types
 type RootStackParamList = {
@@ -51,13 +52,7 @@ const OrderHistoryScreen = () => {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-        <Ionicons name="arrow-back" size={24} color="#374151" />
-      </TouchableOpacity>
-      <Text style={styles.headerTitle}>Order History</Text>
-              <TouchableOpacity style={styles.headerFilterButton}>
-        <Ionicons name="filter" size={24} color="#374151" />
-      </TouchableOpacity>
+      <MainHeader title="Order History" iconName="time" showBackButton onBackPress={handleBack} />
     </View>
   );
 

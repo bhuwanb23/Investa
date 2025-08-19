@@ -11,6 +11,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LEADERBOARD_DATA } from './constants/tradingConstants';
+import MainHeader from '../../components/MainHeader';
 
 // Define navigation types
 type RootStackParamList = {
@@ -42,13 +43,7 @@ const LeaderboardScreen = () => {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-        <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-      </TouchableOpacity>
-      <Text style={styles.headerTitle}>Leaderboard</Text>
-      <TouchableOpacity style={styles.menuButton}>
-        <Ionicons name="people" size={24} color="#FFFFFF" />
-      </TouchableOpacity>
+      <MainHeader title="Leaderboard" iconName="trophy" showBackButton onBackPress={handleBack} />
     </View>
   );
 
@@ -211,25 +206,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#3B82F6',
-    paddingHorizontal: 16,
-    paddingVertical: 24,
-  },
-  backButton: {
-    padding: 8,
-    marginLeft: -8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  menuButton: {
-    padding: 8,
-    marginRight: -8,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
   content: {
     flex: 1,

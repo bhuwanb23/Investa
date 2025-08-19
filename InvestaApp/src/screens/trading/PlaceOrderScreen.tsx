@@ -17,6 +17,7 @@ import {
   OrderPreview,
   SuccessModal,
 } from './components';
+import MainHeader from '../../components/MainHeader';
 
 // Define navigation types
 type RootStackParamList = {
@@ -119,13 +120,7 @@ const PlaceOrderScreen = () => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Ionicons name="arrow-back" size={24} color="#6B7280" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Place Order</Text>
-        <TouchableOpacity style={styles.helpButton} onPress={handleHelp}>
-          <Ionicons name="help-circle-outline" size={24} color="#9CA3AF" />
-        </TouchableOpacity>
+        <MainHeader title="Place Order" iconName="swap-vertical" showBackButton onBackPress={handleBack} />
       </View>
 
       {/* Stock Price Reference */}
@@ -219,27 +214,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
-  backButton: {
-    padding: 8,
-    marginLeft: -8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  helpButton: {
-    padding: 8,
-    marginRight: -8,
   },
   stockPriceSection: {
     backgroundColor: '#EFF6FF',
