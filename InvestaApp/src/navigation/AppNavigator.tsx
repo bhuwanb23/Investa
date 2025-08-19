@@ -4,6 +4,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
+import { ActivityIndicator, View } from 'react-native';
+import { useAuth } from '../context/AuthContext';
 
 // Auth Screens
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -152,12 +154,24 @@ const AuthStackNavigator = () => {
 
 // Root Navigator
 const AppNavigator = () => {
-  // TODO: Replace with actual authentication state
-  const isAuthenticated = false;
+  const { user, isLoading } = useAuth();
 
+  console.log('🧭 AppNavigator - Auth state:', { user: !!user, isLoading });
+
+  if (isLoading) {
+    console.log('⏳ AppNavigator - Showing loading screen');
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#2196F3" />
+      </View>
+    );
+  }
+
+  console.log('🎯 AppNavigator - Rendering navigator, user:', user ? 'logged in' : 'not logged in');
+  
   return (
     <NavigationContainer>
-      {isAuthenticated ? <MainStackNavigator /> : <AuthStackNavigator />}
+      {user ? <MainStackNavigator /> : <AuthStackNavigator />}
     </NavigationContainer>
   );
 };

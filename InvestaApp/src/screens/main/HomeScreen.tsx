@@ -6,15 +6,33 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { Card, Title, Paragraph, Button, ProgressBar } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
 const HomeScreen = () => {
   const navigation = useNavigation();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Logout', 
+          style: 'destructive',
+          onPress: () => logout()
+        }
+      ]
+    );
+  };
 
   // Mock data - replace with actual API data
   const userProgress = {
@@ -195,13 +213,18 @@ const HomeScreen = () => {
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Good Morning!</Text>
-          <Text style={styles.userName}>John Doe</Text>
+          <Text style={styles.userName}>{user?.username || 'User'}</Text>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <View style={styles.profileAvatar}>
-            <Ionicons name="person" size={24} color="#2196F3" />
-          </View>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+            <View style={styles.profileAvatar}>
+              <Ionicons name="person" size={24} color="#2196F3" />
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <Ionicons name="log-out-outline" size={24} color="#f44336" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {renderProgressCard()}
@@ -224,6 +247,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     paddingTop: 40,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logoutButton: {
+    marginLeft: 15,
   },
   greeting: {
     fontSize: 16,

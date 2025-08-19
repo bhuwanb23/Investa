@@ -15,9 +15,11 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { AuthStackParamList } from '../../navigation/AppNavigator';
+import { useAuth } from '../../context/AuthContext';
 
 const LoginScreen = () => {
   const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [emailTouched, setEmailTouched] = useState(false);
   const isEmailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()), [email]);
@@ -32,19 +34,25 @@ const LoginScreen = () => {
       return;
     }
 
+    if (!isEmailValid) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      setEmailTouched(true);
+      return;
+    }
+
     setLoading(true);
     try {
-      // TODO: Implement actual login logic with API
-      console.log('Login attempt:', { email, password });
+      const result = await login(email.trim(), password);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For now, just show success and navigate
-      Alert.alert('Success', 'Login successful!');
-      // TODO: Navigate to main app
+      if (result.success) {
+        // Login successful - the AuthContext will automatically update
+        // and the AppNavigator will switch to the main app
+        Alert.alert('Success', result.message);
+      } else {
+        Alert.alert('Login Failed', result.message);
+      }
     } catch (error) {
-      Alert.alert('Error', 'Login failed. Please try again.');
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
