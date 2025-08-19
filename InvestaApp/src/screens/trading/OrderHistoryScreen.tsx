@@ -2,17 +2,15 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
-  Dimensions,
+  SafeAreaView,
   ScrollView,
-  FlatList,
+  TouchableOpacity,
   Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-
-const { width, height } = Dimensions.get('window');
+import { ORDER_HISTORY } from './constants/tradingConstants';
 
 // Define navigation types
 type RootStackParamList = {
@@ -28,141 +26,61 @@ type NavigationProp = {
 const OrderHistoryScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const [selectedFilter, setSelectedFilter] = useState('All');
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
-  // Mock order history data
-  const orderHistory = [
-    {
-      id: 1,
-      stockSymbol: 'RELIANCE',
-      stockName: 'Reliance Industries Ltd',
-      orderType: 'BUY',
-      quantity: 50,
-      price: 2450.00,
-      totalAmount: 122500,
-      orderStatus: 'COMPLETED',
-      orderDate: '2024-01-15',
-      orderTime: '10:30 AM',
-      currentPrice: 2847.50,
-      unrealizedPnL: 19875,
-      unrealizedPnLPercent: 16.22,
-    },
-    {
-      id: 2,
-      stockSymbol: 'TCS',
-      stockName: 'Tata Consultancy Services',
-      orderType: 'BUY',
-      quantity: 30,
-      price: 3800.00,
-      totalAmount: 114000,
-      orderStatus: 'COMPLETED',
-      orderDate: '2024-01-14',
-      orderTime: '02:15 PM',
-      currentPrice: 3892.75,
-      unrealizedPnL: 2782.5,
-      unrealizedPnLPercent: 2.44,
-    },
-    {
-      id: 3,
-      stockSymbol: 'HDFC',
-      stockName: 'HDFC Bank Ltd',
-      orderType: 'BUY',
-      quantity: 80,
-      price: 1550.00,
-      totalAmount: 124000,
-      orderStatus: 'COMPLETED',
-      orderDate: '2024-01-13',
-      orderTime: '11:45 AM',
-      currentPrice: 1647.30,
-      unrealizedPnL: 7784,
-      unrealizedPnLPercent: 6.28,
-    },
-    {
-      id: 4,
-      stockSymbol: 'INFY',
-      stockName: 'Infosys Ltd',
-      orderType: 'SELL',
-      quantity: 25,
-      price: 1500.00,
-      totalAmount: 37500,
-      orderStatus: 'COMPLETED',
-      orderDate: '2024-01-12',
-      orderTime: '03:20 PM',
-      currentPrice: 1485.90,
-      realizedPnL: 2500,
-      realizedPnLPercent: 7.14,
-    },
-    {
-      id: 5,
-      stockSymbol: 'ICICIBANK',
-      stockName: 'ICICI Bank Ltd',
-      orderType: 'BUY',
-      quantity: 120,
-      price: 950.00,
-      totalAmount: 114000,
-      orderStatus: 'COMPLETED',
-      orderDate: '2024-01-11',
-      orderTime: '09:15 AM',
-      currentPrice: 1092.45,
-      unrealizedPnL: 17094,
-      unrealizedPnLPercent: 15.0,
-    },
-    {
-      id: 6,
-      stockSymbol: 'HINDUNILVR',
-      stockName: 'Hindustan Unilever Ltd',
-      orderType: 'BUY',
-      quantity: 40,
-      price: 2500.00,
-      totalAmount: 100000,
-      orderStatus: 'PENDING',
-      orderDate: '2024-01-10',
-      orderTime: '01:30 PM',
-      currentPrice: 2547.80,
-      unrealizedPnL: 1912,
-      unrealizedPnLPercent: 1.91,
-    },
-  ];
+  const filters = ['All', 'Buy', 'Sell', 'This Week', 'This Month'];
 
-  const filters = ['All', 'Buy', 'Sell', 'Completed', 'Pending', 'Cancelled'];
-
-  const filteredOrders = selectedFilter === 'All' 
-    ? orderHistory 
-    : orderHistory.filter(order => {
-        if (selectedFilter === 'Buy') return order.orderType === 'BUY';
-        if (selectedFilter === 'Sell') return order.orderType === 'SELL';
-        if (selectedFilter === 'Completed') return order.orderStatus === 'COMPLETED';
-        if (selectedFilter === 'Pending') return order.orderStatus === 'PENDING';
-        if (selectedFilter === 'Cancelled') return order.orderStatus === 'CANCELLED';
-        return true;
-      });
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'COMPLETED': return '#10B981';
-      case 'PENDING': return '#F59E0B';
-      case 'CANCELLED': return '#EF4444';
-      default: return '#6B7280';
-    }
+  const handleBack = () => {
+    navigation.goBack();
   };
 
-  const getOrderTypeColor = (type: string) => {
-    return type === 'BUY' ? '#10B981' : '#EF4444';
+  const handleFilterChange = (filter: string) => {
+    setSelectedFilter(filter);
+  };
+
+  const toggleItemExpansion = (itemId: string) => {
+    const newExpandedItems = new Set(expandedItems);
+    if (newExpandedItems.has(itemId)) {
+      newExpandedItems.delete(itemId);
+    } else {
+      newExpandedItems.add(itemId);
+    }
+    setExpandedItems(newExpandedItems);
   };
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+      <TouchableOpacity style={styles.backButton} onPress={handleBack}>
         <Ionicons name="arrow-back" size={24} color="#374151" />
       </TouchableOpacity>
       <Text style={styles.headerTitle}>Order History</Text>
-      <TouchableOpacity style={styles.menuButton}>
-        <Ionicons name="ellipsis-vertical" size={24} color="#374151" />
+              <TouchableOpacity style={styles.headerFilterButton}>
+        <Ionicons name="filter" size={24} color="#374151" />
       </TouchableOpacity>
     </View>
   );
 
-  const renderFilterTabs = () => (
-    <View style={styles.filterContainer}>
+  const renderSummarySection = () => (
+    <View style={styles.summarySection}>
+      <View style={styles.summaryGrid}>
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryValue}>142</Text>
+          <Text style={styles.summaryLabel}>Total Trades</Text>
+        </View>
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryValueSuccess}>68%</Text>
+          <Text style={styles.summaryLabel}>Win Rate</Text>
+        </View>
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryValueSuccess}>+₹2,840</Text>
+          <Text style={styles.summaryLabel}>Net P&L</Text>
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderFilterSection = () => (
+    <View style={styles.filterSection}>
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
@@ -175,12 +93,14 @@ const OrderHistoryScreen = () => {
               styles.filterButton,
               selectedFilter === filter && styles.filterButtonActive
             ]}
-            onPress={() => setSelectedFilter(filter)}
+            onPress={() => handleFilterChange(filter)}
           >
-            <Text style={[
-              styles.filterText,
-              selectedFilter === filter && styles.filterTextActive
-            ]}>
+            <Text
+              style={[
+                styles.filterText,
+                selectedFilter === filter && styles.filterTextActive
+              ]}
+            >
               {filter}
             </Text>
           </TouchableOpacity>
@@ -189,126 +109,109 @@ const OrderHistoryScreen = () => {
     </View>
   );
 
-  const renderOrderItem = (order: any) => {
-    const isPositive = order.unrealizedPnL >= 0 || order.realizedPnL >= 0;
-    const pnlColor = isPositive ? '#10B981' : '#EF4444';
-    const pnlAmount = order.unrealizedPnL || order.realizedPnL || 0;
-    const pnlPercent = order.unrealizedPnLPercent || order.realizedPnLPercent || 0;
+  const renderTradeItem = (trade: any) => {
+    const isExpanded = expandedItems.has(trade.id);
+    const isPositive = trade.isPositive;
 
     return (
-      <TouchableOpacity
-        style={styles.orderItem}
-        onPress={() => navigation.navigate('StockDetail', { 
-          stockSymbol: order.stockSymbol, 
-          stockName: order.stockName 
-        })}
-      >
-        <View style={styles.orderHeader}>
-          <View style={styles.stockInfo}>
-            <Text style={styles.stockSymbol}>{order.stockSymbol}</Text>
-            <Text style={styles.stockName} numberOfLines={1}>{order.stockName}</Text>
-          </View>
-          <View style={styles.orderTypeContainer}>
+      <View key={trade.id} style={styles.tradeItem}>
+        <TouchableOpacity
+          style={styles.tradeHeader}
+          onPress={() => toggleItemExpansion(trade.id)}
+        >
+          <View style={styles.tradeLeft}>
             <View style={[
-              styles.orderTypeBadge,
-              { backgroundColor: getOrderTypeColor(order.orderType) + '20' }
+              styles.stockBadge,
+              { backgroundColor: trade.type === 'BUY' ? '#DBEAFE' : '#FEE2E2' }
             ]}>
               <Text style={[
-                styles.orderTypeText,
-                { color: getOrderTypeColor(order.orderType) }
+                styles.stockSymbol,
+                { color: trade.type === 'BUY' ? '#2563EB' : '#DC2626' }
               ]}>
-                {order.orderType}
+                {trade.symbol}
               </Text>
             </View>
-          </View>
-        </View>
-
-        <View style={styles.orderDetails}>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Quantity:</Text>
-            <Text style={styles.detailValue}>{order.quantity} shares</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Price:</Text>
-            <Text style={styles.detailValue}>₹{order.price.toFixed(2)}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Total Amount:</Text>
-            <Text style={styles.detailValue}>₹{order.totalAmount.toLocaleString()}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Current Price:</Text>
-            <Text style={styles.detailValue}>₹{order.currentPrice.toFixed(2)}</Text>
-          </View>
-        </View>
-
-        <View style={styles.orderFooter}>
-          <View style={styles.statusContainer}>
-            <View style={[
-              styles.statusBadge,
-              { backgroundColor: getStatusColor(order.orderStatus) + '20' }
-            ]}>
-              <Text style={[
-                styles.statusText,
-                { color: getStatusColor(order.orderStatus) }
-              ]}>
-                {order.orderStatus}
-              </Text>
+            <View style={styles.tradeInfo}>
+              <Text style={styles.stockName}>{trade.name}</Text>
+              <Text style={styles.tradeTime}>Today, 2:45 PM</Text>
             </View>
           </View>
-          
-          <View style={styles.pnlContainer}>
-            <Text style={styles.pnlLabel}>
-              {order.unrealizedPnL ? 'Unrealized' : 'Realized'} P&L
-            </Text>
-            <View style={styles.pnlValueRow}>
+          <View style={styles.tradeRight}>
+            <View style={styles.tradeStatus}>
+              <View style={[
+                styles.statusBadge,
+                { backgroundColor: trade.status === 'COMPLETED' ? '#10B981' : '#F59E0B' }
+              ]}>
+                <Text style={styles.statusText}>{trade.type}</Text>
+              </View>
               <Ionicons 
-                name={isPositive ? "trending-up" : "trending-down"} 
-                size={14} 
-                color={pnlColor} 
+                name={isExpanded ? "chevron-up" : "chevron-down"} 
+                size={16} 
+                color="#9CA3AF" 
               />
-              <Text style={[styles.pnlAmount, { color: pnlColor }]}>
-                {isPositive ? '+' : ''}₹{pnlAmount.toLocaleString()}
-              </Text>
             </View>
-            <Text style={[styles.pnlPercent, { color: pnlColor }]}>
-              {isPositive ? '+' : ''}{pnlPercent.toFixed(2)}%
-            </Text>
+            <Text style={styles.tradePrice}>{trade.price}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
-        <View style={styles.orderMeta}>
-          <Text style={styles.orderDate}>{order.orderDate}</Text>
-          <Text style={styles.orderTime}>{order.orderTime}</Text>
-        </View>
-      </TouchableOpacity>
+        {isExpanded && (
+          <View style={styles.tradeDetails}>
+            <View style={styles.detailsGrid}>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Quantity:</Text>
+                <Text style={styles.detailValue}>{trade.quantity} shares</Text>
+              </View>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Total:</Text>
+                <Text style={styles.detailValue}>{trade.total}</Text>
+              </View>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Status:</Text>
+                <Text style={[
+                  styles.detailValue,
+                  { color: trade.status === 'COMPLETED' ? '#10B981' : '#F59E0B' }
+                ]}>
+                  {trade.status}
+                </Text>
+              </View>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Order ID:</Text>
+                <Text style={styles.detailValue}>#{trade.id}</Text>
+              </View>
+              {trade.profit && (
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>P&L:</Text>
+                  <Text style={[
+                    styles.detailValue,
+                    { color: isPositive ? '#10B981' : '#DC2626' }
+                  ]}>
+                    {trade.profit}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+      </View>
     );
   };
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="document-text-outline" size={64} color="#9CA3AF" />
-      <Text style={styles.emptyTitle}>No Orders Found</Text>
-      <Text style={styles.emptySubtitle}>
-        You haven't placed any {selectedFilter.toLowerCase()} orders yet.
-      </Text>
+  const renderTradesList = () => (
+    <View style={styles.tradesList}>
+      {ORDER_HISTORY.map(renderTradeItem)}
     </View>
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {renderHeader()}
-      {renderFilterTabs()}
+      {renderSummarySection()}
+      {renderFilterSection()}
       
-      <FlatList
-        data={filteredOrders}
-        renderItem={({ item }) => renderOrderItem(item)}
-        keyExtractor={(item) => item.id.toString()}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.ordersList}
-        ListEmptyComponent={renderEmptyState}
-      />
-    </View>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {renderTradesList()}
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -319,40 +222,78 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
   backButton: {
-    padding: 4,
+    padding: 8,
+    marginLeft: -8,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
     color: '#111827',
   },
-  menuButton: {
-    padding: 4,
+  headerFilterButton: {
+    padding: 8,
+    marginRight: -8,
   },
-  filterContainer: {
+  summarySection: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: '#EFF6FF',
+  },
+  summaryGrid: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  summaryCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  summaryValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  summaryValueSuccess: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#10B981',
+  },
+  summaryLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  filterSection: {
     backgroundColor: '#FFFFFF',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: '#F3F4F6',
   },
   filterContent: {
     paddingHorizontal: 16,
   },
   filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
-    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     backgroundColor: '#F3F4F6',
+    borderRadius: 20,
+    marginRight: 8,
   },
   filterButtonActive: {
     backgroundColor: '#DBEAFE',
@@ -365,143 +306,100 @@ const styles = StyleSheet.create({
   filterTextActive: {
     color: '#2563EB',
   },
-  ordersList: {
-    padding: 16,
+  content: {
+    flex: 1,
   },
-  orderItem: {
+  tradesList: {
+    paddingBottom: 20,
+  },
+  tradeItem: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
-  orderHeader: {
+  tradeHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
-  stockInfo: {
-    flex: 1,
-    marginRight: 16,
+  tradeLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  stockBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   stockSymbol: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  tradeInfo: {
+    gap: 4,
   },
   stockName: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#111827',
+  },
+  tradeTime: {
     fontSize: 14,
     color: '#6B7280',
   },
-  orderTypeContainer: {
+  tradeRight: {
     alignItems: 'flex-end',
   },
-  orderTypeBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  orderTypeText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  orderDetails: {
-    marginBottom: 12,
-  },
-  detailRow: {
+  tradeStatus: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  detailLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  detailValue: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  orderFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginBottom: 8,
-  },
-  statusContainer: {
-    flex: 1,
+    alignItems: 'center',
+    gap: 8,
   },
   statusBadge: {
-    alignSelf: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: 12,
   },
   statusText: {
     fontSize: 12,
+    fontWeight: '500',
+    color: '#FFFFFF',
+  },
+  tradePrice: {
+    fontSize: 14,
     fontWeight: '600',
+    color: '#111827',
+    marginTop: 4,
   },
-  pnlContainer: {
-    alignItems: 'flex-end',
+  tradeDetails: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    backgroundColor: '#F9FAFB',
   },
-  pnlLabel: {
-    fontSize: 10,
-    color: '#6B7280',
-    marginBottom: 2,
+  detailsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
   },
-  pnlValueRow: {
+  detailItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2,
+    minWidth: '45%',
   },
-  pnlAmount: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  pnlPercent: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  orderMeta: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-  },
-  orderDate: {
-    fontSize: 10,
-    color: '#9CA3AF',
-  },
-  orderTime: {
-    fontSize: 10,
-    color: '#9CA3AF',
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 64,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#374151',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptySubtitle: {
+  detailLabel: {
     fontSize: 14,
     color: '#6B7280',
-    textAlign: 'center',
-    paddingHorizontal: 32,
+  },
+  detailValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+    marginLeft: 8,
   },
 });
 

@@ -2,18 +2,15 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
-  Dimensions,
+  SafeAreaView,
   ScrollView,
-  FlatList,
-  Alert,
+  TouchableOpacity,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { ProgressBar } from 'react-native-paper';
-
-const { width, height } = Dimensions.get('window');
+import { PORTFOLIO_DATA, PORTFOLIO_HOLDINGS, SECTOR_ALLOCATION } from './constants/tradingConstants';
 
 // Define navigation types
 type RootStackParamList = {
@@ -28,201 +25,129 @@ type NavigationProp = {
 
 const PortfolioScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [selectedTimeframe, setSelectedTimeframe] = useState('1D');
+  const [selectedTab, setSelectedTab] = useState('Holdings');
 
-  // Mock portfolio data
-  const portfolioData = {
-    totalValue: 125000,
-    totalInvested: 100000,
-    totalPnL: 25000,
-    totalPnLPercent: 25.0,
-    cashBalance: 15000,
-    totalStocks: 8,
+  const tabs = ['Holdings', 'Order History', 'Leaderboard'];
+
+  const handleBack = () => {
+    navigation.goBack();
   };
 
-  const holdings = [
-    {
-      id: 1,
-      symbol: 'RELIANCE',
-      name: 'Reliance Industries Ltd',
-      quantity: 50,
-      avgPrice: 2450.00,
-      currentPrice: 2847.50,
-      marketValue: 142375,
-      investedAmount: 122500,
-      unrealizedPnL: 19875,
-      unrealizedPnLPercent: 16.22,
-      sector: 'Oil & Gas',
-      weight: 11.4,
-    },
-    {
-      id: 2,
-      symbol: 'TCS',
-      name: 'Tata Consultancy Services',
-      quantity: 30,
-      avgPrice: 3800.00,
-      currentPrice: 3892.75,
-      marketValue: 116782.5,
-      investedAmount: 114000,
-      unrealizedPnL: 2782.5,
-      unrealizedPnLPercent: 2.44,
-      sector: 'IT',
-      weight: 9.3,
-    },
-    {
-      id: 3,
-      symbol: 'HDFC',
-      name: 'HDFC Bank Ltd',
-      quantity: 80,
-      avgPrice: 1550.00,
-      currentPrice: 1647.30,
-      marketValue: 131784,
-      investedAmount: 124000,
-      unrealizedPnL: 7784,
-      unrealizedPnLPercent: 6.28,
-      sector: 'Banking',
-      weight: 10.5,
-    },
-    {
-      id: 4,
-      symbol: 'INFY',
-      name: 'Infosys Ltd',
-      quantity: 100,
-      avgPrice: 1400.00,
-      currentPrice: 1485.90,
-      marketValue: 148590,
-      investedAmount: 140000,
-      unrealizedPnL: 8590,
-      unrealizedPnLPercent: 6.14,
-      sector: 'IT',
-      weight: 11.9,
-    },
-    {
-      id: 5,
-      symbol: 'ICICIBANK',
-      name: 'ICICI Bank Ltd',
-      quantity: 120,
-      avgPrice: 950.00,
-      currentPrice: 1092.45,
-      marketValue: 131094,
-      investedAmount: 114000,
-      unrealizedPnL: 17094,
-      unrealizedPnLPercent: 15.0,
-      sector: 'Banking',
-      weight: 10.5,
-    },
-  ];
-
-  const sectorAllocation = [
-    { sector: 'IT', weight: 21.2, color: '#3B82F6' },
-    { sector: 'Banking', weight: 21.0, color: '#10B981' },
-    { sector: 'Oil & Gas', weight: 11.4, color: '#F59E0B' },
-    { sector: 'FMCG', weight: 8.5, color: '#8B5CF6' },
-    { sector: 'Others', weight: 37.9, color: '#6B7280' },
-  ];
-
-  const timeframes = ['1D', '1W', '1M', '3M', '1Y', 'ALL'];
-
-  const isPositive = portfolioData.totalPnL >= 0;
-  const pnlColor = isPositive ? '#10B981' : '#EF4444';
+  const handleTabChange = (tab: string) => {
+    setSelectedTab(tab);
+  };
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color="#374151" />
-      </TouchableOpacity>
-      <Text style={styles.headerTitle}>Portfolio</Text>
-      <TouchableOpacity style={styles.menuButton}>
-        <Ionicons name="ellipsis-vertical" size={24} color="#374151" />
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderPortfolioSummary = () => (
-    <View style={styles.summaryContainer}>
-      <View style={styles.summaryHeader}>
-        <Text style={styles.summaryTitle}>Portfolio Value</Text>
-        <Text style={styles.summaryValue}>₹{portfolioData.totalValue.toLocaleString()}</Text>
-      </View>
-      
-      <View style={styles.pnlContainer}>
-        <View style={styles.pnlRow}>
-          <Text style={styles.pnlLabel}>Total P&L</Text>
-          <View style={styles.pnlValueContainer}>
-            <Ionicons 
-              name={isPositive ? "trending-up" : "trending-down"} 
-              size={16} 
-              color={pnlColor} 
-            />
-            <Text style={[styles.pnlValue, { color: pnlColor }]}>
-              {isPositive ? '+' : ''}₹{portfolioData.totalPnL.toLocaleString()}
-            </Text>
+      <View style={styles.headerTop}>
+        <View style={styles.profileSection}>
+          <Image
+            source={{ uri: 'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg' }}
+            style={styles.profileImage}
+          />
+          <View style={styles.profileInfo}>
+            <Text style={styles.headerTitle}>Portfolio</Text>
+            <Text style={styles.welcomeText}>Welcome back, Sarah</Text>
           </View>
         </View>
-        <Text style={[styles.pnlPercent, { color: pnlColor }]}>
-          {isPositive ? '+' : ''}{portfolioData.totalPnLPercent.toFixed(2)}%
-        </Text>
-      </View>
-
-      <View style={styles.statsRow}>
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>₹{portfolioData.totalInvested.toLocaleString()}</Text>
-          <Text style={styles.statLabel}>Invested</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>₹{portfolioData.cashBalance.toLocaleString()}</Text>
-          <Text style={styles.statLabel}>Cash</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>{portfolioData.totalStocks}</Text>
-          <Text style={styles.statLabel}>Stocks</Text>
-        </View>
-      </View>
-    </View>
-  );
-
-  const renderTimeframeSelector = () => (
-    <View style={styles.timeframeContainer}>
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.timeframeContent}
-      >
-        {timeframes.map((timeframe) => (
-          <TouchableOpacity
-            key={timeframe}
-            style={[
-              styles.timeframeButton,
-              selectedTimeframe === timeframe && styles.timeframeButtonActive
-            ]}
-            onPress={() => setSelectedTimeframe(timeframe)}
-          >
-            <Text style={[
-              styles.timeframeText,
-              selectedTimeframe === timeframe && styles.timeframeTextActive
-            ]}>
-              {timeframe}
-            </Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.trophyButton}>
+            <Ionicons name="trophy" size={16} color="#6366F1" />
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+          <TouchableOpacity style={styles.notificationButton}>
+            <Ionicons name="notifications" size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.portfolioSummary}>
+        <View style={styles.summaryHeader}>
+          <View>
+            <Text style={styles.summaryLabel}>Total Portfolio Value</Text>
+            <Text style={styles.summaryValue}>₹{PORTFOLIO_DATA.totalValue}</Text>
+          </View>
+          <View style={styles.returnBadge}>
+            <Text style={styles.returnText}>+12.5%</Text>
+          </View>
+        </View>
+        <View style={styles.summaryDetails}>
+          <View>
+            <Text style={styles.summaryDetailLabel}>Invested</Text>
+            <Text style={styles.summaryDetailValue}>₹{PORTFOLIO_DATA.totalInvested}</Text>
+          </View>
+          <View>
+            <Text style={styles.summaryDetailLabel}>Returns</Text>
+            <Text style={styles.returnsValue}>+₹{PORTFOLIO_DATA.totalProfit}</Text>
+          </View>
+        </View>
+      </View>
     </View>
   );
 
-  const renderSectorAllocation = () => (
-    <View style={styles.sectorContainer}>
-      <Text style={styles.sectionTitle}>Sector Allocation</Text>
-      <View style={styles.sectorChart}>
+  const renderNavigationTabs = () => (
+    <View style={styles.navigationTabs}>
+      {tabs.map((tab) => (
+        <TouchableOpacity
+          key={tab}
+          style={[
+            styles.tabButton,
+            selectedTab === tab && styles.tabButtonActive
+          ]}
+          onPress={() => handleTabChange(tab)}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              selectedTab === tab && styles.tabTextActive
+            ]}
+          >
+            {tab}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  const renderAchievementsSection = () => (
+    <View style={styles.achievementsSection}>
+      <View style={styles.achievementsHeader}>
+        <Text style={styles.sectionTitle}>Achievements</Text>
+        <Text style={styles.achievementsCount}>3/5 unlocked</Text>
+      </View>
+      <View style={styles.achievementsGrid}>
+        <View style={styles.achievementCard}>
+          <Ionicons name="medal" size={16} color="#EAB308" />
+          <Text style={styles.achievementText}>First Investment</Text>
+        </View>
+        <View style={styles.achievementCard}>
+          <Ionicons name="trending-up" size={16} color="#22C55E" />
+          <Text style={styles.achievementText}>10% Gains</Text>
+        </View>
+        <View style={styles.achievementCard}>
+          <Ionicons name="pie-chart" size={16} color="#3B82F6" />
+          <Text style={styles.achievementText}>Diversified</Text>
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderDiversificationChart = () => (
+    <View style={styles.diversificationChart}>
+      <View style={styles.chartHeader}>
+        <Text style={styles.sectionTitle}>Portfolio Breakdown</Text>
+        <Ionicons name="pie-chart" size={20} color="#9CA3AF" />
+      </View>
+      <View style={styles.chartContent}>
         <View style={styles.pieChart}>
           <Ionicons name="pie-chart-outline" size={48} color="#6B7280" />
           <Text style={styles.pieChartText}>Chart</Text>
         </View>
         <View style={styles.sectorList}>
-          {sectorAllocation.map((sector) => (
+          {SECTOR_ALLOCATION.map((sector) => (
             <View key={sector.sector} style={styles.sectorItem}>
               <View style={[styles.sectorColor, { backgroundColor: sector.color }]} />
               <Text style={styles.sectorName}>{sector.sector}</Text>
-              <Text style={styles.sectorWeight}>{sector.weight}%</Text>
+              <Text style={styles.sectorWeight}>{sector.percentage}%</Text>
             </View>
           ))}
         </View>
@@ -230,82 +155,85 @@ const PortfolioScreen = () => {
     </View>
   );
 
-  const renderHoldingItem = (holding: any) => {
-    const isPositive = holding.unrealizedPnL >= 0;
-    const pnlColor = isPositive ? '#10B981' : '#EF4444';
-
-    return (
-      <TouchableOpacity
-        style={styles.holdingItem}
-        onPress={() => navigation.navigate('StockDetail', { 
-          stockSymbol: holding.symbol, 
-          stockName: holding.name 
-        })}
-      >
-        <View style={styles.holdingHeader}>
-          <View style={styles.stockInfo}>
-            <Text style={styles.stockSymbol}>{holding.symbol}</Text>
-            <Text style={styles.stockName} numberOfLines={1}>{holding.name}</Text>
-            <Text style={styles.stockSector}>{holding.sector}</Text>
-          </View>
-          <View style={styles.stockPrice}>
-            <Text style={styles.currentPrice}>₹{holding.currentPrice.toFixed(2)}</Text>
-            <Text style={styles.quantity}>{holding.quantity} shares</Text>
-          </View>
-        </View>
-
-        <View style={styles.holdingDetails}>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Market Value:</Text>
-            <Text style={styles.detailValue}>₹{holding.marketValue.toLocaleString()}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Avg Price:</Text>
-            <Text style={styles.detailValue}>₹{holding.avgPrice.toFixed(2)}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Weight:</Text>
-            <Text style={styles.detailValue}>{holding.weight}%</Text>
-          </View>
-        </View>
-
-        <View style={styles.pnlSection}>
-          <View style={styles.pnlInfo}>
-            <Text style={styles.pnlLabel}>Unrealized P&L</Text>
-            <View style={styles.pnlValueRow}>
-              <Ionicons 
-                name={isPositive ? "trending-up" : "trending-down"} 
-                size={14} 
-                color={pnlColor} 
-              />
-              <Text style={[styles.pnlAmount, { color: pnlColor }]}>
-                {isPositive ? '+' : ''}₹{holding.unrealizedPnL.toLocaleString()}
-              </Text>
+  const renderHoldingsSection = () => (
+    <View style={styles.holdingsSection}>
+      <Text style={styles.sectionTitle}>Holdings ({PORTFOLIO_HOLDINGS.length})</Text>
+      {PORTFOLIO_HOLDINGS.map((holding) => (
+        <TouchableOpacity
+          key={holding.symbol}
+          style={styles.holdingItem}
+          onPress={() => navigation.navigate('StockDetail', { 
+            stockSymbol: holding.symbol, 
+            stockName: holding.name 
+          })}
+        >
+          <View style={styles.holdingHeader}>
+            <View style={styles.stockInfo}>
+              <Text style={styles.stockSymbol}>{holding.symbol}</Text>
+              <Text style={styles.stockName} numberOfLines={1}>{holding.name}</Text>
+              <Text style={styles.stockSector}>Oil & Gas</Text>
+            </View>
+            <View style={styles.stockPrice}>
+              <Text style={styles.currentPrice}>₹{holding.currentPrice}</Text>
+              <Text style={styles.quantity}>{holding.quantity} shares</Text>
             </View>
           </View>
-          <Text style={[styles.pnlPercent, { color: pnlColor }]}>
-            {isPositive ? '+' : ''}{holding.unrealizedPnLPercent.toFixed(2)}%
-          </Text>
-        </View>
-      </TouchableOpacity>
-    );
-  };
+
+          <View style={styles.holdingDetails}>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Market Value:</Text>
+              <Text style={styles.detailValue}>₹{holding.marketValue}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Avg Price:</Text>
+              <Text style={styles.detailValue}>₹{holding.avgPrice}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Weight:</Text>
+              <Text style={styles.detailValue}>11.4%</Text>
+            </View>
+          </View>
+
+          <View style={styles.pnlSection}>
+            <View style={styles.pnlInfo}>
+              <Text style={styles.pnlLabel}>Unrealized P&L</Text>
+              <View style={styles.pnlValueRow}>
+                <Ionicons 
+                  name={holding.isPositive ? "trending-up" : "trending-down"} 
+                  size={14} 
+                  color={holding.isPositive ? '#10B981' : '#EF4444'} 
+                />
+                <Text style={[
+                  styles.pnlAmount,
+                  { color: holding.isPositive ? '#10B981' : '#EF4444' }
+                ]}>
+                  {holding.profit}
+                </Text>
+              </View>
+            </View>
+            <Text style={[
+              styles.pnlPercent,
+              { color: holding.isPositive ? '#10B981' : '#EF4444' }
+            ]}>
+              {holding.profitPercentage}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {renderHeader()}
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {renderPortfolioSummary()}
-        {renderTimeframeSelector()}
-        {renderSectorAllocation()}
-        
-        <View style={styles.holdingsSection}>
-          <Text style={styles.sectionTitle}>Holdings ({holdings.length})</Text>
-          {holdings.map(renderHoldingItem)}
-        </View>
+        {renderNavigationTabs()}
+        {renderAchievementsSection()}
+        {renderDiversificationChart()}
+        {renderHoldingsSection()}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -315,128 +243,188 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 24,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: '#F3F4F6',
   },
-  backButton: {
-    padding: 4,
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  profileSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  profileInfo: {
+    gap: 4,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
     color: '#111827',
   },
-  menuButton: {
+  welcomeText: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  trophyButton: {
+    backgroundColor: '#EEF2FF',
+    padding: 8,
+    borderRadius: 20,
+  },
+  notificationButton: {
     padding: 4,
+  },
+  portfolioSummary: {
+    backgroundColor: '#6366F1',
+    borderRadius: 16,
+    padding: 16,
+  },
+  summaryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: '#E0E7FF',
+    marginBottom: 4,
+  },
+  summaryValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  returnBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  returnText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#FFFFFF',
+  },
+  summaryDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  summaryDetailLabel: {
+    fontSize: 14,
+    color: '#E0E7FF',
+    marginBottom: 4,
+  },
+  summaryDetailValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#FFFFFF',
+  },
+  returnsValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#86EFAC',
   },
   content: {
     flex: 1,
   },
-  summaryContainer: {
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    marginBottom: 8,
-  },
-  summaryHeader: {
-    marginBottom: 16,
-  },
-  summaryTitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  summaryValue: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  pnlContainer: {
-    marginBottom: 20,
-  },
-  pnlRow: {
+  navigationTabs: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  pnlLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  pnlValueContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  pnlValue: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  pnlPercent: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  timeframeContainer: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
-    marginBottom: 8,
-  },
-  timeframeContent: {
-    paddingHorizontal: 16,
-  },
-  timeframeButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
-    borderRadius: 20,
     backgroundColor: '#F3F4F6',
+    marginHorizontal: 16,
+    marginTop: 24,
+    marginBottom: 24,
+    borderRadius: 12,
+    padding: 4,
   },
-  timeframeButtonActive: {
-    backgroundColor: '#DBEAFE',
+  tabButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
   },
-  timeframeText: {
+  tabButtonActive: {
+    backgroundColor: '#FFFFFF',
+  },
+  tabText: {
     fontSize: 14,
     fontWeight: '500',
     color: '#6B7280',
   },
-  timeframeTextActive: {
-    color: '#2563EB',
+  tabTextActive: {
+    color: '#6366F1',
   },
-  sectorContainer: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    marginBottom: 8,
+  achievementsSection: {
+    marginHorizontal: 16,
+    marginBottom: 24,
+  },
+  achievementsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#111827',
+  },
+  achievementsCount: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  achievementsGrid: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  achievementCard: {
+    flex: 1,
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    borderRadius: 8,
+    padding: 8,
+    alignItems: 'center',
+    gap: 4,
+  },
+  achievementText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#92400E',
+  },
+  diversificationChart: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  chartHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
   },
-  sectorChart: {
+  chartContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -484,6 +472,11 @@ const styles = StyleSheet.create({
   holdingsSection: {
     backgroundColor: '#FFFFFF',
     padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
   },
   holdingItem: {
     backgroundColor: '#F9FAFB',

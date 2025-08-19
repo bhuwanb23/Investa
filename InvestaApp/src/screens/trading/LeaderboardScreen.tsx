@@ -2,17 +2,15 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
-  Dimensions,
+  SafeAreaView,
   ScrollView,
-  FlatList,
+  TouchableOpacity,
   Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-
-const { width, height } = Dimensions.get('window');
+import { LEADERBOARD_DATA } from './constants/tradingConstants';
 
 // Define navigation types
 type RootStackParamList = {
@@ -26,268 +24,183 @@ type NavigationProp = {
 
 const LeaderboardScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [selectedTimeframe, setSelectedTimeframe] = useState('1M');
+  const [selectedTimeframe, setSelectedTimeframe] = useState('Weekly');
 
-  // Mock leaderboard data
-  const leaderboardData = [
-    {
-      id: 1,
-      rank: 1,
-      name: 'Rahul Sharma',
-      avatar: 'https://via.placeholder.com/40',
-      portfolioValue: 185000,
-      totalReturn: 85.0,
-      totalReturnAmount: 85000,
-      tradesCount: 45,
-      winRate: 78.5,
-      isCurrentUser: false,
-      badge: '🥇',
-    },
-    {
-      id: 2,
-      rank: 2,
-      name: 'Priya Patel',
-      avatar: 'https://via.placeholder.com/40',
-      portfolioValue: 162000,
-      totalReturn: 62.0,
-      totalReturnAmount: 62000,
-      tradesCount: 38,
-      winRate: 71.2,
-      isCurrentUser: false,
-      badge: '🥈',
-    },
-    {
-      id: 3,
-      rank: 3,
-      name: 'Amit Kumar',
-      avatar: 'https://via.placeholder.com/40',
-      portfolioValue: 148000,
-      totalReturn: 48.0,
-      totalReturnAmount: 48000,
-      tradesCount: 52,
-      winRate: 65.8,
-      isCurrentUser: false,
-      badge: '🥉',
-    },
-    {
-      id: 4,
-      rank: 4,
-      name: 'Neha Singh',
-      avatar: 'https://via.placeholder.com/40',
-      portfolioValue: 135000,
-      totalReturn: 35.0,
-      totalReturnAmount: 35000,
-      tradesCount: 29,
-      winRate: 82.1,
-      isCurrentUser: false,
-    },
-    {
-      id: 5,
-      rank: 5,
-      name: 'Vikram Mehta',
-      avatar: 'https://via.placeholder.com/40',
-      portfolioValue: 128000,
-      totalReturn: 28.0,
-      totalReturnAmount: 28000,
-      tradesCount: 41,
-      winRate: 68.9,
-      isCurrentUser: false,
-    },
-    {
-      id: 6,
-      rank: 12,
-      name: 'You',
-      avatar: 'https://via.placeholder.com/40',
-      portfolioValue: 125000,
-      totalReturn: 25.0,
-      totalReturnAmount: 25000,
-      tradesCount: 32,
-      winRate: 72.5,
-      isCurrentUser: true,
-    },
-  ];
+  const timeframes = ['Weekly', 'Monthly', 'All-time'];
 
-  const timeframes = ['1W', '1M', '3M', '6M', '1Y', 'ALL'];
+  const currentUser = LEADERBOARD_DATA.find(user => user.isCurrentUser);
+  const topUsers = LEADERBOARD_DATA.filter(user => !user.isCurrentUser).slice(0, 8);
 
-  const currentUser = leaderboardData.find(user => user.isCurrentUser);
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
+  const handleTimeframeChange = (timeframe: string) => {
+    setSelectedTimeframe(timeframe);
+  };
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color="#374151" />
+      <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+        <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
       </TouchableOpacity>
       <Text style={styles.headerTitle}>Leaderboard</Text>
       <TouchableOpacity style={styles.menuButton}>
-        <Ionicons name="ellipsis-vertical" size={24} color="#374151" />
+        <Ionicons name="people" size={24} color="#FFFFFF" />
       </TouchableOpacity>
     </View>
   );
 
-  const renderCurrentUserCard = () => (
-    <View style={styles.currentUserCard}>
-      <View style={styles.currentUserHeader}>
-        <Text style={styles.currentUserTitle}>Your Performance</Text>
-        <Text style={styles.currentUserRank}>Rank #{currentUser?.rank}</Text>
+  const renderUserRankCard = () => (
+    <View style={styles.userRankCard}>
+      <View style={styles.userRankHeader}>
+        <Text style={styles.userRankLabel}>Your Rank</Text>
+        <Ionicons name="trophy" size={20} color="#FDE047" />
       </View>
-      
-      <View style={styles.currentUserStats}>
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>₹{currentUser?.portfolioValue.toLocaleString()}</Text>
-          <Text style={styles.statLabel}>Portfolio Value</Text>
+      <View style={styles.userRankContent}>
+        <View style={styles.userRankLeft}>
+          <View style={styles.rankBadge}>
+            <Text style={styles.rankNumber}>#{currentUser?.rank || 47}</Text>
+          </View>
+          <View style={styles.userInfo}>
+            <Text style={styles.username}>{currentUser?.username || '@traderpro_alex'}</Text>
+            <Text style={styles.userValue}>₹{currentUser?.totalValue || '125,840'}</Text>
+          </View>
         </View>
-        <View style={styles.statItem}>
-          <Text style={[styles.statValue, { color: '#10B981' }]}>
-            +{currentUser?.totalReturn}%
-          </Text>
-          <Text style={styles.statLabel}>Total Return</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>{currentUser?.tradesCount}</Text>
-          <Text style={styles.statLabel}>Trades</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>{currentUser?.winRate}%</Text>
-          <Text style={styles.statLabel}>Win Rate</Text>
+        <View style={styles.userRankRight}>
+          <Text style={styles.userReturn}>+{currentUser?.totalReturn || '24.8%'}</Text>
+          <Text style={styles.userReturnLabel}>This month</Text>
         </View>
       </View>
     </View>
   );
 
-  const renderTimeframeSelector = () => (
-    <View style={styles.timeframeContainer}>
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.timeframeContent}
-      >
+  const renderTimeFilter = () => (
+    <View style={styles.timeFilterContainer}>
+      <View style={styles.timeFilterButtons}>
         {timeframes.map((timeframe) => (
           <TouchableOpacity
             key={timeframe}
             style={[
-              styles.timeframeButton,
-              selectedTimeframe === timeframe && styles.timeframeButtonActive
+              styles.timeFilterButton,
+              selectedTimeframe === timeframe && styles.timeFilterButtonActive
             ]}
-            onPress={() => setSelectedTimeframe(timeframe)}
+            onPress={() => handleTimeframeChange(timeframe)}
           >
-            <Text style={[
-              styles.timeframeText,
-              selectedTimeframe === timeframe && styles.timeframeTextActive
-            ]}>
+            <Text
+              style={[
+                styles.timeFilterText,
+                selectedTimeframe === timeframe && styles.timeFilterTextActive
+              ]}
+            >
               {timeframe}
             </Text>
           </TouchableOpacity>
         ))}
-      </ScrollView>
+      </View>
     </View>
   );
 
-  const renderLeaderboardItem = (user: any, index: number) => {
-    const isPositive = user.totalReturn >= 0;
-    const returnColor = isPositive ? '#10B981' : '#EF4444';
-
+  const renderPodium = () => {
+    const top3 = topUsers.slice(0, 3);
     return (
-      <View style={[
-        styles.leaderboardItem,
-        user.isCurrentUser && styles.currentUserItem
-      ]}>
-        <View style={styles.rankContainer}>
-          {user.badge ? (
-            <Text style={styles.badge}>{user.badge}</Text>
-          ) : (
-            <Text style={styles.rankNumber}>{user.rank}</Text>
-          )}
-        </View>
-
-        <View style={styles.userInfo}>
-          <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {user.name.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-            {user.isCurrentUser && (
-              <View style={styles.currentUserIndicator}>
-                <Ionicons name="person" size={12} color="#FFFFFF" />
+      <View style={styles.podiumContainer}>
+        <View style={styles.podiumRow}>
+          {/* 2nd Place */}
+          <View style={styles.podiumItem}>
+            <View style={styles.podiumAvatar}>
+              <Image
+                source={{ uri: 'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-2.jpg' }}
+                style={styles.avatarImage}
+              />
+              <View style={styles.rankBadgeSmall}>
+                <Text style={styles.rankBadgeText}>2</Text>
               </View>
-            )}
+            </View>
+            <View style={styles.podiumInfo}>
+              <Text style={styles.podiumUsername}>{top3[1]?.username || '@mike_trades'}</Text>
+              <Text style={styles.podiumReturn}>+{top3[1]?.totalReturn || '42.1%'}</Text>
+            </View>
           </View>
-          
-          <View style={styles.userDetails}>
-            <Text style={[
-              styles.userName,
-              user.isCurrentUser && styles.currentUserName
-            ]}>
-              {user.name}
-            </Text>
-            <Text style={styles.userStats}>
-              {user.tradesCount} trades • {user.winRate}% win rate
-            </Text>
-          </View>
-        </View>
 
-        <View style={styles.performanceInfo}>
-          <Text style={styles.portfolioValue}>
-            ₹{user.portfolioValue.toLocaleString()}
-          </Text>
-          <View style={styles.returnContainer}>
-            <Ionicons 
-              name={isPositive ? "trending-up" : "trending-down"} 
-              size={14} 
-              color={returnColor} 
-            />
-            <Text style={[styles.returnText, { color: returnColor }]}>
-              {isPositive ? '+' : ''}{user.totalReturn}%
-            </Text>
+          {/* 1st Place */}
+          <View style={styles.podiumItem}>
+            <View style={styles.podiumAvatar}>
+              <Image
+                source={{ uri: 'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-1.jpg' }}
+                style={[styles.avatarImage, styles.firstPlaceAvatar]}
+              />
+              <View style={styles.crownBadge}>
+                <Ionicons name="trophy" size={12} color="#FFFFFF" />
+              </View>
+            </View>
+            <View style={styles.podiumInfo}>
+              <Text style={styles.podiumUsername}>{top3[0]?.username || '@sarah_investor'}</Text>
+              <Text style={styles.podiumReturn}>+{top3[0]?.totalReturn || '58.3%'}</Text>
+              <Text style={styles.podiumValue}>₹{top3[0]?.totalValue || '187,920'}</Text>
+            </View>
           </View>
-          <Text style={styles.returnAmount}>
-            ₹{user.totalReturnAmount.toLocaleString()}
-          </Text>
+
+          {/* 3rd Place */}
+          <View style={styles.podiumItem}>
+            <View style={styles.podiumAvatar}>
+              <Image
+                source={{ uri: 'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-3.jpg' }}
+                style={styles.avatarImage}
+              />
+              <View style={styles.rankBadgeSmall}>
+                <Text style={styles.rankBadgeText}>3</Text>
+              </View>
+            </View>
+            <View style={styles.podiumInfo}>
+              <Text style={styles.podiumUsername}>{top3[2]?.username || '@crypto_king'}</Text>
+              <Text style={styles.podiumReturn}>+{top3[2]?.totalReturn || '38.7%'}</Text>
+            </View>
+          </View>
         </View>
       </View>
     );
   };
 
-  const renderTopPerformers = () => (
-    <View style={styles.topPerformersContainer}>
-      <Text style={styles.sectionTitle}>Top Performers</Text>
-      <View style={styles.topPerformersGrid}>
-        {leaderboardData.slice(0, 3).map((user, index) => (
-          <View key={user.id} style={styles.topPerformerCard}>
-            <View style={styles.topPerformerRank}>
-              <Text style={styles.topPerformerBadge}>{user.badge}</Text>
+  const renderLeaderboardList = () => (
+    <View style={styles.leaderboardList}>
+      {topUsers.slice(3).map((user, index) => (
+        <View key={user.rank} style={styles.leaderboardItem}>
+          <View style={styles.leaderboardLeft}>
+            <View style={styles.rankNumberSmall}>
+              <Text style={styles.rankNumberText}>{user.rank}</Text>
             </View>
-            <View style={styles.topPerformerAvatar}>
-              <Text style={styles.topPerformerAvatarText}>
-                {user.name.charAt(0).toUpperCase()}
-              </Text>
+            <Image
+              source={{ uri: `https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-${user.rank}.jpg` }}
+              style={styles.userAvatar}
+            />
+            <View style={styles.userDetails}>
+              <Text style={styles.userName}>{user.username}</Text>
+              <Text style={styles.leaderboardUserValue}>₹{user.totalValue}</Text>
             </View>
-            <Text style={styles.topPerformerName} numberOfLines={1}>
-              {user.name}
-            </Text>
-            <Text style={styles.topPerformerReturn}>
-              +{user.totalReturn}%
-            </Text>
           </View>
-        ))}
-      </View>
+          <View style={styles.leaderboardRight}>
+            <Text style={styles.userReturnText}>+{user.totalReturn}</Text>
+            <TouchableOpacity style={styles.followButton}>
+              <Text style={styles.followButtonText}>Follow</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ))}
     </View>
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {renderHeader()}
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {renderCurrentUserCard()}
-        {renderTimeframeSelector()}
-        {renderTopPerformers()}
-        
-        <View style={styles.leaderboardSection}>
-          <Text style={styles.sectionTitle}>All Participants</Text>
-          {leaderboardData.map((user, index) => renderLeaderboardItem(user, index))}
-        </View>
+        {renderUserRankCard()}
+        {renderTimeFilter()}
+        {renderPodium()}
+        {renderLeaderboardList()}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -298,269 +211,280 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    backgroundColor: '#3B82F6',
     paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    paddingVertical: 24,
   },
   backButton: {
-    padding: 4,
+    padding: 8,
+    marginLeft: -8,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   menuButton: {
-    padding: 4,
+    padding: 8,
+    marginRight: -8,
   },
   content: {
     flex: 1,
   },
-  currentUserCard: {
-    backgroundColor: '#FFFFFF',
-    margin: 16,
-    borderRadius: 16,
-    padding: 20,
+  userRankCard: {
+    marginHorizontal: 16,
+    marginTop: -12,
+    marginBottom: 16,
+    backgroundColor: '#F59E0B',
+    borderRadius: 12,
+    padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
-  currentUserHeader: {
+  userRankHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
-  },
-  currentUserTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  currentUserRank: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#2563EB',
-    backgroundColor: '#DBEAFE',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  currentUserStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  timeframeContainer: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
     marginBottom: 8,
   },
-  timeframeContent: {
-    paddingHorizontal: 16,
+  userRankLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#FFFFFF',
+    opacity: 0.9,
   },
-  timeframeButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
+  userRankContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  userRankLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  rankBadge: {
+    width: 40,
+    height: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rankNumber: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  userInfo: {
+    gap: 4,
+  },
+  username: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  userValue: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    opacity: 0.9,
+  },
+  userRankRight: {
+    alignItems: 'flex-end',
+  },
+  userReturn: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  userReturnLabel: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    opacity: 0.9,
+  },
+  timeFilterContainer: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+  },
+  timeFilterButtons: {
+    flexDirection: 'row',
     backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    padding: 4,
   },
-  timeframeButtonActive: {
-    backgroundColor: '#DBEAFE',
+  timeFilterButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    alignItems: 'center',
   },
-  timeframeText: {
+  timeFilterButtonActive: {
+    backgroundColor: '#3B82F6',
+  },
+  timeFilterText: {
     fontSize: 14,
     fontWeight: '500',
     color: '#6B7280',
   },
-  timeframeTextActive: {
-    color: '#2563EB',
+  timeFilterTextActive: {
+    color: '#FFFFFF',
   },
-  topPerformersContainer: {
-    backgroundColor: '#FFFFFF',
+  podiumContainer: {
     marginHorizontal: 16,
-    marginBottom: 8,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    marginBottom: 24,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 16,
-  },
-  topPerformersGrid: {
+  podiumRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    gap: 8,
   },
-  topPerformerCard: {
+  podiumItem: {
     alignItems: 'center',
-    flex: 1,
   },
-  topPerformerRank: {
+  podiumAvatar: {
+    position: 'relative',
     marginBottom: 8,
   },
-  topPerformerBadge: {
-    fontSize: 24,
-  },
-  topPerformerAvatar: {
+  avatarImage: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#F3F4F6',
-    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
+  },
+  firstPlaceAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 3,
+    borderColor: '#F59E0B',
+  },
+  rankBadgeSmall: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 24,
+    height: 24,
+    backgroundColor: '#9CA3AF',
+    borderRadius: 12,
     justifyContent: 'center',
-    marginBottom: 8,
+    alignItems: 'center',
   },
-  topPerformerAvatarText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#374151',
+  rankBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
-  topPerformerName: {
+  crownBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -4,
+    width: 28,
+    height: 28,
+    backgroundColor: '#F59E0B',
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  podiumInfo: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 16,
+    minHeight: 56,
+    alignItems: 'center',
+  },
+  podiumUsername: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#111827',
-    textAlign: 'center',
+    color: '#374151',
     marginBottom: 4,
   },
-  topPerformerReturn: {
+  podiumReturn: {
     fontSize: 14,
     fontWeight: '700',
     color: '#10B981',
   },
-  leaderboardSection: {
-    backgroundColor: '#FFFFFF',
+  podiumValue: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  leaderboardList: {
     marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    gap: 8,
   },
   leaderboardItem: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  leaderboardLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    gap: 12,
   },
-  currentUserItem: {
-    backgroundColor: '#F0F9FF',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    marginHorizontal: -12,
-  },
-  rankContainer: {
-    width: 40,
+  rankNumberSmall: {
+    width: 32,
+    height: 32,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 16,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
   },
-  rankNumber: {
-    fontSize: 16,
+  rankNumberText: {
+    fontSize: 14,
     fontWeight: '700',
-    color: '#374151',
+    color: '#6B7280',
   },
-  badge: {
-    fontSize: 20,
-  },
-  userInfo: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatarContainer: {
-    position: 'relative',
-    marginRight: 12,
-  },
-  avatar: {
+  userAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  currentUserIndicator: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#2563EB',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   userDetails: {
-    flex: 1,
+    gap: 4,
   },
   userName: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: '#111827',
-    marginBottom: 2,
   },
-  currentUserName: {
-    color: '#2563EB',
-  },
-  userStats: {
-    fontSize: 12,
+  leaderboardUserValue: {
+    fontSize: 14,
     color: '#6B7280',
   },
-  performanceInfo: {
+  leaderboardRight: {
     alignItems: 'flex-end',
   },
-  portfolioValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 2,
+  userReturnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#10B981',
   },
-  returnContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 2,
+  followButton: {
+    marginTop: 4,
   },
-  returnText: {
+  followButtonText: {
     fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 2,
-  },
-  returnAmount: {
-    fontSize: 10,
-    color: '#6B7280',
+    color: '#3B82F6',
   },
 });
 
