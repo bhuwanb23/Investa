@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import CONFIG from '../config/config';
 
 const AuthDebug = () => {
   const { user, token, isLoading } = useAuth();
@@ -13,6 +14,7 @@ const AuthDebug = () => {
       <Text style={styles.text}>Token: {token ? `${token.substring(0, 10)}...` : 'None'}</Text>
       <Text style={styles.text}>User ID: {user?.id || 'None'}</Text>
       <Text style={styles.text}>Email: {user?.email || 'None'}</Text>
+      <Text style={styles.text}>API Base: {CONFIG.API.BASE_URL}</Text>
     </View>
   );
 };

@@ -1,5 +1,5 @@
 // Configuration file for the Investa app
-import { Platform } from 'react-native';
+import { Platform, NativeModules } from 'react-native';
 let Constants: any = {};
 try {
   // Optional import – if expo-constants is not available, fall back to sane defaults
@@ -26,11 +26,24 @@ function resolveDevHost(): string | null {
     Constants?.linkingUri
   );
   if (hostFromExpo) return hostFromExpo;
+
+  // Fallback: parse from JS bundle scriptURL (works in Expo Go / RN dev)
+  try {
+    const scriptURL: string | undefined = (NativeModules as any)?.SourceCode?.scriptURL;
+    const fromScript = parseHostFromUri(scriptURL);
+    if (fromScript) return fromScript;
+  } catch (_) {
+    // ignore
+  }
   return null;
 }
 
 function resolveBaseUrl(): string {
-  const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL || process.env.API_BASE_URL;
+  const extraUrl = (Constants?.expoConfig?.extra && (
+    Constants.expoConfig.extra.EXPO_PUBLIC_API_BASE_URL ||
+    (Constants.expoConfig.extra as any).apiBaseUrl
+  )) as string | undefined;
+  const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL || process.env.API_BASE_URL || extraUrl;
   if (envUrl) {
     return envUrl.endsWith('/') ? envUrl : envUrl + '/';
   }

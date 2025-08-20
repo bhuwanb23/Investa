@@ -9,6 +9,9 @@ import { useAuth } from '../context/AuthContext';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
+import OnboardingScreen from '../screens/auth/OnboardingScreen';
+import LanguageSelectionScreen from '../screens/auth/LanguageSelectionScreen';
+import SplashScreen from '../screens/auth/SplashScreen';
 
 // Main App Screens
 import HomeScreen from '../screens/main/HomeScreen';
@@ -49,6 +52,9 @@ import NotificationsScreen from '../screens/main/NotificationsScreen';
 import BookmarksScreen from '../screens/main/BookmarksScreen';
 
 export type AuthStackParamList = {
+  Splash: undefined;
+  Onboarding: undefined;
+  LanguageSelection: undefined;
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
@@ -264,6 +270,7 @@ const MainStackNavigator = () => {
 const AuthStackNavigator = () => {
   return (
     <AuthStack.Navigator
+      initialRouteName="Onboarding"
       screenOptions={{
         headerStyle: {
           backgroundColor: '#2196F3',
@@ -274,6 +281,21 @@ const AuthStackNavigator = () => {
         },
       }}
     >
+      <AuthStack.Screen 
+        name="Splash" 
+        component={SplashScreen}
+        options={{ headerShown: false }}
+      />
+      <AuthStack.Screen 
+        name="Onboarding" 
+        component={OnboardingScreen}
+        options={{ headerShown: false }}
+      />
+      <AuthStack.Screen 
+        name="LanguageSelection" 
+        component={LanguageSelectionScreen}
+        options={{ headerShown: false }}
+      />
       <AuthStack.Screen 
         name="Login" 
         component={LoginScreen}

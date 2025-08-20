@@ -14,7 +14,7 @@ import { useAuth } from '../../context/AuthContext';
 const { width, height } = Dimensions.get('window');
 
 const SplashScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { user, isLoading } = useAuth();
   
   const logoScale = new Animated.Value(0);
@@ -46,12 +46,7 @@ const SplashScreen = () => {
     // Navigate after animation
     const timer = setTimeout(() => {
       if (isLoading) return;
-      
-      if (user) {
-        navigation.replace('Main');
-      } else {
-        navigation.replace('Onboarding');
-      }
+      navigation.replace(user ? 'Home' : 'Onboarding');
     }, 3000);
 
     return () => clearTimeout(timer);
