@@ -10,7 +10,6 @@ import {
   Alert,
   Image,
 } from 'react-native';
-import { ProgressBar } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import MainHeader from '../../components/MainHeader';
 import { useNavigation } from '@react-navigation/native';
@@ -167,8 +166,30 @@ const HomeScreen = () => {
     },
   ];
 
+  // New sample content
+  const dailyTip = {
+    title: 'Daily Tip',
+    icon: 'bulb',
+    message: 'Diversify across sectors to lower risk. Rebalance quarterly to maintain target allocation.',
+  };
+
+  const recommendedCourses = [
+    { id: 'rc1', title: 'Market Basics 101', level: 'Beginner', progress: 0.3, color: '#3B82F6' },
+    { id: 'rc2', title: 'Reading Candlesticks', level: 'Intermediate', progress: 0.55, color: '#10B981' },
+    { id: 'rc3', title: 'Options Essentials', level: 'Advanced', progress: 0.1, color: '#7C3AED' },
+  ];
+
+  const trendingStocks = [
+    { symbol: 'AAPL', name: 'Apple', change: '+1.8%', up: true },
+    { symbol: 'TSLA', name: 'Tesla', change: '-0.7%', up: false },
+    { symbol: 'NVDA', name: 'Nvidia', change: '+2.4%', up: true },
+    { symbol: 'AMZN', name: 'Amazon', change: '+0.9%', up: true },
+  ];
+
   const renderWelcomeSection = () => (
     <View style={styles.welcomeSection}>
+      <View style={styles.heroAccentCircle} />
+      <View style={[styles.heroAccentCircle, { right: -24, top: -12, width: 120, height: 120, opacity: 0.15 }]} />
       <View style={styles.welcomeHeader}>
         <View style={styles.profileSection}>
           <Image
@@ -181,19 +202,48 @@ const HomeScreen = () => {
           </View>
         </View>
       </View>
-      
+
+      <View style={styles.statRow}>
+        <View style={[styles.statCard, { backgroundColor: 'rgba(255,255,255,0.12)' }]}>
+          <View style={[styles.statIcon, { backgroundColor: 'rgba(255,255,255,0.18)' }]}>
+            <Ionicons name="book" size={16} color="#fff" />
+          </View>
+          <Text style={styles.statValue}>{userProgress.completedLessons}</Text>
+          <Text style={styles.statLabel}>Lessons</Text>
+        </View>
+        <View style={[styles.statCard, { backgroundColor: 'rgba(255,255,255,0.12)' }]}>
+          <View style={[styles.statIcon, { backgroundColor: 'rgba(255,255,255,0.18)' }]}>
+            <Ionicons name="flame" size={16} color="#fff" />
+          </View>
+          <Text style={styles.statValue}>{userProgress.currentStreak}d</Text>
+          <Text style={styles.statLabel}>Streak</Text>
+        </View>
+        <View style={[styles.statCard, { backgroundColor: 'rgba(255,255,255,0.12)' }]}>
+          <View style={[styles.statIcon, { backgroundColor: 'rgba(255,255,255,0.18)' }]}>
+            <Ionicons name="trophy" size={16} color="#fff" />
+          </View>
+          <Text style={styles.statValue}>{userProgress.totalPoints}</Text>
+          <Text style={styles.statLabel}>Points</Text>
+        </View>
+      </View>
+
       <View style={styles.progressContainer}>
         <View style={styles.progressHeader}>
-          <Text style={styles.progressLabel}>Learning Progress</Text>
+          <Text style={styles.progressLabel}>Overall Progress</Text>
           <Text style={styles.progressPercentage}>{Math.round(userProgress.overallProgress * 100)}%</Text>
         </View>
         <View style={styles.progressBarBackground}>
-          <View 
+          <View
             style={[
-              styles.progressBarFill, 
-              { width: `${userProgress.overallProgress * 100}%` }
-            ]} 
+              styles.progressBarFill,
+              { width: `${userProgress.overallProgress * 100}%` },
+            ]}
           />
+        </View>
+        <View style={styles.progressMetaRow}>
+          <View style={styles.progressPill}><Text style={styles.progressPillText}>{userProgress.completedLessons} / {userProgress.totalLessons} Lessons</Text></View>
+          <View style={styles.progressPill}><Text style={styles.progressPillText}>Streak: {userProgress.currentStreak} days</Text></View>
+          <View style={styles.progressPill}><Text style={styles.progressPillText}>{userProgress.totalPoints} pts</Text></View>
         </View>
       </View>
     </View>
@@ -302,12 +352,78 @@ const HomeScreen = () => {
     </View>
   );
 
+  const renderDailyTip = () => (
+    <View style={styles.tipCard}>
+      <View style={[styles.tipIconWrap, { backgroundColor: '#E0E7FF' }]}>
+        <Ionicons name={dailyTip.icon as any} size={18} color="#4F46E5" />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.tipTitle}>{dailyTip.title}</Text>
+        <Text style={styles.tipText}>{dailyTip.message}</Text>
+      </View>
+    </View>
+  );
+
+  const renderRecommended = () => (
+    <View style={styles.recommendedSection}>
+      <Text style={styles.sectionTitle}>Recommended For You</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 16 }}>
+        {recommendedCourses.map((c) => (
+          <TouchableOpacity key={c.id} style={styles.recoCard} activeOpacity={0.85} onPress={() => navigation.navigate('Courses')}>
+            <View style={[styles.recoBadge, { backgroundColor: c.color }]}>
+              <Ionicons name="play" size={14} color="#fff" />
+            </View>
+            <Text style={styles.recoTitle} numberOfLines={2}>{c.title}</Text>
+            <Text style={styles.recoSub}>{c.level}</Text>
+            <View style={styles.recoTrack}><View style={[styles.recoFill, { width: `${Math.round(c.progress * 100)}%`, backgroundColor: c.color }]} /></View>
+            <Text style={styles.recoHint}>{Math.round(c.progress * 100)}% complete</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
+  );
+
+  const renderMarket = () => (
+    <View style={styles.marketSection}>
+      <Text style={styles.sectionTitle}>Market Snapshot</Text>
+      <View style={styles.marketList}>
+        {trendingStocks.map((s) => (
+          <View key={s.symbol} style={styles.marketItem}>
+            <View style={styles.marketSymbolWrap}><Text style={styles.marketSymbol}>{s.symbol}</Text></View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.marketName}>{s.name}</Text>
+              <Text style={[styles.marketChange, { color: s.up ? '#059669' : '#DC2626' }]}>{s.change}</Text>
+            </View>
+            <Ionicons name={s.up ? 'trending-up' : 'trending-down'} size={18} color={s.up ? '#059669' : '#DC2626'} />
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+
+  const renderCTA = () => (
+    <TouchableOpacity activeOpacity={0.9} style={styles.bigCTA} onPress={() => navigation.navigate('Courses')}>
+      <View style={styles.ctaLeft}>
+        <Ionicons name="sparkles" size={20} color="#fff" />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.bigCTATitle}>Continue Learning</Text>
+        <Text style={styles.bigCTASub}>Pick up where you left off in Technical Analysis</Text>
+      </View>
+      <View style={styles.ctaRight}><Ionicons name="arrow-forward" size={18} color="#fff" /></View>
+    </TouchableOpacity>
+  );
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
       <MainHeader title="Home" iconName="home" />
       {renderWelcomeSection()}
+      {renderDailyTip()}
       {renderQuickAccess()}
+      {renderRecommended()}
       {renderLearningPath()}
+      {renderMarket()}
+      {renderCTA()}
       {renderPortfolioSnapshot()}
       {renderAchievements()}
       <View style={{ height: 84 }} />
@@ -325,6 +441,32 @@ const styles = StyleSheet.create({
     backgroundColor: '#0891B2',
     borderRadius: 16,
     padding: 24,
+  },
+  statRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    gap: 10,
+  },
+  statCard: {
+    flex: 1,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+  },
+  statIcon: { width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  statValue: { color: '#fff', fontWeight: '800', fontSize: 16 },
+  statLabel: { color: 'rgba(255,255,255,0.9)', fontSize: 11 },
+  heroAccentCircle: {
+    position: 'absolute',
+    left: -20,
+    top: -20,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: 'rgba(255,255,255,0.08)'
   },
   welcomeHeader: {
     marginBottom: 16,
@@ -385,6 +527,24 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: 'white',
     borderRadius: 4,
+  },
+  progressMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    gap: 6,
+  },
+  progressPill: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  progressPillText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
   },
   quickAccessSection: {
     margin: 16,
@@ -556,6 +716,55 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     textAlign: 'center',
   },
+  tipCard: {
+    marginHorizontal: 16,
+    marginTop: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  tipIconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  tipTitle: { fontSize: 12, color: '#6B7280', fontWeight: '700' },
+  tipText: { fontSize: 13, color: '#1F2937', marginTop: 2 },
+  recommendedSection: { margin: 16, marginTop: 6 },
+  recoCard: {
+    width: 200,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 14,
+    marginRight: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  recoBadge: { width: 28, height: 28, borderRadius: 6, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  recoTitle: { fontSize: 14, fontWeight: '700', color: '#111827' },
+  recoSub: { fontSize: 12, color: '#6B7280', marginTop: 4 },
+  recoTrack: { height: 6, backgroundColor: '#E5E7EB', borderRadius: 999, marginTop: 10 },
+  recoFill: { height: '100%', borderRadius: 999 },
+  recoHint: { fontSize: 11, color: '#6B7280', marginTop: 6 },
+  marketSection: { margin: 16, marginTop: 0, backgroundColor: '#FFFFFF', borderRadius: 16, padding: 14, elevation: 3, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 } },
+  marketList: { marginTop: 6 },
+  marketItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB' },
+  marketSymbolWrap: { width: 54 },
+  marketSymbol: { fontWeight: '800', color: '#111827' },
+  marketName: { fontSize: 12, color: '#6B7280' },
+  marketChange: { fontSize: 12, fontWeight: '700', marginTop: 2 },
+  bigCTA: { marginHorizontal: 16, backgroundColor: '#4F46E5', borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8 },
+  ctaLeft: { width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
+  bigCTATitle: { color: '#FFFFFF', fontWeight: '800' },
+  bigCTASub: { color: 'rgba(255,255,255,0.9)', fontSize: 12, marginTop: 2 },
+  ctaRight: { width: 28, height: 28, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' },
   bottomSpacing: {
     height: 84,
   },

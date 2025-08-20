@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView } from 'react-native';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import AppNavigator from './src/navigation/AppNavigator';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -20,9 +19,9 @@ export default function App() {
 		<AuthProvider>
 			<PaperProvider>
 				<SafeAreaProvider>
-					<SafeAreaView style={{ flex: 1 }}>
+					<View style={{ flex: 1 }}>
 						<AppShell theme={theme} />
-					</SafeAreaView>
+					</View>
 					<StatusBar style="auto" />
 				</SafeAreaProvider>
 			</PaperProvider>
@@ -33,7 +32,7 @@ export default function App() {
 const AppShell = ({ theme }: { theme: any }) => {
 	const { user } = useAuth();
 	const [active, setActive] = useState<string | undefined>(undefined);
-	const insets = require('react-native-safe-area-context').useSafeAreaInsets();
+	const insets = useSafeAreaInsets();
 	const PRIMARY = '#4f46e5';
 	const MUTED = '#6B7280';
 
