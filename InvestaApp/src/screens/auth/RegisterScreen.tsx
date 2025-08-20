@@ -11,6 +11,7 @@ import {
   View,
   Platform,
 } from 'react-native';
+import CONFIG from '../../config/config';
 
 type NavigationLike = {
   navigate: (routeName: string) => void;
@@ -45,11 +46,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   const [successVisible, setSuccessVisible] = useState<boolean>(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  const API_BASE_URL = Platform.select({
-    android: 'http://10.0.2.2:8000/api',
-    ios: 'http://127.0.0.1:8000/api',
-    default: 'http://127.0.0.1:8000/api',
-  }) as string;
+  const API_BASE_URL = CONFIG.API.BASE_URL.replace(/\/$/, '');
 
   function handleBack() {
     if (navigation && typeof navigation.goBack === 'function') {

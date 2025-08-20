@@ -9,13 +9,23 @@ try {
   Constants = {};
 }
 
+function parseHostFromUri(uri?: string): string | null {
+  if (!uri || typeof uri !== 'string') return null;
+  // Examples: "192.168.1.10:19000", "exp://192.168.1.10:19000", "http://localhost:19000"
+  const cleaned = uri.replace(/^\w+:\/\//, '');
+  const host = cleaned.split(':')[0];
+  return host || null;
+}
+
 function resolveDevHost(): string | null {
   // Expo SDK 49/50: hostUri like "192.168.1.10:19000"
-  const hostUri: string | undefined = Constants?.expoConfig?.hostUri || Constants?.manifest2?.extra?.expoClient?.hostUri || Constants?.manifest?.debuggerHost;
-  if (hostUri && typeof hostUri === 'string') {
-    const host = hostUri.split(':')[0];
-    if (host) return host;
-  }
+  const hostFromExpo = parseHostFromUri(
+    Constants?.expoConfig?.hostUri ||
+    Constants?.manifest2?.extra?.expoClient?.hostUri ||
+    Constants?.manifest?.debuggerHost ||
+    Constants?.linkingUri
+  );
+  if (hostFromExpo) return hostFromExpo;
   return null;
 }
 
@@ -28,6 +38,10 @@ function resolveBaseUrl(): string {
   if (__DEV__) {
     const host = resolveDevHost();
     if (host) {
+      // Android emulator shows localhost; prefer 10.0.2.2 for emulator
+      if (Platform.OS === 'android' && (host === 'localhost' || host === '127.0.0.1')) {
+        return 'http://10.0.2.2:8000/api/';
+      }
       return `http://${host}:8000/api/`;
     }
     if (Platform.OS === 'android') {

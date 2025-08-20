@@ -10,6 +10,12 @@ const api = axios.create({
   },
 });
 
+// Helpful runtime log to confirm the base URL being used (dev only)
+if (__DEV__) {
+  // eslint-disable-next-line no-console
+  console.log('🔗 API base URL:', CONFIG.API.BASE_URL);
+}
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
