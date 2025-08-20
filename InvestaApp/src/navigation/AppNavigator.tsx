@@ -24,6 +24,12 @@ import CourseDetailScreen from '../screens/courses/CourseDetailScreen';
 import LessonDetailScreen from '../screens/courses/LessonDetailScreen';
 import LessonListScreen from '../screens/courses/LessonListScreen';
 import ModuleScreen from '../screens/courses/ModuleScreen';
+import CourseBookmarksScreen from '../screens/courses/CourseBookmarksScreen';
+import CertificateScreen from '../screens/courses/CertificateScreen';
+import ModuleProgressScreen from '../screens/courses/ModuleProgressScreen';
+import DownloadsScreen from '../screens/courses/DownloadsScreen';
+import FeedbackScreen from '../screens/courses/FeedbackScreen';
+import LessonQuizScreen from '../screens/courses/LessonQuizScreen';
 
 // Quiz Screens
 import QuizStartScreen from '../screens/quiz/QuizStartScreen';
@@ -58,6 +64,9 @@ export type MainStackParamList = {
   LessonDetail: { lessonId: string };
   LessonList: { courseId: string; course?: any };
   ModuleScreen: { courseId: string; course?: any };
+  Downloads: undefined;
+  CourseFeedback: undefined;
+  LessonQuiz: undefined;
   Quiz: undefined;
   QuizStart: undefined;
   QuizQuestion: { 
@@ -73,6 +82,9 @@ export type MainStackParamList = {
     quizId: string; 
   };
   Bookmarks: undefined;
+  CourseBookmarks: undefined;
+  Certificate: undefined;
+  ModuleProgress: undefined;
   // Trading Navigation
   MarketWatchlist: undefined;
   StockDetail: { stockSymbol: string; stockName: string };
@@ -130,6 +142,21 @@ const MainStackNavigator = () => {
         options={{ title: 'Module', headerShown: false }}
       />
       <MainStack.Screen 
+        name="Downloads" 
+        component={DownloadsScreen}
+        options={{ title: 'Downloads', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="CourseFeedback" 
+        component={FeedbackScreen}
+        options={{ title: 'Course Feedback', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="LessonQuiz" 
+        component={LessonQuizScreen}
+        options={{ title: 'Lesson Quiz', headerShown: false }}
+      />
+      <MainStack.Screen 
         name="Quiz" 
         component={QuizScreen}
         options={{ title: 'Quiz' }}
@@ -153,6 +180,21 @@ const MainStackNavigator = () => {
         name="Bookmarks" 
         component={BookmarksScreen}
         options={{ title: 'Bookmarks', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="CourseBookmarks" 
+        component={CourseBookmarksScreen}
+        options={{ title: 'Bookmarks', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="Certificate" 
+        component={CertificateScreen}
+        options={{ title: 'Certificate', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="ModuleProgress" 
+        component={ModuleProgressScreen}
+        options={{ title: 'Module Progress', headerShown: false }}
       />
       <MainStack.Screen 
         name="Notifications" 
