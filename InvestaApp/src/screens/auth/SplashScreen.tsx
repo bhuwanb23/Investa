@@ -6,6 +6,7 @@ import {
   Dimensions,
   Animated,
   Image,
+  SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
@@ -57,7 +58,7 @@ const SplashScreen = () => {
   }, [user, isLoading, navigation]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.logoContainer}>
         <Animated.View
           style={[
@@ -97,7 +98,7 @@ const SplashScreen = () => {
           SEBI Aligned • Paper Trading • Educational
         </Text>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

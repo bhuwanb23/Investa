@@ -170,8 +170,8 @@ const LessonQuizContent: React.FC<Props> = ({ questionIndex = 2, totalQuestions 
           <TouchableOpacity onPress={onContinue} style={[styles.primaryBtn, { marginTop: 12 }]}>
             <Text style={styles.primaryBtnText}>Continue to Next Question</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={stylestertiaryBtn}> 
-            <Text style={styles.tertiaryText}>Review Answers</Text>
+          <TouchableOpacity style={styles.secondaryBtnPlain}> 
+            <Text style={styles.secondaryPlainText}>Review Answers</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -231,8 +231,6 @@ const styles = StyleSheet.create({
 
   secondaryBtn: { backgroundColor: '#F3F4F6', borderWidth: 1, borderColor: BORDER, borderRadius: 14, paddingVertical: 14, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 as any },
   secondaryText: { color: '#374151', fontWeight: '800', fontSize: 15, marginLeft: 6 },
-  stylestertiaryBtn: {},
-  tertiaryBtn: {},
   secondaryBtnPlain: { marginTop: 10, backgroundColor: '#F9FAFB', borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
   secondaryPlainText: { color: '#374151', fontWeight: '700' },
   caption: { fontSize: 12, color: TEXT_MUTED },

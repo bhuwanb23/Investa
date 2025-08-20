@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Modal,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,6 +10,7 @@ import {
   View,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import CONFIG from '../../config/config';
 
 type NavigationLike = {
@@ -129,7 +129,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}> 
+    <SafeAreaView style={styles.safeArea} edges={['top','bottom']}> 
       <View style={styles.rootBackground}>
         <View style={styles.header}> 
           <Pressable style={styles.iconButton} onPress={handleBack} android_ripple={{ color: '#eee' }}>
