@@ -15,6 +15,7 @@ const AuthDebug = () => {
       <Text style={styles.text}>User ID: {user?.id || 'None'}</Text>
       <Text style={styles.text}>Email: {user?.email || 'None'}</Text>
       <Text style={styles.text}>API Base: {CONFIG.API.BASE_URL}</Text>
+      <Text style={styles.text}>Auth Mode: offline (test@example.com / test123)</Text>
     </View>
   );
 };

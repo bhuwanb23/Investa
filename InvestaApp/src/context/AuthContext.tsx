@@ -28,6 +28,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Temporary: offline auth mode to bypass backend
+  const USE_FAKE_AUTH = true;
 
   const checkAuthStatus = async () => {
     try {
@@ -53,39 +55,54 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔐 Starting login process for:', email);
       setIsLoading(true);
       
+      if (USE_FAKE_AUTH) {
+        // Offline: accept one test credential pair
+        if (email === 'test@example.com' && password === 'test123') {
+          const fakeToken = 'dev-token';
+          const userData = {
+            id: 1,
+            username: 'testuser',
+            email: 'test@example.com',
+            profile: { plan: 'dev', role: 'tester' },
+          };
+
+          await AsyncStorage.setItem('authToken', fakeToken);
+          await AsyncStorage.setItem('user', JSON.stringify(userData));
+
+          // Optional header for local API usage elsewhere
+          api.defaults.headers.common['Authorization'] = `Token ${fakeToken}`;
+
+          setToken(fakeToken);
+          setUser(userData);
+          return { success: true, message: 'Login successful (offline).' };
+        }
+        return { success: false, message: 'Invalid test credentials. Use test@example.com / test123.' };
+      }
+
+      // Online path (kept for later re-enable)
       const response = await api.post('auth/login/', {
-        username: email, // Django expects 'username' field
-        password: password
+        username: email,
+        password: password,
       });
 
       console.log('✅ Login API response:', response.data);
       const { token: authToken, user_id, username, email: userEmail, profile } = response.data;
-      
-      // Create user object from response data
+
       const userData = {
         id: user_id,
         username: username,
         email: userEmail,
-        profile: profile
+        profile: profile,
       };
-      
-      console.log('👤 Created user data:', userData);
-      
-      // Store token and user data
+
       await AsyncStorage.setItem('authToken', authToken);
       await AsyncStorage.setItem('user', JSON.stringify(userData));
-      
-      console.log('💾 Stored data in AsyncStorage');
-      
-      // Set api default header
+
       api.defaults.headers.common['Authorization'] = `Token ${authToken}`;
-      
-      // Update state
+
       setToken(authToken);
       setUser(userData);
-      
-      console.log('🎉 Login successful, state updated');
-      
+
       return { success: true, message: 'Login successful!' };
     } catch (error: any) {
       // Don't spam console in production

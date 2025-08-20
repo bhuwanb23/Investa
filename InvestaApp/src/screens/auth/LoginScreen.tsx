@@ -20,10 +20,10 @@ import { useAuth } from '../../context/AuthContext';
 const LoginScreen = () => {
   const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>();
   const { login } = useAuth();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('test@example.com');
   const [emailTouched, setEmailTouched] = useState(false);
   const isEmailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()), [email]);
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState('test123');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   },
   welcomeSection: {
     alignItems: 'center',
-    marginTop: 0,
+    marginTop: 20,
     marginBottom: 16,
   },
   brandBadge: {
