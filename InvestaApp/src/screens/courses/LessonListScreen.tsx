@@ -5,6 +5,7 @@ import { PAGE_BG, TEXT_DARK, TEXT_MUTED, PRIMARY } from './constants/courseConst
 import LessonListHeader from './components/LessonListHeader';
 import LessonListAdvanced from './components/LessonListAdvanced';
 
+
 type ParamList = {
   LessonList: { courseId: string; course?: any };
 };
@@ -49,6 +50,7 @@ const LessonListScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
+        {/* Lesson list */}
         <LessonListAdvanced
           lessons={lessons as any}
           onStart={(id) => navigation.navigate('LessonDetail' as never, { lessonId: String(id) } as never)}

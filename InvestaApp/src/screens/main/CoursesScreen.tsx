@@ -2,31 +2,21 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import MainHeader from '../../components/MainHeader';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import type { MainStackParamList } from '../../navigation/AppNavigator';
+import type { Course as ApiCourse } from '../courses/utils/coursesApi';
 import CourseCard from '../courses/components/CourseCard';
 import { PAGE_BG, TEXT_DARK, TEXT_MUTED } from '../courses/constants/courseConstants';
 import { Ionicons } from '@expo/vector-icons';
 
 const CoursesScreen = () => {
-  const navigation = useNavigation();
-  // Local-only data (no backend)
-  type Language = { id: number; code: string; name: string; native_name: string };
-  type Lesson = { id: number; title: string; order: number; estimated_duration: number; content?: string; video_url?: string | null; is_active?: boolean };
-  type Course = {
-    id: number;
-    title: string;
-    description: string;
-    language: Language;
-    difficulty_level: 'beginner' | 'intermediate' | 'advanced';
-    estimated_duration: number;
-    thumbnail?: string | null;
-    is_active?: boolean;
-    lessons?: Lesson[];
-  };
-  const [courses] = useState<Course[]>([]);
+  const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
+  // Local-only data (no backend), aligned to API types
+  const [courses] = useState<ApiCourse[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<'all'|'beginner'|'intermediate'|'advanced'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const sampleCourses: Course[] = useMemo(() => ([
+  const sampleCourses: ApiCourse[] = useMemo(() => ([
     {
       id: 101,
       title: 'React Native Basics',
@@ -37,8 +27,8 @@ const CoursesScreen = () => {
       thumbnail: null,
       is_active: true,
       lessons: [
-        { id: 1001, title: 'Introduction', order: 1, estimated_duration: 10, content: 'Welcome to React Native.' },
-        { id: 1002, title: 'Components & Props', order: 2, estimated_duration: 20, content: 'Learn components.' },
+        { id: 1001, title: 'Introduction', order: 1, estimated_duration: 10, content: 'Welcome to React Native.', video_url: null, is_active: true },
+        { id: 1002, title: 'Components & Props', order: 2, estimated_duration: 20, content: 'Learn components.', video_url: null, is_active: true },
       ],
     },
     {
@@ -51,8 +41,8 @@ const CoursesScreen = () => {
       thumbnail: null,
       is_active: true,
       lessons: [
-        { id: 1101, title: 'SELECT Basics', order: 1, estimated_duration: 15, content: 'Basic selects.' },
-        { id: 1102, title: 'JOINs', order: 2, estimated_duration: 25, content: 'Understanding joins.' },
+        { id: 1101, title: 'SELECT Basics', order: 1, estimated_duration: 15, content: 'Basic selects.', video_url: null, is_active: true },
+        { id: 1102, title: 'JOINs', order: 2, estimated_duration: 25, content: 'Understanding joins.', video_url: null, is_active: true },
       ],
     },
     {
@@ -65,15 +55,15 @@ const CoursesScreen = () => {
       thumbnail: null,
       is_active: true,
       lessons: [
-        { id: 1201, title: 'ML Overview', order: 1, estimated_duration: 20, content: 'What is ML?' },
-        { id: 1202, title: 'Linear Regression', order: 2, estimated_duration: 30, content: 'Basics of LR.' },
+        { id: 1201, title: 'ML Overview', order: 1, estimated_duration: 20, content: 'What is ML?', video_url: null, is_active: true },
+        { id: 1202, title: 'Linear Regression', order: 2, estimated_duration: 30, content: 'Basics of LR.', video_url: null, is_active: true },
       ],
     },
   ]), []);
 
   // Backend disabled: no effects or refresh logic
 
-  const dataSource: Course[] = useMemo(() => {
+  const dataSource: ApiCourse[] = useMemo(() => {
     const source = Array.isArray(courses) && courses.length > 0 ? courses : sampleCourses;
     const byFilter = selectedFilter === 'all' ? source : source.filter(c => c.difficulty_level === selectedFilter);
     if (!searchQuery.trim()) return byFilter;
@@ -144,12 +134,9 @@ const CoursesScreen = () => {
                   course={c}
                   onPress={() => {
                     if (usingSample) {
-                      navigation.navigate(
-                        'CourseDetail' as never,
-                        { courseId: String(c.id), course: c, sample: true } as never
-                      );
+                      navigation.navigate('CourseDetail', { courseId: String(c.id), course: c, sample: true });
                     } else {
-                      navigation.navigate('CourseDetail' as never, { courseId: String(c.id), course: c } as never);
+                      navigation.navigate('CourseDetail', { courseId: String(c.id), course: c });
                     }
                   }}
                 />

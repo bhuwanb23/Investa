@@ -7,6 +7,7 @@ import ModuleHero from './components/ModuleHero';
 import ProgressCard from './components/ProgressCard';
 import ObjectivesList from './components/ObjectivesList';
 import BadgesGrid from './components/BadgesGrid';
+import ModuleStats from './components/ModuleStats';
 
 type ParamList = {
   ModuleScreen: { courseId: string; course?: any };
@@ -59,6 +60,8 @@ const ModuleScreen: React.FC = () => {
             { icon: 'trophy', title: 'Expert', subtitle: 'Score 95%+ on quiz' },
           ]}
         />
+
+        <ModuleStats lessonsCount={12} quizzesCount={5} />
       </ScrollView>
 
       <View style={styles.footer}>
