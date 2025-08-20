@@ -1,18 +1,28 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, RefreshControl, ActivityIndicator, TouchableOpacity, TextInput } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import MainHeader from '../../components/MainHeader';
 import { useNavigation } from '@react-navigation/native';
-import { fetchCourses, Course } from '../courses/utils/coursesApi';
 import CourseCard from '../courses/components/CourseCard';
 import { PAGE_BG, TEXT_DARK, TEXT_MUTED } from '../courses/constants/courseConstants';
 import { Ionicons } from '@expo/vector-icons';
 
 const CoursesScreen = () => {
   const navigation = useNavigation();
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Local-only data (no backend)
+  type Language = { id: number; code: string; name: string; native_name: string };
+  type Lesson = { id: number; title: string; order: number; estimated_duration: number; content?: string; video_url?: string | null; is_active?: boolean };
+  type Course = {
+    id: number;
+    title: string;
+    description: string;
+    language: Language;
+    difficulty_level: 'beginner' | 'intermediate' | 'advanced';
+    estimated_duration: number;
+    thumbnail?: string | null;
+    is_active?: boolean;
+    lessons?: Lesson[];
+  };
+  const [courses] = useState<Course[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<'all'|'beginner'|'intermediate'|'advanced'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -26,6 +36,10 @@ const CoursesScreen = () => {
       estimated_duration: 120,
       thumbnail: null,
       is_active: true,
+      lessons: [
+        { id: 1001, title: 'Introduction', order: 1, estimated_duration: 10, content: 'Welcome to React Native.' },
+        { id: 1002, title: 'Components & Props', order: 2, estimated_duration: 20, content: 'Learn components.' },
+      ],
     },
     {
       id: 102,
@@ -36,6 +50,10 @@ const CoursesScreen = () => {
       estimated_duration: 180,
       thumbnail: null,
       is_active: true,
+      lessons: [
+        { id: 1101, title: 'SELECT Basics', order: 1, estimated_duration: 15, content: 'Basic selects.' },
+        { id: 1102, title: 'JOINs', order: 2, estimated_duration: 25, content: 'Understanding joins.' },
+      ],
     },
     {
       id: 103,
@@ -46,31 +64,14 @@ const CoursesScreen = () => {
       estimated_duration: 240,
       thumbnail: null,
       is_active: true,
+      lessons: [
+        { id: 1201, title: 'ML Overview', order: 1, estimated_duration: 20, content: 'What is ML?' },
+        { id: 1202, title: 'Linear Regression', order: 2, estimated_duration: 30, content: 'Basics of LR.' },
+      ],
     },
   ]), []);
 
-  const load = useCallback(async () => {
-    try {
-      setError(null);
-      setLoading(true);
-      const data = await fetchCourses();
-      setCourses(data);
-    } catch (e: any) {
-      setError(e?.response?.data?.detail || 'Failed to load courses');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await load();
-    setRefreshing(false);
-  }, [load]);
+  // Backend disabled: no effects or refresh logic
 
   const dataSource: Course[] = useMemo(() => {
     const source = Array.isArray(courses) && courses.length > 0 ? courses : sampleCourses;
@@ -94,24 +95,7 @@ const CoursesScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <MainHeader title="Courses" iconName="library" />
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        >
-          {loading && (
-            <View style={[styles.center, { paddingVertical: 10 }]}>
-              <ActivityIndicator size="small" color="#4F46E5" />
-              <Text style={styles.loadingText}>Loading courses…</Text>
-            </View>
-          )}
-          {error && (
-            <View style={[styles.center, { paddingVertical: 10 }]}>
-              <Text style={styles.errorText}>{error}</Text>
-              <TouchableOpacity style={styles.retryBtn} onPress={load}>
-                <Text style={styles.retryText}>Retry</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+        <ScrollView contentContainerStyle={styles.scroll}>
 
           {/* Search Bar */}
           <View style={styles.searchRow}>
@@ -165,7 +149,7 @@ const CoursesScreen = () => {
                         { courseId: String(c.id), course: c, sample: true } as never
                       );
                     } else {
-                      navigation.navigate('CourseDetail' as never, { courseId: String(c.id) } as never);
+                      navigation.navigate('CourseDetail' as never, { courseId: String(c.id), course: c } as never);
                     }
                   }}
                 />

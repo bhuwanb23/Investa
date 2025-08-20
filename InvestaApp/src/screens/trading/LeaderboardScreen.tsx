@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LEADERBOARD_DATA } from './constants/tradingConstants';
 import MainHeader from '../../components/MainHeader';
+import LeaderboardUserCard from './components/LeaderboardUserCard';
 
 // Define navigation types
 type RootStackParamList = {
@@ -48,27 +49,13 @@ const LeaderboardScreen = () => {
   );
 
   const renderUserRankCard = () => (
-    <View style={styles.userRankCard}>
-      <View style={styles.userRankHeader}>
-        <Text style={styles.userRankLabel}>Your Rank</Text>
-        <Ionicons name="trophy" size={20} color="#FDE047" />
-      </View>
-      <View style={styles.userRankContent}>
-        <View style={styles.userRankLeft}>
-          <View style={styles.rankBadge}>
-            <Text style={styles.rankNumber}>#{currentUser?.rank || 47}</Text>
-          </View>
-          <View style={styles.userInfo}>
-            <Text style={styles.username}>{currentUser?.username || '@traderpro_alex'}</Text>
-            <Text style={styles.userValue}>₹{currentUser?.totalValue || '125,840'}</Text>
-          </View>
-        </View>
-        <View style={styles.userRankRight}>
-          <Text style={styles.userReturn}>+{currentUser?.totalReturn || '24.8%'}</Text>
-          <Text style={styles.userReturnLabel}>This month</Text>
-        </View>
-      </View>
-    </View>
+    <LeaderboardUserCard
+      rank={currentUser?.rank || 47}
+      username={currentUser?.username || '@traderpro_alex'}
+      totalValue={currentUser?.totalValue || '125,840'}
+      totalReturn={currentUser?.totalReturn || '24.8%'}
+      returnLabel="This month"
+    />
   );
 
   const renderTimeFilter = () => (
@@ -190,7 +177,7 @@ const LeaderboardScreen = () => {
     <SafeAreaView style={styles.container}>
       {renderHeader()}
       
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
         {renderUserRankCard()}
         {renderTimeFilter()}
         {renderPodium()}

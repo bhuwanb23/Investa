@@ -2,7 +2,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import DetailHeader from './components/DetailHeader';
-import { LessonDetail, fetchLessonDetail, markLessonCompleted } from './utils/coursesApi';
+// Local-first lesson detail (no backend)
+type Language = { id: number; code: string; name: string; native_name: string };
+type Course = { id: number; title: string; description: string; language: Language; difficulty_level: 'beginner'|'intermediate'|'advanced'; estimated_duration: number };
+type LessonDetail = { id: number; title: string; order: number; estimated_duration: number; content?: string; video_url?: string | null; course: Course };
 import { PAGE_BG, TEXT_DARK, TEXT_MUTED, BORDER, CARD_BG, PRIMARY } from './constants/courseConstants';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -24,8 +27,16 @@ const LessonDetailScreen: React.FC = () => {
     try {
       setError(null);
       setLoading(true);
-      const data = await fetchLessonDetail(lessonId);
-      setLesson(data);
+      // No backend fetch; show placeholder lesson
+      setLesson({
+        id: lessonId,
+        title: 'Lesson',
+        order: 1,
+        estimated_duration: 10,
+        content: 'Sample lesson content. Backend is disabled for now.',
+        video_url: null,
+        course: { id: 0, title: 'Sample Course', description: 'Sample', language: { id: 1, code: 'en', name: 'English', native_name: 'English' }, difficulty_level: 'beginner', estimated_duration: 60 },
+      });
     } catch (e: any) {
       setError(e?.response?.data?.detail || 'Failed to load lesson');
     } finally {
@@ -38,15 +49,11 @@ const LessonDetailScreen: React.FC = () => {
   }, [load]);
 
   const handleMarkCompleted = async () => {
-    try {
-      setCompleting(true);
-      await markLessonCompleted(lessonId);
+    setCompleting(true);
+    setTimeout(() => {
       setCompleted(true);
-    } catch (e) {
-      // no-op; you might want to show a toast
-    } finally {
       setCompleting(false);
-    }
+    }, 500);
   };
 
   return (

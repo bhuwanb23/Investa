@@ -3,7 +3,20 @@ import { View, Text, StyleSheet, SafeAreaView, ScrollView, ActivityIndicator, To
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import DetailHeader from './components/DetailHeader';
 import LessonList from './components/LessonList';
-import { CourseDetail, fetchCourseDetail } from './utils/coursesApi';
+// Local-first: avoid backend calls
+type Language = { id: number; code: string; name: string; native_name: string };
+type Lesson = { id: number; title: string; order: number; estimated_duration: number; content?: string; video_url?: string | null; is_active?: boolean };
+type CourseDetail = {
+  id: number;
+  title: string;
+  description: string;
+  language: Language;
+  difficulty_level: 'beginner' | 'intermediate' | 'advanced';
+  estimated_duration: number;
+  thumbnail?: string | null;
+  is_active?: boolean;
+  lessons?: Lesson[];
+};
 import { PAGE_BG, TEXT_DARK, TEXT_MUTED, BORDER, CARD_BG, PRIMARY, DIFFICULTY_COLORS, DIFFICULTY_LABELS } from './constants/courseConstants';
 
 type ParamList = {
@@ -26,8 +39,9 @@ const CourseDetailScreen: React.FC = () => {
       if (initialFromRoute) {
         setCourse(initialFromRoute);
       } else {
-        const data = await fetchCourseDetail(courseId);
-        setCourse(data);
+        // No backend fetch; just show minimal placeholder if none passed
+        setCourse(null);
+        setError('Course not found');
       }
     } catch (e: any) {
       setError(e?.response?.data?.detail || 'Failed to load course');

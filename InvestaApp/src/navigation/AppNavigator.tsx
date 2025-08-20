@@ -52,7 +52,7 @@ export type MainStackParamList = {
   Trading: undefined;
   Progress: undefined;
   Profile: undefined;
-  CourseDetail: { courseId: string };
+  CourseDetail: { courseId: string; course?: any; sample?: boolean };
   LessonDetail: { lessonId: string };
   Quiz: undefined;
   QuizStart: undefined;
