@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,12 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Animated,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LEADERBOARD_DATA } from './constants/tradingConstants';
+import useLeaderboardData from '../trading/hooks/useLeaderboardData';
 import MainHeader from '../../components/MainHeader';
 import LeaderboardUserCard from './components/LeaderboardUserCard';
 
@@ -28,11 +30,13 @@ type NavigationProp = {
 const LeaderboardScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const [selectedTimeframe, setSelectedTimeframe] = useState('Weekly');
+  const { currentUser, topUsers, highlights } = useLeaderboardData(LEADERBOARD_DATA);
+  const podiumAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(0)).current;
 
   const timeframes = ['Weekly', 'Monthly', 'All-time'];
 
-  const currentUser = LEADERBOARD_DATA.find(user => user.isCurrentUser);
-  const topUsers = LEADERBOARD_DATA.filter(user => !user.isCurrentUser).slice(0, 8);
+  // Data now comes from hook
 
   const handleBack = () => {
     navigation.navigate('Trading');
@@ -41,6 +45,24 @@ const LeaderboardScreen = () => {
   const handleTimeframeChange = (timeframe: string) => {
     setSelectedTimeframe(timeframe);
   };
+
+  useEffect(() => {
+    Animated.spring(podiumAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 7,
+      tension: 50,
+    }).start();
+
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0, duration: 1200, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, []);
 
   const renderHeader = () => (
     <View style={styles.header}>
@@ -88,7 +110,11 @@ const LeaderboardScreen = () => {
     const top3 = topUsers.slice(0, 3);
     return (
       <View style={styles.podiumContainer}>
-        <View style={styles.podiumRow}>
+        <Animated.View style={[
+          styles.podiumRow,
+          { transform: [{ translateY: podiumAnim.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }] },
+          { opacity: podiumAnim },
+        ]}>
           {/* 2nd Place */}
           <View style={styles.podiumItem}>
             <View style={styles.podiumAvatar}>
@@ -109,6 +135,17 @@ const LeaderboardScreen = () => {
           {/* 1st Place */}
           <View style={styles.podiumItem}>
             <View style={styles.podiumAvatar}>
+              <Animated.View
+                style={{
+                  position: 'absolute',
+                  width: 70,
+                  height: 70,
+                  borderRadius: 35,
+                  backgroundColor: 'rgba(245, 158, 11, 0.25)',
+                  transform: [{ scale: pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1.15] }) }],
+                  opacity: pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [0.5, 0.9] }),
+                }}
+              />
               <Image
                 source={{ uri: 'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-1.jpg' }}
                 style={[styles.avatarImage, styles.firstPlaceAvatar]}
@@ -140,15 +177,24 @@ const LeaderboardScreen = () => {
               <Text style={styles.podiumReturn}>+{top3[2]?.totalReturn || '38.7%'}</Text>
             </View>
           </View>
-        </View>
+        </Animated.View>
       </View>
     );
   };
 
   const renderLeaderboardList = () => (
     <View style={styles.leaderboardList}>
-      {topUsers.slice(3).map((user, index) => (
-        <View key={user.rank} style={styles.leaderboardItem}>
+      {topUsers.slice(3).map((user: any, index: number) => (
+        <Animated.View
+          key={user.rank}
+          style={[
+            styles.leaderboardItem,
+            {
+              transform: [{ translateY: podiumAnim.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }],
+              opacity: podiumAnim,
+            },
+          ]}
+        >
           <View style={styles.leaderboardLeft}>
             <View style={styles.rankNumberSmall}>
               <Text style={styles.rankNumberText}>{user.rank}</Text>
@@ -168,8 +214,24 @@ const LeaderboardScreen = () => {
               <Text style={styles.followButtonText}>Follow</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </Animated.View>
       ))}
+    </View>
+  );
+
+  const renderHighlights = () => (
+    <View style={styles.highlightsSection}>
+      <View style={styles.highlightsRow}>
+        {highlights.map((h: any, i: number) => (
+          <View
+            key={h.label}
+            style={[styles.highlightCard, { borderColor: h.color }, i < highlights.length - 1 && { marginRight: 10 }]}
+          >
+            <Text style={styles.highlightLabel}>{h.label}</Text>
+            <Text style={[styles.highlightValue, { color: h.color }]}>{h.value}</Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 
@@ -180,6 +242,7 @@ const LeaderboardScreen = () => {
       <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
         {renderUserRankCard()}
         {renderTimeFilter()}
+        {renderHighlights()}
         {renderPodium()}
         {renderLeaderboardList()}
       </ScrollView>
@@ -452,6 +515,30 @@ const styles = StyleSheet.create({
   followButtonText: {
     fontSize: 12,
     color: '#3B82F6',
+  },
+  highlightsSection: {
+    marginBottom: 12,
+  },
+  highlightsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+  },
+  highlightCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    flex: 1,
+  },
+  highlightLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  highlightValue: {
+    fontSize: 16,
+    fontWeight: '800',
   },
 });
 

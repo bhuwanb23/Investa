@@ -22,6 +22,8 @@ import ProgressScreen from '../screens/main/ProgressScreen';
 // Course Screens
 import CourseDetailScreen from '../screens/courses/CourseDetailScreen';
 import LessonDetailScreen from '../screens/courses/LessonDetailScreen';
+import LessonListScreen from '../screens/courses/LessonListScreen';
+import ModuleScreen from '../screens/courses/ModuleScreen';
 
 // Quiz Screens
 import QuizStartScreen from '../screens/quiz/QuizStartScreen';
@@ -54,6 +56,8 @@ export type MainStackParamList = {
   Profile: undefined;
   CourseDetail: { courseId: string; course?: any; sample?: boolean };
   LessonDetail: { lessonId: string };
+  LessonList: { courseId: string; course?: any };
+  ModuleScreen: { courseId: string; course?: any };
   Quiz: undefined;
   QuizStart: undefined;
   QuizQuestion: { 
@@ -114,6 +118,16 @@ const MainStackNavigator = () => {
         name="LessonDetail" 
         component={LessonDetailScreen}
         options={{ title: 'Lesson', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="LessonList" 
+        component={LessonListScreen}
+        options={{ title: 'Lessons', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="ModuleScreen" 
+        component={ModuleScreen}
+        options={{ title: 'Module', headerShown: false }}
       />
       <MainStack.Screen 
         name="Quiz" 

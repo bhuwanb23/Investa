@@ -65,7 +65,7 @@ const MainHeader: React.FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'white',
-    paddingTop: 50,
+    paddingTop: 20,
     paddingBottom: 16,
     paddingHorizontal: 16,
     shadowColor: '#000',

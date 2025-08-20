@@ -246,8 +246,6 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 24,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
@@ -256,6 +254,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 24,
+    paddingHorizontal: 16,
   },
   profileSection: {
     flexDirection: 'row',
@@ -300,6 +299,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
+    marginHorizontal: 16,
   },
   summaryHeader: {
     flexDirection: 'row',
