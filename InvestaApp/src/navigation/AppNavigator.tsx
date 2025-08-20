@@ -1,6 +1,6 @@
 import React from 'react';
 // import { useTheme } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
@@ -22,9 +22,6 @@ import ProgressScreen from '../screens/main/ProgressScreen';
 // Course Screens
 import CourseDetailScreen from '../screens/courses/CourseDetailScreen';
 import LessonDetailScreen from '../screens/courses/LessonDetailScreen';
-import LearningHomeScreen from '../screens/courses/LearningHomeScreen';
-import ModuleDetailScreen from '../screens/courses/ModuleDetailScreen';
-import ModuleProgressScreen from '../screens/courses/ModuleProgressScreen';
 
 // Quiz Screens
 import QuizStartScreen from '../screens/quiz/QuizStartScreen';
@@ -58,9 +55,6 @@ export type MainStackParamList = {
   CourseDetail: { courseId: string };
   LessonDetail: { lessonId: string };
   Quiz: undefined;
-  LearningHome: undefined;
-  ModuleDetail: { moduleId: number };
-  ModuleProgress: { moduleId: number };
   QuizStart: undefined;
   QuizQuestion: { 
     quizId: string; 
@@ -103,6 +97,7 @@ const MainStackNavigator = () => {
         headerTitleStyle: {
           fontWeight: '800',
         },
+        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
       }}
     >
       <MainStack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
@@ -113,32 +108,17 @@ const MainStackNavigator = () => {
       <MainStack.Screen 
         name="CourseDetail" 
         component={CourseDetailScreen}
-        options={{ title: 'Course Details' }}
+        options={{ title: 'Course Details', headerShown: false }}
       />
       <MainStack.Screen 
         name="LessonDetail" 
         component={LessonDetailScreen}
-        options={{ title: 'Lesson' }}
+        options={{ title: 'Lesson', headerShown: false }}
       />
       <MainStack.Screen 
         name="Quiz" 
         component={QuizScreen}
         options={{ title: 'Quiz' }}
-      />
-      <MainStack.Screen 
-        name="LearningHome" 
-        component={LearningHomeScreen}
-        options={{ title: 'Learning Modules', headerShown: false }}
-      />
-      <MainStack.Screen 
-        name="ModuleDetail" 
-        component={ModuleDetailScreen}
-        options={{ title: 'Module Details', headerShown: false }}
-      />
-      <MainStack.Screen 
-        name="ModuleProgress" 
-        component={ModuleProgressScreen}
-        options={{ title: 'Module Progress', headerShown: false }}
       />
       <MainStack.Screen 
         name="QuizStart" 
@@ -169,32 +149,56 @@ const MainStackNavigator = () => {
       <MainStack.Screen 
         name="MarketWatchlist" 
         component={MarketWatchlistScreen}
-        options={{ title: 'Market Watchlist', headerShown: false }}
+        options={{ 
+          title: 'Market Watchlist', 
+          headerShown: false,
+          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        }}
       />
       <MainStack.Screen 
         name="StockDetail" 
         component={StockDetailScreen}
-        options={{ title: 'Stock Details', headerShown: false }}
+        options={{ 
+          title: 'Stock Details', 
+          headerShown: false,
+          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        }}
       />
       <MainStack.Screen 
         name="PlaceOrder" 
         component={PlaceOrderScreen}
-        options={{ title: 'Place Order', headerShown: false }}
+        options={{ 
+          title: 'Place Order', 
+          headerShown: false,
+          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        }}
       />
       <MainStack.Screen 
         name="Portfolio" 
         component={PortfolioScreen}
-        options={{ title: 'Portfolio', headerShown: false }}
+        options={{ 
+          title: 'Portfolio', 
+          headerShown: false,
+          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        }}
       />
       <MainStack.Screen 
         name="OrderHistory" 
         component={OrderHistoryScreen}
-        options={{ title: 'Order History', headerShown: false }}
+        options={{ 
+          title: 'Order History', 
+          headerShown: false,
+          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        }}
       />
       <MainStack.Screen 
         name="Leaderboard" 
         component={LeaderboardScreen}
-        options={{ title: 'Leaderboard', headerShown: false }}
+        options={{ 
+          title: 'Leaderboard', 
+          headerShown: false,
+          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        }}
       />
     </MainStack.Navigator>
   );

@@ -145,22 +145,6 @@ const TradingScreen = () => {
               <Ionicons name="arrow-down" size={18} color="#fff" />
               <Text style={styles.quickActionText}>Sell</Text>
             </Pressable>
-            <Pressable
-              style={[styles.quickActionCard, { backgroundColor: PRIMARY }]}
-              android_ripple={{ color: '#4338ca' }}
-              onPress={() => navigation.navigate('MarketWatchlist')}
-            >
-              <Ionicons name="search" size={18} color="#fff" />
-              <Text style={styles.quickActionText}>Explore</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.quickActionCard, { backgroundColor: '#06b6d4' }]}
-              android_ripple={{ color: '#0891b2' }}
-              onPress={() => navigation.navigate('Portfolio')}
-            >
-              <Ionicons name="wallet" size={18} color="#fff" />
-              <Text style={styles.quickActionText}>Portfolio</Text>
-            </Pressable>
           </View>
 
           {/* Market Overview */}
@@ -433,12 +417,11 @@ const styles = StyleSheet.create({
   },
   quickActionsRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginTop: 12,
   },
   quickActionCard: {
-    width: '24%',
+    width: '48%',
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',

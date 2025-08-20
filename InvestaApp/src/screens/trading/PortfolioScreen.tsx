@@ -229,8 +229,7 @@ const PortfolioScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       {renderHeader()}
-      
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
         {renderNavigationTabs()}
         {renderAchievementsSection()}
         {renderDiversificationChart()}
@@ -297,6 +296,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#6366F1',
     borderRadius: 16,
     padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
   },
   summaryHeader: {
     flexDirection: 'row',
@@ -420,6 +423,10 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     borderWidth: 1,
     borderColor: '#F3F4F6',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
   },
   chartHeader: {
     flexDirection: 'row',
@@ -480,6 +487,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#F3F4F6',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
   },
   holdingItem: {
     backgroundColor: '#F9FAFB',

@@ -203,8 +203,7 @@ const OrderHistoryScreen = () => {
       {renderHeader()}
       {renderSummarySection()}
       {renderFilterSection()}
-      
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
         {renderTradesList()}
       </ScrollView>
     </SafeAreaView>
@@ -242,7 +241,7 @@ const styles = StyleSheet.create({
   summarySection: {
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#FFFFFF',
   },
   summaryGrid: {
     flexDirection: 'row',
@@ -250,7 +249,7 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFC',
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
@@ -326,11 +325,15 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   stockBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   stockSymbol: {
     fontSize: 14,
@@ -357,9 +360,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   statusBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 999,
   },
   statusText: {
     fontSize: 12,
@@ -368,7 +371,7 @@ const styles = StyleSheet.create({
   },
   tradePrice: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '800',
     color: '#111827',
     marginTop: 4,
   },

@@ -1,112 +1,174 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  TextInput,
-  ImageBackground,
-  Pressable,
-  Image,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, RefreshControl, ActivityIndicator, TouchableOpacity, TextInput } from 'react-native';
 import MainHeader from '../../components/MainHeader';
-
-const PRIMARY = '#4f46e5';
-const PAGE_BG = '#f9fafb';
-const TEXT_DARK = '#111827';
-const TEXT_MUTED = '#6b7280';
-
-const categories = [
-  { key: 'all', label: 'All' },
-  { key: 'beginner', label: 'Beginner' },
-  { key: 'intermediate', label: 'Intermediate' },
-  { key: 'advanced', label: 'Advanced' },
-];
-
-const courses = [
-  {
-    id: '1',
-    title: 'Complete JavaScript Mastery',
-    level: 'Beginner',
-    duration: '12h',
-    rating: 4.8,
-    image: 'https://storage.googleapis.com/uxpilot-auth.appspot.com/1c801c095c-b026bbaae17a99cc663d.png',
-  },
-  {
-    id: '2',
-    title: 'React Native for Professionals',
-    level: 'Intermediate',
-    duration: '9h',
-    rating: 4.7,
-    image: 'https://storage.googleapis.com/uxpilot-auth.appspot.com/bad04d7dd9-c8347d58916f3c96b688.png',
-  },
-  {
-    id: '3',
-    title: 'Advanced TypeScript Patterns',
-    level: 'Advanced',
-    duration: '7h',
-    rating: 4.6,
-    image: 'https://storage.googleapis.com/uxpilot-auth.appspot.com/4981a96f75-3f56dca742b509160291.png',
-  },
-];
+import { useNavigation } from '@react-navigation/native';
+import { fetchCourses, Course } from '../courses/utils/coursesApi';
+import CourseCard from '../courses/components/CourseCard';
+import { PAGE_BG, TEXT_DARK, TEXT_MUTED } from '../courses/constants/courseConstants';
+import { Ionicons } from '@expo/vector-icons';
 
 const CoursesScreen = () => {
+  const navigation = useNavigation();
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedFilter, setSelectedFilter] = useState<'all'|'beginner'|'intermediate'|'advanced'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const sampleCourses: Course[] = useMemo(() => ([
+    {
+      id: 101,
+      title: 'React Native Basics',
+      description: 'Learn mobile app development fundamentals',
+      language: { id: 1, code: 'en', name: 'English', native_name: 'English' },
+      difficulty_level: 'beginner',
+      estimated_duration: 120,
+      thumbnail: null,
+      is_active: true,
+    },
+    {
+      id: 102,
+      title: 'SQL Mastery',
+      description: 'Database querying and management skills',
+      language: { id: 1, code: 'en', name: 'English', native_name: 'English' },
+      difficulty_level: 'intermediate',
+      estimated_duration: 180,
+      thumbnail: null,
+      is_active: true,
+    },
+    {
+      id: 103,
+      title: 'Machine Learning Essentials',
+      description: 'Core AI and ML fundamentals',
+      language: { id: 1, code: 'en', name: 'English', native_name: 'English' },
+      difficulty_level: 'advanced',
+      estimated_duration: 240,
+      thumbnail: null,
+      is_active: true,
+    },
+  ]), []);
+
+  const load = useCallback(async () => {
+    try {
+      setError(null);
+      setLoading(true);
+      const data = await fetchCourses();
+      setCourses(data);
+    } catch (e: any) {
+      setError(e?.response?.data?.detail || 'Failed to load courses');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }, [load]);
+
+  const dataSource: Course[] = useMemo(() => {
+    const source = Array.isArray(courses) && courses.length > 0 ? courses : sampleCourses;
+    const byFilter = selectedFilter === 'all' ? source : source.filter(c => c.difficulty_level === selectedFilter);
+    if (!searchQuery.trim()) return byFilter;
+    const q = searchQuery.toLowerCase();
+    return byFilter.filter(c => c.title.toLowerCase().includes(q) || c.description.toLowerCase().includes(q));
+  }, [courses, sampleCourses, selectedFilter, searchQuery]);
+
+  const recommended = dataSource[0];
+  const usingSample = !(Array.isArray(courses) && courses.length > 0);
+
+  const filters = [
+    { key: 'all', label: 'All' },
+    { key: 'beginner', label: 'Beginner' },
+    { key: 'intermediate', label: 'Intermediate' },
+    { key: 'advanced', label: 'Advanced' },
+  ] as const;
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <MainHeader title="Courses" iconName="library" />
+        <MainHeader title="Courses" iconName="library" />
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
+          {loading && (
+            <View style={[styles.center, { paddingVertical: 10 }]}>
+              <ActivityIndicator size="small" color="#4F46E5" />
+              <Text style={styles.loadingText}>Loading courses…</Text>
+            </View>
+          )}
+          {error && (
+            <View style={[styles.center, { paddingVertical: 10 }]}>
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity style={styles.retryBtn} onPress={load}>
+                <Text style={styles.retryText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
-          {/* Search */}
+          {/* Search Bar */}
           <View style={styles.searchRow}>
-            <Ionicons name="search" size={18} color="#9ca3af" />
+            <Ionicons name="search" size={18} color="#9CA3AF" />
             <TextInput
-              placeholder="Search courses"
-              placeholderTextColor="#9ca3af"
+              placeholder="Search courses..."
+              placeholderTextColor="#9CA3AF"
               style={styles.searchInput}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
             />
-            <Pressable style={styles.filterBtn} android_ripple={{ color: '#e5e7eb' }}>
-              <Ionicons name="options-outline" size={18} color="#374151" />
-            </Pressable>
           </View>
 
-          {/* Categories */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catRow}>
-            {categories.map((c, idx) => (
-              <Pressable key={c.key} style={[styles.catChip, idx === 0 && styles.catChipActive]} android_ripple={{ color: '#e5e7eb' }}>
-                <Text style={[styles.catChipText, idx === 0 && styles.catChipTextActive]}>{c.label}</Text>
-              </Pressable>
+          {/* Filters */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersRow}>
+            {filters.map(f => (
+              <TouchableOpacity
+                key={f.key}
+                onPress={() => setSelectedFilter(f.key)}
+                activeOpacity={0.8}
+                style={[styles.filterChip, selectedFilter === f.key && styles.filterChipActive]}
+              >
+                <Text style={[styles.filterText, selectedFilter === f.key && styles.filterTextActive]}>{f.label}</Text>
+              </TouchableOpacity>
             ))}
           </ScrollView>
 
-          {/* Courses Grid */}
-          <View style={styles.grid}>
-            {courses.map(course => (
-              <View key={course.id} style={styles.card}>
-                <ImageBackground source={{ uri: course.image }} style={styles.cardImage} imageStyle={{ borderTopLeftRadius: 12, borderTopRightRadius: 12 }}>
-                  <View style={styles.cardOverlay} />
-                  <View style={styles.cardBadges}>
-                    <View style={[styles.badge, { backgroundColor: PRIMARY }]}>
-                      <Text style={styles.badgeText}>{course.level}</Text>
-                    </View>
-                    <View style={[styles.badge, { backgroundColor: 'rgba(0,0,0,0.55)' }]}>
-                      <Ionicons name="time-outline" size={12} color="#fff" />
-                      <Text style={[styles.badgeText, { marginLeft: 4 }]}>{course.duration}</Text>
-                    </View>
-                  </View>
-                </ImageBackground>
-                <View style={styles.cardBody}>
-                  <Text style={styles.cardTitle} numberOfLines={2}>{course.title}</Text>
-                  <View style={styles.ratingRow}>
-                    <Ionicons name="star" size={14} color="#facc15" />
-                    <Text style={styles.ratingText}>{course.rating.toFixed(1)}</Text>
-                  </View>
-                  <Pressable style={styles.cardCta} android_ripple={{ color: '#4338ca' }}>
-                    <Text style={styles.cardCtaText}>View Details</Text>
-                  </Pressable>
-                </View>
+          {/* Recommended */}
+          {recommended && (
+            <View style={styles.recoCard}>
+              <View style={styles.recoBadge}><Text style={styles.recoBadgeText}>Recommended</Text></View>
+              <Text style={styles.recoTitle}>{recommended.title}</Text>
+              <Text style={styles.recoSubtitle}>{recommended.description}</Text>
+              <View style={styles.recoProgressTrack}>
+                <View style={styles.recoProgressFill} />
+              </View>
+            </View>
+          )}
+
+          {/* Courses list (stacked) */}
+          <Text style={styles.sectionTitle}>All Courses</Text>
+          <View style={{ gap: 12 }}>
+            {dataSource.map((c) => (
+              <View key={c.id}>
+                <CourseCard
+                  course={c}
+                  onPress={() => {
+                    if (usingSample) {
+                      navigation.navigate(
+                        'CourseDetail' as never,
+                        { courseId: String(c.id), course: c, sample: true } as never
+                      );
+                    } else {
+                      navigation.navigate('CourseDetail' as never, { courseId: String(c.id) } as never);
+                    }
+                  }}
+                />
               </View>
             ))}
           </View>
@@ -125,142 +187,88 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: PAGE_BG,
   },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
+  scroll: {
+    padding: 16,
+    paddingBottom: 32,
   },
-  header: {
-    paddingTop: 4,
-    paddingBottom: 12,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: TEXT_DARK,
-  },
-  subtitle: {
-    marginTop: 4,
-    color: TEXT_MUTED,
-    fontSize: 13,
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
   },
   searchRow: {
-    marginTop: 12,
+    marginTop: 4,
     backgroundColor: '#fff',
-    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
   },
   searchInput: {
-    flex: 1,
     marginLeft: 8,
+    flex: 1,
     color: TEXT_DARK,
   },
-  filterBtn: {
-    marginLeft: 8,
-    height: 32,
-    width: 32,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  catRow: {
+  filtersRow: {
     paddingVertical: 12,
+    gap: 8,
   },
-  catChip: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    paddingHorizontal: 12,
+  filterChip: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 999,
+    borderRadius: 20,
     marginRight: 8,
   },
-  catChipActive: {
-    backgroundColor: PRIMARY,
-    borderColor: PRIMARY,
+  filterChipActive: {
+    backgroundColor: '#4F46E5',
   },
-  catChipText: {
-    color: TEXT_DARK,
-    fontSize: 12,
-    fontWeight: '700',
+  filterText: { color: TEXT_MUTED, fontWeight: '600' },
+  filterTextActive: { color: '#fff' },
+  recoCard: {
+    marginTop: 4,
+    backgroundColor: '#4F46E5',
+    borderRadius: 16,
+    padding: 16,
   },
-  catChipTextActive: {
-    color: '#fff',
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  card: {
-    width: '48%',
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    marginBottom: 14,
-    overflow: 'hidden',
-  },
-  cardImage: {
-    height: 110,
-    justifyContent: 'space-between',
-  },
-  cardOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.15)',
-  },
-  cardBadges: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 8,
-  },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 999,
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 11,
+  recoBadge: { alignSelf: 'flex-start', backgroundColor: '#F59E0B', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, marginBottom: 10 },
+  recoBadgeText: { color: '#fff', fontSize: 11, fontWeight: '800' },
+  recoTitle: { color: '#fff', fontSize: 16, fontWeight: '900' },
+  recoSubtitle: { color: 'rgba(255,255,255,0.85)', marginTop: 4 },
+  recoProgressTrack: { marginTop: 10, height: 6, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 999 },
+  recoProgressFill: { height: '100%', width: '65%', backgroundColor: '#fff', borderRadius: 999 },
+  title: {
+    fontSize: 18,
     fontWeight: '800',
-  },
-  cardBody: {
-    padding: 10,
-  },
-  cardTitle: {
-    fontSize: 13,
     color: TEXT_DARK,
-    fontWeight: '700',
-    minHeight: 36,
+    marginBottom: 8,
   },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
-  },
-  ratingText: {
-    marginLeft: 4,
+  sectionTitle: { marginTop: 16, marginBottom: 10, color: TEXT_DARK, fontWeight: '800', fontSize: 16 },
+  subtitle: {
+    fontSize: 14,
     color: TEXT_MUTED,
-    fontSize: 12,
-    fontWeight: '700',
+    textAlign: 'center',
   },
-  cardCta: {
-    marginTop: 8,
-    backgroundColor: PRIMARY,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+  loadingText: {
+    marginTop: 10,
+    color: TEXT_MUTED,
+  },
+  errorText: {
+    color: '#DC2626',
+    marginBottom: 12,
+  },
+  retryBtn: {
+    paddingHorizontal: 16,
     paddingVertical: 10,
+    backgroundColor: '#4F46E5',
+    borderRadius: 10,
   },
-  cardCtaText: {
+  retryText: {
     color: '#fff',
-    fontSize: 13,
     fontWeight: '700',
   },
 });
