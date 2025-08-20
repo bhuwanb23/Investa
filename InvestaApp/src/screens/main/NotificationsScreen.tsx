@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SectionList, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SectionList, Platform, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@react-navigation/native';
 import MainHeader from '../../components/MainHeader';
@@ -134,7 +134,7 @@ const NotificationsScreen: React.FC = () => {
   const totalCount = today.length + week.length + earlier.length;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }] }>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }] }>
       <MainHeader title="Notifications" iconName="notifications" showBackButton />
       <SectionList
         sections={sections as any}
@@ -162,10 +162,10 @@ const NotificationsScreen: React.FC = () => {
         disableVirtualization={Platform.OS === 'web'}
         initialNumToRender={Platform.OS === 'web' ? totalCount : undefined}
         maxToRenderPerBatch={Platform.OS === 'web' ? totalCount : undefined}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: 24 }]}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

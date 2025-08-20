@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import AppNavigator from './src/navigation/AppNavigator';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -17,10 +19,12 @@ export default function App() {
 	return (
 		<AuthProvider>
 			<PaperProvider>
-				<SafeAreaView style={{ flex: 1 }}>
-					<AppShell theme={theme} />
-				</SafeAreaView>
-				<StatusBar style="auto" />
+				<SafeAreaProvider>
+					<SafeAreaView style={{ flex: 1 }}>
+						<AppShell theme={theme} />
+					</SafeAreaView>
+					<StatusBar style="auto" />
+				</SafeAreaProvider>
 			</PaperProvider>
 		</AuthProvider>
 	);
@@ -28,35 +32,53 @@ export default function App() {
 
 const AppShell = ({ theme }: { theme: any }) => {
 	const { user } = useAuth();
+	const [active, setActive] = useState<string | undefined>(undefined);
+	const insets = require('react-native-safe-area-context').useSafeAreaInsets();
+	const PRIMARY = '#4f46e5';
+	const MUTED = '#6B7280';
+
+	const onStateChange = () => {
+		if (navigationRef.isReady()) {
+			setActive(navigationRef.getCurrentRoute()?.name);
+		}
+	};
+
+	useEffect(() => {
+		if (navigationRef.isReady()) setActive(navigationRef.getCurrentRoute()?.name);
+	}, []);
+
+	const colorFor = (route: string) => (active === route ? PRIMARY : MUTED);
+	const labelStyle = (route: string) => [styles.navLabel, active === route && { color: PRIMARY }];
+
 	return (
 		<View style={{ flex: 1 }}>
-			<NavigationContainer ref={navigationRef} theme={theme}>
-				<View style={{ flex: 1, paddingBottom: user ? NAVBAR_HEIGHT + 24 : 0 }}>
+			<NavigationContainer ref={navigationRef} theme={theme} onStateChange={onStateChange}>
+				<View style={{ flex: 1, paddingBottom: user ? NAVBAR_HEIGHT + Math.max(8, insets.bottom) : insets.bottom }}>
 					<AppNavigator />
 				</View>
 			</NavigationContainer>
 			{user && (
-				<View style={styles.navbarWrapper} pointerEvents="box-none">
+				<View style={[styles.navbarWrapper, { marginBottom: Math.max(8, insets.bottom) }]} pointerEvents="box-none">
 					<View style={styles.navbar}>
 						<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Home')}>
-							<Ionicons name="home" size={20} color="#4f46e5" />
-							<Text style={styles.navLabel}>Home</Text>
+							<Ionicons name="home" size={20} color={colorFor('Home')} />
+							<Text style={labelStyle('Home')}>Home</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Courses')}>
-							<Ionicons name="library" size={20} color="#6B7280" />
-							<Text style={styles.navLabel}>Courses</Text>
+							<Ionicons name="library" size={20} color={colorFor('Courses')} />
+							<Text style={labelStyle('Courses')}>Courses</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Trading')}>
-							<Ionicons name="trending-up" size={20} color="#6B7280" />
-							<Text style={styles.navLabel}>Trading</Text>
+							<Ionicons name="trending-up" size={20} color={colorFor('Trading')} />
+							<Text style={labelStyle('Trading')}>Trading</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Progress')}>
-							<Ionicons name="analytics" size={20} color="#6B7280" />
-							<Text style={styles.navLabel}>Progress</Text>
+							<Ionicons name="analytics" size={20} color={colorFor('Progress')} />
+							<Text style={labelStyle('Progress')}>Progress</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Profile')}>
-							<Ionicons name="person" size={20} color="#6B7280" />
-							<Text style={styles.navLabel}>Profile</Text>
+							<Ionicons name="person" size={20} color={colorFor('Profile')} />
+							<Text style={labelStyle('Profile')}>Profile</Text>
 						</TouchableOpacity>
 					</View>
 				</View>

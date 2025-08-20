@@ -13,6 +13,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native';
 import MainHeader from '../../components/MainHeader';
 import SearchBar from '../../components/SearchBar';
 import EmptyState from '../../components/EmptyState';
@@ -191,6 +192,7 @@ const BookmarksScreen = () => {
 
   return (
     <GestureHandlerRootView style={styles.container}>
+      <SafeAreaView style={{ flex: 1 }}>
       <MainHeader title="Bookmarks" iconName="bookmark" />
 
       {/* Search Bar */}
@@ -234,6 +236,7 @@ const BookmarksScreen = () => {
           message={getEmptyStateMessage()}
         />
       )}
+      </SafeAreaView>
     </GestureHandlerRootView>
   );
 };

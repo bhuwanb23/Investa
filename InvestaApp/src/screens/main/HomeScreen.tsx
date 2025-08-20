@@ -303,16 +303,14 @@ const HomeScreen = () => {
   );
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
       <MainHeader title="Home" iconName="home" />
-
       {renderWelcomeSection()}
       {renderQuickAccess()}
       {renderLearningPath()}
       {renderPortfolioSnapshot()}
       {renderAchievements()}
-
-      <View style={styles.bottomSpacing} />
+      <View style={{ height: 84 }} />
     </ScrollView>
   );
 };
@@ -347,13 +345,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   welcomeTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: 'white',
     marginBottom: 4,
   },
   welcomeSubtitle: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#CFFAFE',
   },
   progressContainer: {
@@ -393,7 +391,7 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#1F2937',
     marginBottom: 16,
@@ -424,13 +422,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   quickAccessTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#1F2937',
     marginBottom: 4,
   },
   quickAccessSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#6B7280',
     marginBottom: 12,
   },
@@ -508,19 +506,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   portfolioValue: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '700',
     color: '#1F2937',
     marginBottom: 4,
   },
   portfolioProfitValue: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '700',
     color: '#059669',
     marginBottom: 4,
   },
   portfolioLabel: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#6B7280',
   },
   achievementsSection: {
@@ -559,7 +557,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   bottomSpacing: {
-    height: 100,
+    height: 84,
   },
 });
 
