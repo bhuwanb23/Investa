@@ -24,7 +24,7 @@ const CoursesScreen = () => {
       language: { id: 1, code: 'en', name: 'English', native_name: 'English' },
       difficulty_level: 'beginner',
       estimated_duration: 120,
-      thumbnail: null,
+      thumbnail: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?w=1200&q=60&auto=format&fit=crop',
       is_active: true,
       lessons: [
         { id: 1001, title: 'Introduction', order: 1, estimated_duration: 10, content: 'Welcome to React Native.', video_url: null, is_active: true },
@@ -38,7 +38,7 @@ const CoursesScreen = () => {
       language: { id: 1, code: 'en', name: 'English', native_name: 'English' },
       difficulty_level: 'intermediate',
       estimated_duration: 180,
-      thumbnail: null,
+      thumbnail: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=1200&q=60&auto=format&fit=crop',
       is_active: true,
       lessons: [
         { id: 1101, title: 'SELECT Basics', order: 1, estimated_duration: 15, content: 'Basic selects.', video_url: null, is_active: true },
@@ -52,7 +52,7 @@ const CoursesScreen = () => {
       language: { id: 1, code: 'en', name: 'English', native_name: 'English' },
       difficulty_level: 'advanced',
       estimated_duration: 240,
-      thumbnail: null,
+      thumbnail: 'https://images.unsplash.com/photo-1555949963-aa79dcee981d?w=1200&q=60&auto=format&fit=crop',
       is_active: true,
       lessons: [
         { id: 1201, title: 'ML Overview', order: 1, estimated_duration: 20, content: 'What is ML?', video_url: null, is_active: true },
@@ -89,10 +89,10 @@ const CoursesScreen = () => {
 
           {/* Search Bar */}
           <View style={styles.searchRow}>
-            <Ionicons name="search" size={18} color="#9CA3AF" />
+            <Ionicons name="search" size={18} color="#6B7280" />
             <TextInput
               placeholder="Search courses..."
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor="#6B7280"
               style={styles.searchInput}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -170,9 +170,7 @@ const styles = StyleSheet.create({
   },
   searchRow: {
     marginTop: 4,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    backgroundColor: '#EEF2FF',
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
