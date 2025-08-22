@@ -11,6 +11,7 @@ import RegisterScreen from '../screens/auth/RegisterScreen';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import OnboardingScreen from '../screens/auth/OnboardingScreen';
 import LanguageSelectionScreen from '../screens/auth/LanguageSelectionScreen';
+import CompleteProfileScreen from '../screens/auth/CompleteProfileScreen';
 import SplashScreen from '../screens/auth/SplashScreen';
 
 // Main App Screens
@@ -58,6 +59,7 @@ export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
+  CompleteProfile: undefined;
 };
 
 export type MainStackParamList = {
@@ -307,6 +309,11 @@ const AuthStackNavigator = () => {
         options={{ headerShown: false }}
       />
       <AuthStack.Screen 
+        name="CompleteProfile" 
+        component={CompleteProfileScreen}
+        options={{ headerShown: false }}
+      />
+      <AuthStack.Screen 
         name="ForgotPassword" 
         component={ForgotPasswordScreen}
         options={{ title: 'Reset Password' }}
@@ -319,7 +326,23 @@ const AuthStackNavigator = () => {
 const AppNavigator = () => {
   const { user, isLoading } = useAuth();
 
-  console.log('🧭 AppNavigator - Auth state:', { user: !!user, isLoading });
+  // Monitor user state changes
+  React.useEffect(() => {
+    console.log('🧭 AppNavigator: User state changed:', { 
+      user: user ? `ID: ${user.id}, Email: ${user.email}` : 'null', 
+      isLoading,
+      userType: typeof user,
+      userKeys: user ? Object.keys(user) : 'N/A',
+      timestamp: new Date().toISOString()
+    });
+  }, [user, isLoading]);
+
+  console.log('🧭 AppNavigator - Auth state:', { 
+    user: user ? `ID: ${user.id}, Email: ${user.email}` : 'null', 
+    isLoading,
+    userType: typeof user,
+    userKeys: user ? Object.keys(user) : 'N/A'
+  });
 
   if (isLoading) {
     console.log('⏳ AppNavigator - Showing loading screen');

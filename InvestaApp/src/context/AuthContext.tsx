@@ -14,7 +14,7 @@ interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; message: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
   checkAuthStatus: () => Promise<void>;
 }
 
@@ -143,18 +143,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
+      console.log('🔐 AuthContext: Starting logout process');
+      
       // Clear stored data
       await AsyncStorage.removeItem('authToken');
       await AsyncStorage.removeItem('user');
+      console.log('🔐 AuthContext: Cleared AsyncStorage');
       
       // Clear api header
       delete api.defaults.headers.common['Authorization'];
+      console.log('🔐 AuthContext: Cleared API headers');
       
-      // Clear state
+      // Clear state immediately
       setToken(null);
       setUser(null);
+      console.log('🔐 AuthContext: Cleared state, user should now be null');
+      
+      console.log('🔐 AuthContext: Logout process completed');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('❌ AuthContext: Logout error:', error);
+      throw error; // Re-throw to let the calling component handle it
     }
   };
 

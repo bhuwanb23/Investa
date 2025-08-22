@@ -7,9 +7,11 @@ import {
   ScrollView,
   Image,
   Pressable,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MainHeader from '../../components/MainHeader';
+import { useAuth } from '../../context/AuthContext';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -17,6 +19,19 @@ const TEXT_DARK = '#111827';
 const TEXT_MUTED = '#6b7280';
 
 const ProfileScreen = () => {
+  const { logout, user } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      console.log('🔐 ProfileScreen: Logout button pressed (direct)');
+      console.log('🔐 ProfileScreen: Current user state before logout:', user);
+      await logout();
+      console.log('🔐 ProfileScreen: logout() awaited and completed');
+    } catch (error) {
+      console.error('❌ ProfileScreen: Error during logout:', error);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -213,6 +228,9 @@ const ProfileScreen = () => {
             </Pressable>
             <Pressable style={styles.secondaryBtn} android_ripple={{ color: '#e5e7eb' }}>
               <Text style={styles.secondaryBtnText}>Reset Password</Text>
+            </Pressable>
+            <Pressable style={styles.logoutBtn} android_ripple={{ color: '#fee2e2' }} onPress={handleLogout}>
+              <Text style={styles.logoutBtnText}>Logout</Text>
             </Pressable>
           </View>
           </View>
@@ -527,6 +545,18 @@ const styles = StyleSheet.create({
   },
   secondaryBtnText: {
     color: '#374151',
+    fontWeight: '800',
+  },
+  logoutBtn: {
+    backgroundColor: '#fee2e2',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    marginTop: 10,
+  },
+  logoutBtnText: {
+    color: '#ef4444',
     fontWeight: '800',
   },
 });

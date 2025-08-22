@@ -124,7 +124,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   function handleContinue() {
     setSuccessVisible(false);
     if (navigation) {
-      navigation.navigate('Login');
+      navigation.navigate('CompleteProfile');
     }
   }
 
