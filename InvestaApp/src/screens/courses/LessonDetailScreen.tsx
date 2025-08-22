@@ -52,10 +52,9 @@ const LessonDetailScreen: React.FC = () => {
 
   const handleMarkCompleted = async () => {
     setCompleting(true);
-    setTimeout(() => {
-      setCompleted(true);
-      setCompleting(false);
-    }, 500);
+    // Immediately reflect completion in UI for responsiveness
+    setCompleted(true);
+    setCompleting(false);
   };
 
   return (
@@ -119,10 +118,9 @@ const LessonDetailScreen: React.FC = () => {
             style={[styles.primaryBtn, completed && { backgroundColor: '#10B981' }]}
             onPress={() => {
               handleMarkCompleted();
-              // After marking completed, go back to list and unlock next sequentially
-              setTimeout(() => {
-                (navigation as any).navigate('LessonList', { completedLessonId: lessonId });
-              }, 300);
+              // Update existing LessonList params without pushing a new instance,
+              // then navigate to the list screen so user sees next lesson unlocked
+              (navigation as any).navigate({ name: 'LessonList', params: { completedLessonId: lessonId }, merge: true });
             }}
             disabled={completing}
             activeOpacity={0.85}

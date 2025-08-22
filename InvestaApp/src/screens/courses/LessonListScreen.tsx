@@ -31,8 +31,9 @@ const LessonListScreen: React.FC = () => {
 
   // When returning from LessonDetail with a completed lesson, mark it and unlock the next
   useEffect(() => {
-    const completedId = (route.params as any)?.completedLessonId;
-    if (!completedId) return;
+    const completedIdRaw = (route.params as any)?.completedLessonId;
+    const completedId = Number(completedIdRaw);
+    if (!Number.isFinite(completedId) || completedId <= 0) return;
     setLessons(prev => {
       const idx = prev.findIndex(l => l.id === completedId);
       if (idx === -1) return prev;
@@ -60,8 +61,10 @@ const LessonListScreen: React.FC = () => {
       return next;
     });
     // clear the param after applying to avoid re-applying on future renders
-    (navigation as any).setParams?.({ completedLessonId: undefined });
-  }, [route.params?.completedLessonId]);
+    try {
+      (navigation as any).setParams?.({ completedLessonId: undefined });
+    } catch {}
+  }, [route.params]);
 
   const nextLessonId = useMemo(() => {
     const inProgress = (lessons as any[]).find(l => l.state === 'progress');
