@@ -35,8 +35,9 @@ const ProgressScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, styles.fullWidth]} showsVerticalScrollIndicator={false} stickyHeaderIndices={[0]}>
           <MainHeader title="Your Progress" iconName="analytics" />
+          <View style={styles.pagePadding}>
 
           {/* XP Level */}
           <View style={styles.xpCard}>
@@ -194,6 +195,7 @@ const ProgressScreen = () => {
               ))}
             </View>
           </View>
+          </View>
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -210,8 +212,16 @@ const styles = StyleSheet.create({
     backgroundColor: PAGE_BG,
   },
   scrollContent: {
-    paddingHorizontal: 16,
     paddingBottom: 24,
+  },
+  pagePadding: {
+    paddingHorizontal: 16,
+  },
+  pagePadding: {
+    paddingHorizontal: 16,
+  },
+  fullWidth: {
+    width: '100%',
   },
   header: {
     paddingTop: 4,

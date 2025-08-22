@@ -63,8 +63,9 @@ const TradingScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, styles.fullWidth]} showsVerticalScrollIndicator={false} stickyHeaderIndices={[0]}>
           <MainHeader title="Trading" iconName="trending-up" onNotificationsPress={() => navigation.navigate('OrderHistory')} onProfilePress={() => navigation.navigate('Portfolio')} />
+          <View style={styles.pagePadding}>
 
           {/* Sections (Navigation) */}
           <View style={styles.sectionsRow}>
@@ -282,6 +283,7 @@ const TradingScreen = () => {
               </View>
             ))}
           </View>
+          </View>
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -298,8 +300,13 @@ const styles = StyleSheet.create({
     backgroundColor: PAGE_BG,
   },
   scrollContent: {
-    paddingHorizontal: 16,
     paddingBottom: 24,
+  },
+  fullWidth: {
+    width: '100%',
+  },
+  pagePadding: {
+    paddingHorizontal: 16,
   },
   header: {
     paddingTop: 4,

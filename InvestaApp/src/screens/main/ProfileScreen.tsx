@@ -20,8 +20,9 @@ const ProfileScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, styles.fullWidth]} showsVerticalScrollIndicator={false} stickyHeaderIndices={[0]}>
           <MainHeader title="Profile" iconName="person" />
+          <View style={styles.pagePadding}>
 
           {/* Profile Header */}
           <View style={styles.profileHeader}>
@@ -214,6 +215,7 @@ const ProfileScreen = () => {
               <Text style={styles.secondaryBtnText}>Reset Password</Text>
             </Pressable>
           </View>
+          </View>
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -230,8 +232,13 @@ const styles = StyleSheet.create({
     backgroundColor: PAGE_BG,
   },
   scrollContent: {
-    paddingHorizontal: 16,
     paddingBottom: 24,
+  },
+  pagePadding: {
+    paddingHorizontal: 16,
+  },
+  fullWidth: {
+    width: '100%',
   },
   profileHeader: {
     backgroundColor: PRIMARY,

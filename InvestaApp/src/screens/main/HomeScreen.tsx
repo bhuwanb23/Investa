@@ -40,8 +40,8 @@ const HomeScreen = () => {
       'Are you sure you want to logout?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Logout', 
+        {
+          text: 'Logout',
           style: 'destructive',
           onPress: () => logout()
         }
@@ -283,21 +283,21 @@ const HomeScreen = () => {
         {learningPathItems.map((item) => (
           <View key={item.id} style={styles.learningPathItem}>
             <View style={[styles.learningPathIcon, { backgroundColor: item.color }]}>
-              <Ionicons 
-                name={item.icon as any} 
-                size={16} 
-                color="white" 
+              <Ionicons
+                name={item.icon as any}
+                size={16}
+                color="white"
               />
             </View>
             <View style={styles.learningPathContent}>
               <Text style={[
-                styles.learningPathTitle, 
+                styles.learningPathTitle,
                 { color: item.status === 'locked' ? '#9CA3AF' : '#1F2937' }
               ]}>
                 {item.title}
               </Text>
               <Text style={[
-                styles.learningPathDescription, 
+                styles.learningPathDescription,
                 { color: item.status === 'locked' ? '#9CA3AF' : '#6B7280' }
               ]}>
                 {item.description}
@@ -335,8 +335,8 @@ const HomeScreen = () => {
   const renderAchievements = () => (
     <View style={styles.achievementsSection}>
       <Text style={styles.sectionTitle}>Your Achievements</Text>
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.achievementsScrollContainer}
       >
@@ -415,7 +415,12 @@ const HomeScreen = () => {
   );
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: 24 }}
+      showsVerticalScrollIndicator={false}
+      stickyHeaderIndices={[0]}
+    >
       <MainHeader title="Home" iconName="home" />
       {renderWelcomeSection()}
       {renderDailyTip()}
