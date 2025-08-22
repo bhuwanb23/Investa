@@ -1,43 +1,80 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import type { MainStackParamList } from '../../navigation/AppNavigator';
 import { PAGE_BG, TEXT_DARK, TEXT_MUTED, PRIMARY } from './constants/courseConstants';
-import LessonListHeader from './components/LessonListHeader';
+import MainHeader from '../../components/MainHeader';
 import LessonListAdvanced from './components/LessonListAdvanced';
 
 
 type ParamList = {
-  LessonList: { courseId: string; course?: any };
+  LessonList: { courseId?: string; course?: any; completedLessonId?: number };
 };
 
 const LessonListScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
   const route = useRoute<RouteProp<ParamList, 'LessonList'>>();
   const course = route.params?.course || { title: 'Course', totalLessons: 24, completed: 12 };
 
-  const lessons = useMemo(
-    () => [
-      { id: 1, title: 'Introduction to JavaScript', minutes: 8, state: 'completed' as const },
-      { id: 2, title: 'Variables and Data Types', minutes: 12, state: 'completed' as const },
-      { id: 3, title: 'Operators and Expressions', minutes: 15, state: 'progress' as const, progress: 60 },
-      { id: 4, title: 'Conditional Statements', minutes: 10, state: 'available' as const },
-      { id: 5, title: 'Loops and Iteration', minutes: 14, state: 'available' as const },
-      { id: 6, title: 'Arrays and Objects', minutes: 18, state: 'locked' as const },
-      { id: 7, title: 'Functions Basics', minutes: 16, state: 'locked' as const },
-    ],
-    []
-  );
+  const DEFAULT_LESSONS = useMemo(() => ([
+    { id: 1, title: 'Introduction to JavaScript', minutes: 8, state: 'progress' as const, progress: 0 },
+    { id: 2, title: 'Variables and Data Types', minutes: 12, state: 'locked' as const },
+    { id: 3, title: 'Operators and Expressions', minutes: 15, state: 'locked' as const },
+    { id: 4, title: 'Conditional Statements', minutes: 10, state: 'locked' as const },
+    { id: 5, title: 'Loops and Iteration', minutes: 14, state: 'locked' as const },
+    { id: 6, title: 'Arrays and Objects', minutes: 18, state: 'locked' as const },
+    { id: 7, title: 'Functions Basics', minutes: 16, state: 'locked' as const },
+  ]), []);
+
+  const [lessons, setLessons] = useState<any[]>(DEFAULT_LESSONS);
+
+  // When returning from LessonDetail with a completed lesson, mark it and unlock the next
+  useEffect(() => {
+    const completedId = (route.params as any)?.completedLessonId;
+    if (!completedId) return;
+    setLessons(prev => {
+      const idx = prev.findIndex(l => l.id === completedId);
+      if (idx === -1) return prev;
+      const next = prev.map(l => ({ ...l }));
+      // Mark the completed lesson
+      next[idx].state = 'completed';
+      delete (next[idx] as any).progress;
+      // Ensure only sequential unlocks: next unlocks only if all previous are completed
+      const nextIdx = idx + 1;
+      if (nextIdx < next.length) {
+        const allPrevCompleted = next.slice(0, nextIdx).every(l => l.state === 'completed');
+        if (allPrevCompleted) {
+          // Clear any prior in-progress marker
+          for (let i = 0; i < next.length; i++) {
+            if (next[i].state === 'progress') {
+              next[i].state = 'available';
+              delete (next[i] as any).progress;
+            }
+          }
+          if (next[nextIdx].state === 'locked') next[nextIdx].state = 'available';
+          next[nextIdx].state = 'progress';
+          (next[nextIdx] as any).progress = 0;
+        }
+      }
+      return next;
+    });
+    // clear the param after applying to avoid re-applying on future renders
+    (navigation as any).setParams?.({ completedLessonId: undefined });
+  }, [route.params?.completedLessonId]);
+
+  const nextLessonId = useMemo(() => {
+    const inProgress = (lessons as any[]).find(l => l.state === 'progress');
+    if (inProgress) return inProgress.id;
+    const available = (lessons as any[]).find(l => l.state === 'available');
+    if (available) return available.id;
+    return (lessons as any[])[0]?.id ?? 1;
+  }, [lessons]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <LessonListHeader
-        title={course.title || 'Course'}
-        completed={course.completed || 12}
-        total={course.totalLessons || 24}
-        onBack={() => navigation.goBack()}
-      />
-
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={styles.scroll} stickyHeaderIndices={[0]}>
+        <MainHeader title={course.title || 'Course'} iconName="book" showBackButton onBackPress={() => navigation.goBack()} />
         {/* Continue CTA */}
         <View style={styles.ctaCard}>
           <View style={{ flex: 1 }}>
@@ -45,7 +82,7 @@ const LessonListScreen: React.FC = () => {
             <Text style={styles.ctaTitle}>Lesson 13: Functions</Text>
             <Text style={styles.ctaSub}>Learn about declarations and expressions</Text>
           </View>
-          <TouchableOpacity style={styles.ctaBtn} onPress={() => navigation.navigate('LessonDetail' as never, { lessonId: String(13) } as never)}>
+          <TouchableOpacity style={styles.ctaBtn} onPress={() => navigation.push('LessonDetail', { lessonId: String(nextLessonId) })}>
             <Text style={styles.ctaBtnText}>Continue</Text>
           </TouchableOpacity>
         </View>
@@ -53,9 +90,34 @@ const LessonListScreen: React.FC = () => {
         {/* Lesson list */}
         <LessonListAdvanced
           lessons={lessons as any}
-          onStart={(id) => navigation.navigate('LessonDetail' as never, { lessonId: String(id) } as never)}
-          onContinue={(id) => navigation.navigate('LessonDetail' as never, { lessonId: String(id) } as never)}
+          onStart={(id) => {
+            const l = lessons.find(x => x.id === id);
+            if (!l || l.state === 'locked') return;
+            navigation.push('LessonDetail', { lessonId: String(id) });
+          }}
+          onContinue={(id) => {
+            const l = lessons.find(x => x.id === id);
+            if (!l || l.state === 'locked') return;
+            navigation.push('LessonDetail', { lessonId: String(id) });
+          }}
         />
+
+        {/* Certificate CTA */}
+        <View style={{ marginTop: 16, marginBottom: 20, alignItems: 'center' }}>
+          <TouchableOpacity
+            disabled={!lessons.every((l: any) => l.state === 'completed')}
+            onPress={() => navigation.navigate('Certificate' as never)}
+            style={[{ paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12 },
+              lessons.every((l: any) => l.state === 'completed')
+                ? { backgroundColor: '#7C3AED' }
+                : { backgroundColor: '#E5E7EB' }
+            ]}
+          >
+            <Text style={{ color: lessons.every((l: any) => l.state === 'completed') ? '#fff' : '#9CA3AF', fontWeight: '800' }}>
+              {lessons.every((l: any) => l.state === 'completed') ? 'Download Certificate' : 'Complete all lessons to download certificate'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

@@ -1,6 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import type { MainStackParamList } from '../../navigation/AppNavigator';
+import MainHeader from '../../components/MainHeader';
 import { Ionicons } from '@expo/vector-icons';
 import { PAGE_BG, TEXT_DARK, TEXT_MUTED, PRIMARY } from './constants/courseConstants';
 import ModuleHero from './components/ModuleHero';
@@ -14,7 +17,7 @@ type ParamList = {
 };
 
 const ModuleScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
   const route = useRoute<RouteProp<ParamList, 'ModuleScreen'>>();
   const course = route.params?.course || {
     id: Number(route.params?.courseId) || 0,
@@ -26,15 +29,8 @@ const ModuleScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
-          <Ionicons name="arrow-back" size={20} color="#374151" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Module Overview</Text>
-        <View style={styles.iconBtn} />
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={styles.scroll} stickyHeaderIndices={[0]}>
+        <MainHeader title="Module Overview" iconName="library" showBackButton onBackPress={() => navigation.goBack()} />
         <ModuleHero
           title={course.title || 'Module Title'}
           description={course.description || 'Module short description.'}
@@ -68,7 +64,7 @@ const ModuleScreen: React.FC = () => {
         <TouchableOpacity
           style={styles.primaryBtn}
           activeOpacity={0.85}
-          onPress={() => navigation.navigate('LessonList' as never, { courseId: String(course.id), course } as never)}
+          onPress={() => navigation.navigate('LessonList', { courseId: String(course.id), course })}
         >
           <Ionicons name="play" size={16} color="#fff" />
           <Text style={styles.primaryBtnText}>Continue Module</Text>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import MainHeader from '../../components/MainHeader';
 import { Ionicons } from '@expo/vector-icons';
 import { PAGE_BG, CARD_BG, TEXT_DARK, TEXT_MUTED, BORDER, PRIMARY } from './constants/courseConstants';
 import ProgressDonut from './components/ProgressDonut';
@@ -14,18 +15,8 @@ const ModuleProgressScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}> 
-        <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={18} color={TEXT_DARK} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Module Progress</Text>
-        <TouchableOpacity style={styles.iconBtn}>
-          <Ionicons name="ellipsis-vertical" size={18} color={TEXT_DARK} />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={styles.scroll} stickyHeaderIndices={[0]}>
+        <MainHeader title="Module Progress" iconName="analytics" showBackButton onBackPress={() => navigation.goBack()} />
         {/* Overview Card */}
         <View style={styles.card}> 
           <View style={styles.center}> 

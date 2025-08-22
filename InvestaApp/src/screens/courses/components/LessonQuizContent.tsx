@@ -8,9 +8,11 @@ type Option = { id: 'A'|'B'|'C'|'D'; text: string };
 type Props = {
   questionIndex?: number;
   totalQuestions?: number;
+  onNextQuestion?: () => void;
+  onCompleteQuiz?: () => void;
 };
 
-const LessonQuizContent: React.FC<Props> = ({ questionIndex = 2, totalQuestions = 5 }) => {
+const LessonQuizContent: React.FC<Props> = ({ questionIndex = 1, totalQuestions = 5, onNextQuestion, onCompleteQuiz }) => {
   const [selected, setSelected] = useState<Option['id'] | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
@@ -38,8 +40,14 @@ const LessonQuizContent: React.FC<Props> = ({ questionIndex = 2, totalQuestions 
   };
 
   const onContinue = () => {
-    // For demo: toggle completion state
-    setShowCompletion(true);
+    if (questionIndex < totalQuestions) {
+      onNextQuestion?.();
+      setSubmitted(false);
+      setSelected(null);
+    } else {
+      setShowCompletion(true);
+      onCompleteQuiz?.();
+    }
   };
 
   const Radio = ({ active, accent }: { active: boolean; accent?: string }) => (
@@ -185,7 +193,7 @@ const LessonQuizContent: React.FC<Props> = ({ questionIndex = 2, totalQuestions 
             <Text style={[styles.feedbackTitle, { color: TEXT_DARK, marginTop: 8 }]}>Quiz Complete!</Text>
             <Text style={styles.caption}>You scored 4 out of 5 questions correctly</Text>
           </View>
-          <TouchableOpacity style={[styles.primaryBtn, { marginTop: 4 }]}>
+          <TouchableOpacity style={[styles.primaryBtn, { marginTop: 4 }]} onPress={() => onCompleteQuiz?.()}>
             <Text style={styles.primaryBtnText}>Continue to Next Lesson</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.secondaryBtnPlain}> 

@@ -133,11 +133,7 @@ const CoursesScreen = () => {
                 <CourseCard
                   course={c}
                   onPress={() => {
-                    if (usingSample) {
-                      navigation.navigate('CourseDetail', { courseId: String(c.id), course: c, sample: true });
-                    } else {
-                      navigation.navigate('CourseDetail', { courseId: String(c.id), course: c });
-                    }
+                    navigation.navigate('ModuleScreen', { courseId: String(c.id), course: c });
                   }}
                 />
               </View>

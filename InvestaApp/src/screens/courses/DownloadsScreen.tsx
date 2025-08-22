@@ -1,17 +1,19 @@
 import React from 'react';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
+import { SafeAreaView, StyleSheet, View, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import DetailHeader from './components/DetailHeader';
+import MainHeader from '../../components/MainHeader';
 import DownloadsContent from './components/DownloadsContent';
 
 const DownloadsScreen: React.FC = () => {
   const navigation = useNavigation();
   return (
     <SafeAreaView style={styles.safeArea}>
-      <DetailHeader title="Downloads" onBack={() => navigation.goBack()} />
-      <View style={{ flex: 1 }}>
-        <DownloadsContent />
-      </View>
+      <ScrollView contentContainerStyle={{ paddingBottom: 16 }} stickyHeaderIndices={[0]}>
+        <MainHeader title="Downloads" iconName="download" showBackButton onBackPress={() => navigation.goBack()} />
+        <View style={{ flex: 1, paddingHorizontal: 16 }}>
+          <DownloadsContent />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

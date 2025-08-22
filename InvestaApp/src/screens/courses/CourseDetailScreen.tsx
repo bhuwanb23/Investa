@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import DetailHeader from './components/DetailHeader';
+import { StackNavigationProp } from '@react-navigation/stack';
+import type { MainStackParamList } from '../../navigation/AppNavigator';
+import type { Lesson as ApiLesson } from './utils/coursesApi';
+import MainHeader from '../../components/MainHeader';
 import LessonList from './components/LessonList';
 // Local-first: avoid backend calls
 type Language = { id: number; code: string; name: string; native_name: string };
@@ -24,7 +27,7 @@ type ParamList = {
 };
 
 const CourseDetailScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
   const route = useRoute<RouteProp<ParamList, 'CourseDetail'>>();
   const courseId = Number(route.params?.courseId);
   const initialFromRoute = route.params?.course && route.params?.sample ? (route.params.course as CourseDetail) : null;
@@ -55,12 +58,13 @@ const CourseDetailScreen: React.FC = () => {
   }, [load]);
 
   const onPressLesson = (lessonId: number) => {
-    navigation.navigate('LessonDetail' as never, { lessonId: String(lessonId) } as never);
+    navigation.navigate('LessonDetail', { lessonId: String(lessonId) });
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <DetailHeader title={course?.title || 'Course'} subtitle={course ? DIFFICULTY_LABELS[course.difficulty_level] : ''} onBack={() => navigation.goBack()} />
+      <ScrollView contentContainerStyle={styles.scroll} stickyHeaderIndices={[0]}>
+        <MainHeader title={course?.title || 'Course'} iconName="library" showBackButton onBackPress={() => navigation.goBack()} />
       {loading ? (
         <View style={styles.center}> 
           <ActivityIndicator size="large" color={PRIMARY} />
@@ -72,7 +76,7 @@ const CourseDetailScreen: React.FC = () => {
           <TouchableOpacity style={styles.retryBtn} onPress={load}><Text style={styles.retryText}>Retry</Text></TouchableOpacity>
         </View>
       ) : course ? (
-        <ScrollView contentContainerStyle={styles.scroll}>
+        <View>
           <View style={styles.hero}>
             <View style={[styles.levelPill, { backgroundColor: DIFFICULTY_COLORS[course.difficulty_level] + '22' }]}>
               <Text style={[styles.levelPillText, { color: DIFFICULTY_COLORS[course.difficulty_level] }]}>
@@ -88,9 +92,13 @@ const CourseDetailScreen: React.FC = () => {
           </View>
 
           <Text style={styles.sectionTitle}>Lessons</Text>
-          <LessonList lessons={course.lessons || []} onPressLesson={onPressLesson} />
-        </ScrollView>
+          <LessonList
+            lessons={((course.lessons || []).map(l => ({ ...l, is_active: l.is_active ?? true })) as unknown) as ApiLesson[]}
+            onPressLesson={onPressLesson}
+          />
+        </View>
       ) : null}
+      </ScrollView>
     </SafeAreaView>
   );
 };

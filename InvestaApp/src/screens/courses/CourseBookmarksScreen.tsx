@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { PAGE_BG, CARD_BG, TEXT_DARK, TEXT_MUTED, BORDER, PRIMARY } from './constants/courseConstants';
 import BookmarkFilterBar from './components/BookmarkFilterBar';
 import BookmarksList, { BookmarkItem } from './components/BookmarksList';
+import MainHeader from '../../components/MainHeader';
 
 const CourseBookmarksScreen: React.FC = () => {
 	const navigation = useNavigation();
@@ -39,34 +40,20 @@ const CourseBookmarksScreen: React.FC = () => {
 
 	return (
 		<SafeAreaView style={styles.safe}>
-			{/* Header */}
-			<View style={styles.header}>
-				<View style={styles.headerRow}>
-					<TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
-						<Ionicons name="arrow-back" size={18} color={TEXT_DARK} />
-					</TouchableOpacity>
-					<View style={{ flex: 1 }}>
-						<Text style={styles.headerTitle}>Bookmarks</Text>
-						<Text style={styles.headerSub}>{items.length} saved items</Text>
+			<ScrollView contentContainerStyle={{ paddingBottom: 16 }} stickyHeaderIndices={[0]}>
+				<MainHeader title="Bookmarks" iconName="bookmark" showBackButton onBackPress={() => navigation.goBack()} />
+				{/* Filters */}
+				<BookmarkFilterBar selected={filter} onSelect={setFilter} />
+				<View style={{ paddingVertical: 16 }}>
+					<View style={{ paddingHorizontal: 16, marginBottom: 8 }}>
+						<Text style={styles.countText}>{items.length} bookmarked lessons</Text>
 					</View>
-					<TouchableOpacity style={styles.headerBtn}>
-						<Ionicons name="ellipsis-vertical" size={18} color={TEXT_DARK} />
-					</TouchableOpacity>
+					<BookmarksList
+						items={items}
+						onContinue={(id) => {}}
+						onBookmarkToggle={(id) => {}}
+					/>
 				</View>
-			</View>
-
-			{/* Filters */}
-			<BookmarkFilterBar selected={filter} onSelect={setFilter} />
-
-			<ScrollView contentContainerStyle={{ paddingVertical: 16 }}>
-				<View style={{ paddingHorizontal: 16, marginBottom: 8 }}>
-					<Text style={styles.countText}>{items.length} bookmarked lessons</Text>
-				</View>
-				<BookmarksList
-					items={items}
-					onContinue={(id) => {}}
-					onBookmarkToggle={(id) => {}}
-				/>
 			</ScrollView>
 		</SafeAreaView>
 	);

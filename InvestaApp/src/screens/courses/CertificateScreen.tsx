@@ -45,11 +45,11 @@ const CertificateScreen: React.FC = () => {
 				</View>
 
 				<View style={styles.actions}>
-					<TouchableOpacity style={styles.primaryBtn}>
+					<TouchableOpacity style={styles.primaryBtn} onPress={() => navigation.navigate('Downloads' as never)}>
 						<Ionicons name="download" size={18} color="#fff" />
 						<Text style={styles.primaryBtnText}>Download Certificate</Text>
 					</TouchableOpacity>
-					<TouchableOpacity style={styles.secondaryBtn}>
+					<TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation.navigate('Share' as never)}>
 						<Ionicons name="share" size={18} color="#7C3AED" />
 						<Text style={styles.secondaryBtnText}>Share Achievement</Text>
 					</TouchableOpacity>
