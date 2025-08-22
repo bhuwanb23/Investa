@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -27,8 +28,9 @@ const MainHeader: React.FC<Props> = ({
   onBackPress,
 }) => {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: Math.max(12, insets.top) }]}>
       <View style={styles.content}>
         <View style={styles.leftRow}>
           {showBackButton ? (
@@ -65,7 +67,6 @@ const MainHeader: React.FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'white',
-    paddingTop: 20,
     paddingBottom: 16,
     paddingHorizontal: 16,
     shadowColor: '#000',
