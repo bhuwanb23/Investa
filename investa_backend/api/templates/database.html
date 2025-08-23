@@ -126,13 +126,28 @@
     background: var(--brand-600);
   }
   
+  .model-categories {
+    margin-bottom: 30px;
+  }
+  
+  .category-section {
+    margin-bottom: 24px;
+  }
+  
+  .category-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 12px;
+    padding: 8px 0;
+    border-bottom: 2px solid var(--border);
+  }
+  
   .model-tabs {
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    padding: 20px 0;
-    border-bottom: 2px solid var(--border);
-    margin-bottom: 30px;
+    padding: 16px 0;
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
   }
@@ -487,25 +502,112 @@
   </div>
 </div>
 
-<!-- Model Tabs -->
-<div class="model-tabs">
-  {% for model in models %}
-  <div class="model-tab" data-model="{{ model.app_label }}.{{ model.model_name }}" onclick="setActiveModel('{{ model.app_label }}.{{ model.model_name }}')">
-    <span class="tab-icon">
-      {% if model.model_name == 'User' %}👤
-      {% elif model.model_name == 'Course' %}📚
-      {% elif model.model_name == 'Lesson' %}📖
-      {% elif model.model_name == 'Quiz' %}🎯
-      {% elif model.model_name == 'Trade' %}💰
-      {% elif model.model_name == 'Profile' %}👤
-      {% elif model.model_name == 'Language' %}🌍
-      {% elif model.model_name == 'Notification' %}🔔
-      {% else %}📊{% endif %}
-    </span>
-    {{ model.model_name }}
-    <span class="count">{{ model.total_count }}</span>
+<!-- Model Categories -->
+<div class="model-categories">
+  <div class="category-section">
+    <h3 class="category-title">👤 User & Profile</h3>
+    <div class="model-tabs">
+      {% for model in models %}
+        {% if model.model_name in 'User,UserProfile,Language' %}
+        <div class="model-tab" data-model="{{ model.app_label }}.{{ model.model_name }}" onclick="setActiveModel('{{ model.app_label }}.{{ model.model_name }}')">
+          <span class="tab-icon">
+            {% if model.model_name == 'User' %}👤
+            {% elif model.model_name == 'UserProfile' %}👤
+            {% elif model.model_name == 'Language' %}🌍
+            {% else %}📊{% endif %}
+          </span>
+          {{ model.model_name }}
+          <span class="count">{{ model.total_count }}</span>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
   </div>
-  {% endfor %}
+
+  <div class="category-section">
+    <h3 class="category-title">🔒 Security & Privacy</h3>
+    <div class="model-tabs">
+      {% for model in models %}
+        {% if model.model_name in 'SecuritySettings,PrivacySettings,UserSession' %}
+        <div class="model-tab" data-model="{{ model.app_label }}.{{ model.model_name }}" onclick="setActiveModel('{{ model.app_label }}.{{ model.model_name }}')">
+          <span class="tab-icon">
+            {% if model.model_name == 'SecuritySettings' %}🔒
+            {% elif model.model_name == 'PrivacySettings' %}🛡️
+            {% elif model.model_name == 'UserSession' %}💻
+            {% else %}📊{% endif %}
+          </span>
+          {{ model.model_name }}
+          <span class="count">{{ model.total_count }}</span>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="category-section">
+    <h3 class="category-title">📚 Learning & Achievements</h3>
+    <div class="model-tabs">
+      {% for model in models %}
+        {% if model.model_name in 'LearningProgress,Badge,UserBadge' %}
+        <div class="model-tab" data-model="{{ model.app_label }}.{{ model.model_name }}" onclick="setActiveModel('{{ model.app_label }}.{{ model.model_name }}')">
+          <span class="tab-icon">
+            {% if model.model_name == 'LearningProgress' %}📚
+            {% elif model.model_name == 'Badge' %}🏆
+            {% elif model.model_name == 'UserBadge' %}🎖️
+            {% else %}📊{% endif %}
+          </span>
+          {{ model.model_name }}
+          <span class="count">{{ model.total_count }}</span>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="category-section">
+    <h3 class="category-title">💰 Trading & Performance</h3>
+    <div class="model-tabs">
+      {% for model in models %}
+        {% if model.model_name in 'TradingPerformance' %}
+        <div class="model-tab" data-model="{{ model.app_label }}.{{ model.model_name }}" onclick="setActiveModel('{{ model.app_label }}.{{ model.model_name }}')">
+          <span class="tab-icon">💰</span>
+          {{ model.model_name }}
+          <span class="count">{{ model.total_count }}</span>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="category-section">
+    <h3 class="category-title">🔔 Notifications</h3>
+    <div class="model-tabs">
+      {% for model in models %}
+        {% if model.model_name in 'Notification' %}
+        <div class="model-tab" data-model="{{ model.app_label }}.{{ model.model_name }}" onclick="setActiveModel('{{ model.app_label }}.{{ model.model_name }}')">
+          <span class="tab-icon">🔔</span>
+          {{ model.model_name }}
+          <span class="count">{{ model.total_count }}</span>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="category-section">
+    <h3 class="category-title">🔧 System & Other</h3>
+    <div class="model-tabs">
+      {% for model in models %}
+        {% if model.model_name not in 'User,UserProfile,Language,SecuritySettings,PrivacySettings,UserSession,LearningProgress,Badge,UserBadge,TradingPerformance,Notification' %}
+        <div class="model-tab" data-model="{{ model.app_label }}.{{ model.model_name }}" onclick="setActiveModel('{{ model.app_label }}.{{ model.model_name }}')">
+          <span class="tab-icon">🔧</span>
+          {{ model.model_name }}
+          <span class="count">{{ model.total_count }}</span>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
 </div>
 
 <!-- Model Content -->

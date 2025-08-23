@@ -1,10 +1,11 @@
-# Import all models from the organized structure
-from .models.user import Language, UserProfile
-from .models.security import SecuritySettings, UserSession
-from .models.privacy import PrivacySettings
-from .models.learning import LearningProgress, Badge, UserBadge
-from .models.trading import TradingPerformance
-from .models.notifications import Notification
+# Models package - Import all models for easy access
+
+from .user import Language, UserProfile
+from .security import SecuritySettings, UserSession
+from .privacy import PrivacySettings
+from .learning import LearningProgress, Badge, UserBadge
+from .trading import TradingPerformance
+from .notifications import Notification
 
 __all__ = [
     # User models

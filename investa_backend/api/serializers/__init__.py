@@ -1,20 +1,12 @@
-# Import all serializers from the organized structure
-from .serializers.auth import UserSerializer, UserRegistrationSerializer
-from .serializers.user import (
-    LanguageSerializer, UserProfileSerializer, UserProfileDetailSerializer, 
-    ProfileUpdateSerializer, CompleteProfileSerializer
-)
-from .serializers.security import (
-    SecuritySettingsSerializer, SecuritySettingsUpdateSerializer, UserSessionSerializer
-)
-from .serializers.privacy import (
-    PrivacySettingsSerializer, PrivacySettingsUpdateSerializer
-)
-from .serializers.learning import (
-    LearningProgressSerializer, BadgeSerializer, UserBadgeSerializer
-)
-from .serializers.trading import TradingPerformanceSerializer
-from .serializers.notifications import NotificationSerializer
+# Serializers package - Import all serializers for easy access
+
+from .user import LanguageSerializer, UserProfileSerializer, UserProfileDetailSerializer, ProfileUpdateSerializer, CompleteProfileSerializer
+from .security import SecuritySettingsSerializer, SecuritySettingsUpdateSerializer, UserSessionSerializer
+from .privacy import PrivacySettingsSerializer, PrivacySettingsUpdateSerializer
+from .learning import LearningProgressSerializer, BadgeSerializer, UserBadgeSerializer
+from .trading import TradingPerformanceSerializer
+from .notifications import NotificationSerializer
+from .auth import UserSerializer, UserRegistrationSerializer
 
 __all__ = [
     # Auth serializers

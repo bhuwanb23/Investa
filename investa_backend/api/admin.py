@@ -18,22 +18,16 @@ class LanguageAdmin(admin.ModelAdmin):
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = ['user', 'level', 'experience_points', 'risk_profile', 'investment_experience', 'phone_number']
     list_filter = ['risk_profile', 'investment_experience', 'level', 'created_at']
-    search_fields = ['user__username', 'user__email', 'user__first_name', 'user__last_name', 'phone_number']
+    search_fields = ['user__username', 'user__email', 'user__first_name', 'user__last_name']
     readonly_fields = ['created_at', 'updated_at']
-    
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user', 'preferred_language')
 
 
 @admin.register(SecuritySettings)
 class SecuritySettingsAdmin(admin.ModelAdmin):
-    list_display = ['user', 'biometric_enabled', 'two_factor_enabled', 'session_timeout', 'login_notifications']
-    list_filter = ['biometric_enabled', 'two_factor_enabled', 'login_notifications', 'suspicious_activity_alerts']
-    search_fields = ['user__username', 'user__email', 'recovery_email']
+    list_display = ['user', 'two_factor_enabled', 'biometric_enabled', 'session_timeout', 'login_notifications']
+    list_filter = ['two_factor_enabled', 'biometric_enabled', 'login_notifications', 'suspicious_activity_alerts']
+    search_fields = ['user__username', 'user__email']
     readonly_fields = ['created_at', 'updated_at', 'last_password_change']
-    
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user')
 
 
 @admin.register(PrivacySettings)
@@ -42,42 +36,34 @@ class PrivacySettingsAdmin(admin.ModelAdmin):
     list_filter = ['profile_visibility', 'activity_visibility', 'data_sharing', 'location_sharing']
     search_fields = ['user__username', 'user__email']
     readonly_fields = ['created_at', 'updated_at']
-    
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user')
 
 
 @admin.register(LearningProgress)
 class LearningProgressAdmin(admin.ModelAdmin):
-    list_display = ['user', 'completion_percentage', 'total_hours_learned', 'certificates_earned', 'average_quiz_score']
-    list_filter = ['created_at', 'last_activity']
+    list_display = ['user', 'completed_modules', 'total_modules', 'completion_percentage', 'total_hours_learned', 'certificates_earned']
+    list_filter = ['created_at', 'updated_at']
     search_fields = ['user__username', 'user__email']
     readonly_fields = ['created_at', 'updated_at', 'last_activity', 'completion_percentage']
-    
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user')
 
 
 @admin.register(TradingPerformance)
 class TradingPerformanceAdmin(admin.ModelAdmin):
-    list_display = ['user', 'portfolio_value', 'portfolio_growth_percentage', 'success_rate', 'total_trades']
+    list_display = ['user', 'portfolio_value', 'portfolio_growth_percentage', 'total_trades', 'successful_trades', 'success_rate']
     list_filter = ['created_at', 'updated_at']
     search_fields = ['user__username', 'user__email']
     readonly_fields = ['created_at', 'updated_at', 'success_rate']
-    
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user')
 
 
 @admin.register(UserSession)
 class UserSessionAdmin(admin.ModelAdmin):
-    list_display = ['user', 'session_key', 'ip_address', 'is_active', 'last_activity', 'created_at']
+    list_display = ['user', 'session_key_short', 'ip_address', 'is_active', 'last_activity', 'created_at']
     list_filter = ['is_active', 'created_at', 'last_activity']
-    search_fields = ['user__username', 'session_key', 'ip_address', 'device_info']
+    search_fields = ['user__username', 'session_key', 'ip_address']
     readonly_fields = ['created_at', 'last_activity']
     
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user')
+    def session_key_short(self, obj):
+        return f"{obj.session_key[:8]}..." if obj.session_key else "N/A"
+    session_key_short.short_description = 'Session Key'
 
 
 @admin.register(Notification)
@@ -86,10 +72,6 @@ class NotificationAdmin(admin.ModelAdmin):
     list_filter = ['notification_type', 'read', 'created_at']
     search_fields = ['user__username', 'title', 'message']
     readonly_fields = ['created_at']
-    list_editable = ['read']
-    
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user')
 
 
 @admin.register(Badge)
@@ -103,7 +85,7 @@ class BadgeAdmin(admin.ModelAdmin):
 @admin.register(UserBadge)
 class UserBadgeAdmin(admin.ModelAdmin):
     list_display = ['user', 'badge', 'earned_at']
-    list_filter = ['badge__badge_type', 'earned_at']
+    list_filter = ['earned_at', 'badge__badge_type']
     search_fields = ['user__username', 'badge__name']
     readonly_fields = ['earned_at']
     
