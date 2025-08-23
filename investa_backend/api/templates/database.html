@@ -534,6 +534,9 @@
   </div>
 </div>
 
+<!-- Model data for JavaScript -->
+{{ models|json_script:"model-data" }}
+
 <!-- Controls Section -->
 <div class="controls-section">
   <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
@@ -695,9 +698,14 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script type="text/javascript">
   // Store model data for easy access
-  const modelData = {{ models|safe }} || [];
+  let modelData = [];
+  
+  // Debug: Log the raw model data
+  console.log('Raw model data:', modelData);
+  console.log('Model data type:', typeof modelData);
+  console.log('Model data length:', modelData ? modelData.length : 'undefined');
   
   // Category definitions - moved to top to avoid reference errors
   const categories = {
@@ -732,6 +740,10 @@
       models: []
     }
   };
+  
+  // Debug: Log categories
+  console.log('Categories defined:', categories);
+  console.log('Category keys:', Object.keys(categories));
 
   function showCategories() {
     try {
@@ -983,6 +995,24 @@
   // Initialize the page
   window.addEventListener('DOMContentLoaded', function() {
     try {
+      console.log('=== DATABASE PAGE INITIALIZATION ===');
+      
+      // Get model data from json_script element
+      const modelDataElement = document.getElementById('model-data');
+      if (modelDataElement) {
+        try {
+          modelData = JSON.parse(modelDataElement.textContent);
+          console.log('Successfully loaded model data:', modelData.length, 'models');
+        } catch (e) {
+          console.error('Error parsing model data:', e);
+          console.error('Raw data:', modelDataElement.textContent);
+          modelData = [];
+        }
+      } else {
+        console.error('Model data element not found');
+        modelData = [];
+      }
+      
       console.log('Available models:', modelData);
       console.log('Categories defined:', categories);
       
@@ -992,8 +1022,15 @@
         return;
       }
       
+      // Test category access
+      console.log('Testing category access...');
+      Object.keys(categories).forEach(key => {
+        console.log(`Category ${key}:`, categories[key]);
+      });
+      
       // Start with categories view
       showCategories();
+      console.log('=== INITIALIZATION COMPLETE ===');
     } catch (error) {
       console.error('Error initializing database page:', error);
     }
