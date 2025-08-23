@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Welcome - Investa Console{% endblock %}
+
+{% block content %}
+<div class="welcome-section">
+  <h1 class="welcome-title">Welcome to Investa Console</h1>
+  <p class="welcome-subtitle">Your comprehensive development dashboard for the Investa learning platform</p>
+  <div class="welcome-actions">
+    <a href="{% url 'dashboard' %}" class="welcome-btn">Go to Dashboard</a>
+    <a href="{% url 'database' %}" class="welcome-btn">Explore Database</a>
+    <a href="{% url 'admin:index' %}" class="welcome-btn">Admin Panel</a>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h3>Quick Start</h3>
+    <p>Use the dashboard to test API calls, register users, and manage your application.</p>
+    <a href="{% url 'dashboard' %}" class="welcome-btn" style="display: inline-block; margin-top: 16px;">Open Dashboard</a>
+  </div>
+  
+  <div class="card">
+    <h3>Database Management</h3>
+    <p>Explore your database structure, view records, and monitor data across all models.</p>
+    <a href="{% url 'database' %}" class="welcome-btn" style="display: inline-block; margin-top: 16px;">View Database</a>
+  </div>
+</div>
+
+<div class="card" style="margin-top: 16px;">
+  <h3>Available Features</h3>
+  <ul>
+    <li><strong>User Management:</strong> Register, login, and manage user profiles</li>
+    <li><strong>Course System:</strong> Manage courses, lessons, and quizzes</li>
+    <li><strong>Trading Simulation:</strong> Simulate stock trading with virtual portfolios</li>
+    <li><strong>Progress Tracking:</strong> Monitor user learning progress and achievements</li>
+    <li><strong>API Testing:</strong> Test all endpoints directly from the dashboard</li>
+  </ul>
+</div>
+{% endblock %}

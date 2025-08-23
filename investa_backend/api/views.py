@@ -509,6 +509,10 @@ class LogoutView(APIView):
 
 
 # Simple HTML views for development
+def index(request):
+    """Landing page for the console"""
+    return render(request, 'index.html')
+
 def dashboard(request):
     """Development dashboard to try API calls quickly"""
     return render(request, 'dashboard.html', { 'models': _build_model_entries() })

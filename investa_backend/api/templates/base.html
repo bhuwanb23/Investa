@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Investa Console{% endblock %}</title>
+  <style>
+    :root {
+      --brand: #4f46e5;
+      --brand-600: #4338ca;
+      --ink: #111827;
+      --muted: #6b7280;
+      --bg: #f9fafb;
+      --card: #ffffff;
+      --border: #e5e7eb;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+    
+    /* Navbar Styles */
+    .navbar {
+      background: var(--brand);
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .navbar-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      font-weight: 800;
+      letter-spacing: .2px;
+      font-size: 20px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .nav-link {
+      background: rgba(255,255,255,0.16);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.25);
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .nav-link:hover {
+      background: rgba(255,255,255,0.25);
+      border-color: rgba(255,255,255,0.4);
+    }
+    .nav-link.active {
+      background: #fff;
+      color: var(--brand);
+      border-color: #fff;
+    }
+    .nav-link.admin {
+      background: rgba(239, 68, 68, 0.8);
+      border-color: rgba(239, 68, 68, 0.9);
+    }
+    .nav-link.admin:hover {
+      background: rgba(239, 68, 68, 1);
+    }
+
+    main { max-width: 1100px; margin: 0 auto; padding: 18px 20px 24px; }
+    .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+    h2 { margin: 0 0 8px 0; font-size: 18px; }
+    h3 { margin: 0 0 10px 0; font-size: 16px; }
+    label { font-size: 13px; color: var(--muted); }
+    input, select { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 14px; outline: none; background: #fff; }
+    button { background: var(--brand); color: #fff; border: none; border-radius: 10px; padding: 10px 14px; font-weight: 600; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+    a { color: var(--brand); text-decoration: none; }
+    .hint { color: var(--muted); font-size: 12px; }
+    pre { white-space: pre-wrap; word-break: break-word; background: #0b1020; color: #e5e7eb; padding: 12px; border-radius: 10px; overflow: auto; }
+
+    .toolbar { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .toolbar-left { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .pill { padding: 6px 10px; border: 1px solid var(--border); border-radius: 999px; background: #fff; color: var(--muted); font-size: 12px; }
+
+    /* Database explorer */
+    .controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .table-wrap { overflow: auto; border-top: 1px solid var(--border); background: #0b1020; border-radius: 10px; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    thead th { position: sticky; top: 0; background: #121a33; color: #cbd5e1; border-bottom: 1px solid #1f2a44; padding: 10px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+    tbody td { border-bottom: 1px solid #142042; padding: 10px 12px; font-size: 13px; color: #e2e8f0; white-space: nowrap; }
+    tbody tr:nth-child(odd) td { background: rgba(255,255,255,0.02); }
+    tbody tr:hover td { background: rgba(99,102,241,0.08); }
+    .null { color: #94a3b8; font-style: italic; }
+
+    /* Model tabs styling */
+    .model-tabs { 
+      display: flex; 
+      gap: 8px; 
+      overflow-x: auto; 
+      padding: 16px 0; 
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .model-tab { 
+      background: #fff; 
+      color: var(--muted); 
+      border: 1px solid var(--border); 
+      padding: 10px 16px; 
+      border-radius: 12px; 
+      font-size: 13px; 
+      cursor: pointer; 
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .model-tab:hover { 
+      background: #f8fafc; 
+      border-color: var(--brand);
+    }
+    .model-tab.active { 
+      background: var(--brand); 
+      color: #fff; 
+      border-color: var(--brand);
+    }
+    .model-tab .count { 
+      background: rgba(255,255,255,0.2); 
+      padding: 2px 6px; 
+      border-radius: 8px; 
+      font-size: 11px; 
+      margin-left: 6px;
+    }
+    .model-tab.active .count { 
+      background: rgba(255,255,255,0.3);
+    }
+
+    .model-content { 
+      display: none; 
+      animation: fadeIn 0.3s ease;
+    }
+    .model-content.active { 
+      display: block; 
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .model-header {
+      background: #f8fafc;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+    }
+    .model-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .model-meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .meta-item strong {
+      color: var(--ink);
+    }
+
+    /* Welcome section */
+    .welcome-section {
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-600));
+      color: white;
+      border-radius: 20px;
+      margin-bottom: 30px;
+    }
+    .welcome-title {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+    .welcome-subtitle {
+      font-size: 18px;
+      opacity: 0.9;
+      margin-bottom: 24px;
+    }
+    .welcome-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .welcome-btn {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 2px solid rgba(255,255,255,0.3);
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .welcome-btn:hover {
+      background: rgba(255,255,255,0.3);
+      border-color: rgba(255,255,255,0.5);
+      transform: translateY(-2px);
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="brand">
+        <a href="{% url 'index' %}" style="color: inherit; text-decoration: none;">Investa Console</a>
+      </div>
+      <div class="nav-links">
+        <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
+        <a href="{% url 'database' %}" class="nav-link {% if request.resolver_match.url_name == 'database' %}active{% endif %}">Database</a>
+        <a href="{% url 'admin:index' %}" class="nav-link admin">Admin</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
