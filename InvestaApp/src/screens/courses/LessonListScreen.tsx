@@ -24,7 +24,7 @@ const LessonListScreen: React.FC = () => {
     { id: 4, title: 'Conditional Statements', minutes: 10, state: 'completed' as const },
     { id: 5, title: 'Loops and Iteration', minutes: 14, state: 'completed' as const },
     { id: 6, title: 'Arrays and Objects', minutes: 18, state: 'completed' as const },
-    { id: 7, title: 'Functions Basics', minutes: 16, state: 'completed' as const },
+    { id: 7, title: 'Functions Basics', minutes: 16, state: 'available' as const },
   ]), []);
 
   const [lessons, setLessons] = useState<any[]>(DEFAULT_LESSONS);
@@ -34,14 +34,24 @@ const LessonListScreen: React.FC = () => {
     const completedIdRaw = (route.params as any)?.completedLessonId;
     const completedId = Number(completedIdRaw);
     if (!Number.isFinite(completedId) || completedId <= 0) return;
+    
     setLessons(prev => {
-      const idx = prev.findIndex(l => l.id === completedId);
-      if (idx === -1) return prev;
       const next = prev.map(l => ({ ...l }));
+      const idx = next.findIndex(l => l.id === completedId);
+      
+      if (idx === -1) return prev;
+      
       // Mark the completed lesson
       next[idx].state = 'completed';
       delete (next[idx] as any).progress;
-      // Ensure only sequential unlocks: next unlocks only if all previous are completed
+      
+      // For lesson 7, this completes the entire course
+      if (completedId === 7) {
+        // All lessons are now completed
+        return next;
+      }
+      
+      // For other lessons, unlock the next one if all previous are completed
       const nextIdx = idx + 1;
       if (nextIdx < next.length) {
         const allPrevCompleted = next.slice(0, nextIdx).every(l => l.state === 'completed');
@@ -60,6 +70,7 @@ const LessonListScreen: React.FC = () => {
       }
       return next;
     });
+    
     // clear the param after applying to avoid re-applying on future renders
     try {
       (navigation as any).setParams?.({ completedLessonId: undefined });
@@ -82,8 +93,10 @@ const LessonListScreen: React.FC = () => {
         <View style={styles.ctaCard}>
           <View style={{ flex: 1 }}>
             <Text style={styles.ctaOver}>Continue where you left off</Text>
-            <Text style={styles.ctaTitle}>Lesson 13: Functions</Text>
-            <Text style={styles.ctaSub}>Learn about declarations and expressions</Text>
+            <Text style={styles.ctaTitle}>Lesson {nextLessonId}: {lessons.find(l => l.id === nextLessonId)?.title || 'Functions Basics'}</Text>
+            <Text style={styles.ctaSub}>
+              {nextLessonId === 7 ? 'Learn about function declarations and expressions' : 'Continue your learning journey'}
+            </Text>
           </View>
           <TouchableOpacity style={styles.ctaBtn} onPress={() => navigation.push('LessonDetail', { lessonId: String(nextLessonId) })}>
             <Text style={styles.ctaBtnText}>Continue</Text>
@@ -117,7 +130,10 @@ const LessonListScreen: React.FC = () => {
             ]}
           >
             <Text style={{ color: lessons.every((l: any) => l.state === 'completed') ? '#fff' : '#9CA3AF', fontWeight: '800' }}>
-              {lessons.every((l: any) => l.state === 'completed') ? 'Download Certificate' : 'Complete all lessons to download certificate'}
+              {lessons.every((l: any) => l.state === 'completed') 
+                ? '🎉 Download Certificate' 
+                : `Complete lesson ${lessons.findIndex((l: any) => l.state !== 'completed') + 1} to download certificate`
+              }
             </Text>
           </TouchableOpacity>
         </View>

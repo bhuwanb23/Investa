@@ -7,12 +7,9 @@ import {
   TouchableOpacity,
   FlatList,
   Dimensions,
-  PanGestureHandler,
-  State,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native';
 import MainHeader from '../../components/MainHeader';
 import SearchBar from '../../components/SearchBar';
@@ -191,8 +188,7 @@ const BookmarksScreen = () => {
   };
 
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={styles.container}>
       <MainHeader title="Bookmarks" iconName="bookmark" />
 
       {/* Search Bar */}
@@ -236,8 +232,7 @@ const BookmarksScreen = () => {
           message={getEmptyStateMessage()}
         />
       )}
-      </SafeAreaView>
-    </GestureHandlerRootView>
+    </SafeAreaView>
   );
 };
 
