@@ -26,270 +26,259 @@ investa_backend/
 │   ├── templates/              # HTML templates
 │   │   ├── base.html           # Base template with navbar
 │   │   ├── index.html          # Landing page
-│   │   ├── dashboard.html      # API testing console
+│   │   ├── dashboard.html      # Development dashboard
 │   │   └── database.html       # Database explorer
 │   ├── models.py               # Database models
-│   ├── views.py                # API views and console views
+│   ├── views.py                # API views and ViewSets
 │   ├── serializers.py          # DRF serializers
 │   ├── admin.py                # Django admin configuration
 │   └── README.md               # This file
-├── investa_backend/
-│   ├── settings.py             # Django settings
-│   └── urls.py                 # Main URL configuration
-└── manage.py                   # Django management
+└── investa_backend/
+    ├── settings.py             # Django settings
+    └── urls.py                 # Main URL configuration
 ```
 
-## 🎛️ Development Console
+## 🗄️ Database Models
 
-### Features
-- **Interactive Dashboard**: Test API calls, register users, and manage the backend
-- **Database Explorer**: Browse all database tables with real-time data visualization
-- **API Documentation**: Visual endpoint documentation with examples
-- **System Monitoring**: View statistics and system status
-- **Quick Actions**: Fast access to common development tasks
+### Core Models
+- **Language**: Supported languages for the app
+- **UserProfile**: Extended user profile with learning preferences
+- **SecuritySettings**: User security preferences and 2FA settings
+- **PrivacySettings**: User privacy preferences
+- **LearningProgress**: Track user's learning achievements
+- **TradingPerformance**: Track simulated trading performance
+- **UserSession**: Track user login sessions for security
+- **Notification**: User notifications system
+- **Badge**: Achievement badges
+- **UserBadge**: User earned badges
 
-### Console Pages
+### Model Relationships
+- Each user has one profile, security settings, privacy settings, learning progress, and trading performance
+- Users can have multiple sessions, notifications, and badges
+- Languages are referenced by user profiles
 
-#### 1. Landing Page (`/`)
-- Welcome screen with quick navigation
-- System overview and feature highlights
-- Quick access to dashboard, database, and admin
+## 🔌 API Endpoints
 
-#### 2. Dashboard (`/dashboard/`)
-- **API Testing**: Register and login forms with real-time responses
-- **Statistics**: Live system statistics (courses, users, lessons, endpoints)
-- **Quick Actions**: Direct links to common endpoints
-- **Feature Cards**: System capabilities overview
-- **Recent Activity**: Mock activity feed for development
-- **API Documentation**: Visual endpoint cards with HTTP methods
+### Authentication
+- `POST /api/auth/register/` - User registration
+- `POST /api/auth/login/` - User login (returns token)
+- `GET /api/auth/me/` - Get current user data
+- `POST /api/auth/logout/` - Logout (invalidate token)
 
-#### 3. Database Explorer (`/database/`)
-- **Table Navigation**: Tabbed interface for all database models
-- **Data Visualization**: Color-coded data types and smart truncation
-- **Search & Filter**: Find tables and models quickly
-- **Export Features**: Copy data, download CSV, view schema
-- **Responsive Design**: Works on all screen sizes
-- **Interactive Elements**: Hover effects and smooth animations
+### User Profile
+- `GET /api/profiles/` - List user profiles (own only)
+- `GET /api/profiles/my_profile/` - Get complete profile data
+- `PUT /api/profiles/update_profile/` - Update profile
+- `POST /api/profiles/complete_profile/` - Complete profile setup
+
+### Security Settings
+- `GET /api/security-settings/` - List security settings (own only)
+- `GET /api/security-settings/my_settings/` - Get security settings
+- `PUT /api/security-settings/update_settings/` - Update security settings
+- `POST /api/security-settings/toggle_2fa/` - Toggle 2FA
+
+### Privacy Settings
+- `GET /api/privacy-settings/` - List privacy settings (own only)
+- `GET /api/privacy-settings/my_settings/` - Get privacy settings
+- `PUT /api/privacy-settings/update_settings/` - Update privacy settings
+
+### Learning Progress
+- `GET /api/learning-progress/` - List learning progress (own only)
+- `GET /api/learning-progress/my_progress/` - Get learning progress
+
+### Trading Performance
+- `GET /api/trading-performance/` - List trading performance (own only)
+- `GET /api/trading-performance/my_performance/` - Get trading performance
+
+### Sessions
+- `GET /api/sessions/` - List active sessions (own only)
+- `POST /api/sessions/logout_all_devices/` - Logout from all devices
+
+### Notifications
+- `GET /api/notifications/` - List notifications (own only)
+- `GET /api/notifications/unread_count/` - Get unread count
+- `GET /api/notifications/by_type/` - Filter by type
+- `POST /api/notifications/{id}/mark_read/` - Mark as read
+- `POST /api/notifications/mark_all_read/` - Mark all as read
+
+### Badges
+- `GET /api/badges/` - List all badges
+- `GET /api/badges/my_badges/` - Get user's earned badges
+
+### Languages
+- `GET /api/languages/` - List supported languages
 
 ## 🔐 Authentication
 
-Token-based authentication. Include header `Authorization: Token <your_token>` for protected endpoints.
+The API uses Django REST Framework's Token Authentication:
 
-### Auth Endpoints
+1. **Register**: `POST /api/auth/register/`
+   ```json
+   {
+     "username": "user123",
+     "email": "user@example.com",
+     "password": "password123",
+     "confirm_password": "password123",
+     "first_name": "John",
+     "last_name": "Doe"
+   }
+   ```
 
-#### Register User
-```http
-POST /api/auth/register/
-Content-Type: application/json
+2. **Login**: `POST /api/auth/login/`
+   ```json
+   {
+     "username": "user123",
+     "password": "password123"
+   }
+   ```
 
-{
-  "username": "user@example.com",
-  "email": "user@example.com",
-  "password": "securepassword",
-  "confirm_password": "securepassword",
-  "first_name": "John",
-  "last_name": "Doe"
-}
-```
+3. **Use Token**: Include in headers
+   ```
+   Authorization: Token your_token_here
+   ```
 
-#### Login
-```http
-POST /api/auth/login/
-Content-Type: application/json
+## 📊 Profile Data Structure
 
-{
-  "username": "user@example.com",
-  "password": "securepassword"
-}
-```
-
-#### Get Current User
-```http
-GET /api/auth/me/
-Authorization: Token <your_token>
-```
-
-#### Logout
-```http
-POST /api/auth/logout/
-Authorization: Token <your_token>
-```
-
-## 📚 API Endpoints
-
-### Languages
-- `GET /api/languages/` - List all languages
-- `GET /api/languages/{id}/` - Get specific language
-
-### User Profiles (Auth Required)
-- `GET /api/profiles/my_profile/` - Get current user's profile
-- `PUT/PATCH /api/profiles/update_profile/` - Update profile
-- Standard CRUD via `profiles/` (scoped to authenticated user)
-
-### Courses (Auth Required)
-- `GET /api/courses/` - List all courses
-- `GET /api/courses/{id}/` - Get specific course
-- `GET /api/courses/by_language/?language=en|hi|...` - Filter by language
-- `GET /api/courses/by_difficulty/?difficulty=beginner|intermediate|advanced` - Filter by difficulty
-- `POST /api/courses/{id}/enroll/` - Enroll in course
-
-### Lessons (Auth Required)
-- `GET /api/lessons/` - List all lessons
-- `GET /api/lessons/{id}/` - Get specific lesson
-- `POST /api/lessons/{id}/mark_completed/` - Mark lesson as completed
-
-### Quizzes (Auth Required)
-- `GET /api/quizzes/` - List all quizzes
-- `GET /api/quizzes/{id}/` - Get specific quiz
-- `POST /api/quizzes/{id}/submit_attempt/` - Submit quiz attempt
-
-**Quiz Submission Format:**
+### User Profile
 ```json
 {
-  "time_taken": 300,
-  "answers": [
-    {"question_id": 1, "answer_id": 3},
-    {"question_id": 2, "answer_id": 1}
-  ]
+  "user": {
+    "id": 1,
+    "username": "user123",
+    "email": "user@example.com",
+    "first_name": "John",
+    "last_name": "Doe"
+  },
+  "avatar": "avatars/profile.jpg",
+  "phone_number": "+1234567890",
+  "preferred_language": {
+    "code": "en",
+    "name": "English",
+    "native_name": "English"
+  },
+  "learning_goal": "Advanced Trading Strategies",
+  "risk_profile": "moderate",
+  "investment_experience": "intermediate",
+  "level": 7,
+  "experience_points": 2450
 }
 ```
 
-### Progress Tracking (Auth Required)
-- `GET /api/progress/` - Get user progress
-- `GET /api/progress/course_progress/?course_id=<id>` - Course-specific progress
-- `GET /api/progress/overall_progress/` - Overall learning progress
-
-### Simulated Trading (Auth Required)
-- `GET /api/trades/` - List user's trades
-- `POST /api/trades/` - Create new trade
-- `GET /api/trades/portfolio_summary/` - Portfolio summary
-
-**Trade Creation Format:**
+### Security Settings
 ```json
 {
-  "symbol": "AAPL",
-  "trade_type": "buy",
-  "quantity": 10,
-  "price": 150.00,
-  "total_amount": 1500.00,
-  "notes": "Long-term investment"
+  "biometric_enabled": true,
+  "session_timeout": 30,
+  "login_notifications": true,
+  "suspicious_activity_alerts": true,
+  "two_factor_enabled": false,
+  "recovery_email": "recovery@example.com"
 }
 ```
 
-### Notifications (Auth Required)
-- `GET /api/notifications/` - List notifications
-- `GET /api/notifications/unread_count/` - Count unread notifications
-- `GET /api/notifications/by_type/?type=course_update|quiz_reminder|achievement|general` - Filter by type
-- `POST /api/notifications/{id}/mark_read/` - Mark notification as read
-- `POST /api/notifications/mark_all_read/` - Mark all notifications as read
+### Privacy Settings
+```json
+{
+  "profile_visibility": true,
+  "activity_visibility": false,
+  "data_sharing": true,
+  "location_sharing": false
+}
+```
 
-## 🛠️ Development Tools
+### Learning Progress
+```json
+{
+  "total_modules": 30,
+  "completed_modules": 22,
+  "completion_percentage": 73.3,
+  "total_hours_learned": 156,
+  "certificates_earned": 12,
+  "average_quiz_score": 87.5,
+  "quizzes_taken": 45,
+  "quizzes_passed": 38,
+  "badges_earned": 7
+}
+```
 
-### Database Management
-- **Interactive Explorer**: Browse all tables with real-time data
-- **Data Export**: Copy to clipboard or download as CSV
-- **Schema Viewing**: View table structure and field types
-- **Search & Filter**: Find specific data quickly
+### Trading Performance
+```json
+{
+  "portfolio_value": 12500.00,
+  "portfolio_growth_percentage": 24.7,
+  "total_trades": 127,
+  "successful_trades": 99,
+  "success_rate": 78.0,
+  "total_profit_loss": 2500.00,
+  "best_trade_profit": 500.00,
+  "worst_trade_loss": -200.00
+}
+```
+
+## 🛠️ Development
+
+### Setup
+1. Install dependencies: `pip install -r requirements.txt`
+2. Run migrations: `python manage.py migrate`
+3. Create superuser: `python manage.py createsuperuser`
+4. Start server: `python manage.py runserver`
+
+### Console Features
+- **Dashboard**: Interactive API testing interface
+- **Database Explorer**: Real-time database visualization
+- **Admin Panel**: Django admin for data management
 
 ### API Testing
-- **Live Testing**: Test endpoints directly from dashboard
-- **Response Preview**: Real-time JSON response display
-- **Error Handling**: Color-coded success/error responses
-- **Token Management**: Automatic token handling for auth
-
-### System Monitoring
-- **Statistics Dashboard**: Live system metrics
-- **Activity Feed**: Recent system activities
-- **Status Indicators**: System health monitoring
-- **Configuration**: Environment and API settings
-
-## 🚀 Getting Started
-
-### 1. Setup Environment
-```bash
-cd investa_backend
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### 2. Database Setup
-```bash
-python manage.py migrate
-python manage.py createsuperuser
-```
-
-### 3. Populate Sample Data
-```bash
-python populate_sample_data.py
-python create_test_user.py
-```
-
-### 4. Run Development Server
-```bash
-python manage.py runserver
-```
-
-### 5. Access Console
-- Open `http://localhost:8000/` in your browser
-- Use the dashboard to test API endpoints
-- Explore the database with the database explorer
-
-## 📋 API Response Format
-
-All API responses follow this format:
-```json
-{
-  "status": "success",
-  "data": { ... },
-  "message": "Optional message"
-}
-```
-
-### Pagination
-- Uses DRF PageNumberPagination
-- Default page size: 20
-- Query parameter: `?page=<number>`
-
-### Error Handling
-```json
-{
-  "status": "error",
-  "error": "Error message",
-  "code": "ERROR_CODE"
-}
-```
+Use the dashboard at `http://localhost:8000/dashboard/` to test API endpoints with a user-friendly interface.
 
 ## 🔧 Configuration
 
 ### Environment Variables
 - `DEBUG`: Set to `True` for development
 - `SECRET_KEY`: Django secret key
-- `ALLOWED_HOSTS`: Comma-separated list of allowed hosts
+- `DATABASE_URL`: Database connection string
 
-### Media Files
-- Served under `/media/` when `DEBUG=True`
-- Configure `MEDIA_ROOT` and `MEDIA_URL` in settings
+### CORS Settings
+Configure CORS for mobile app development:
+```python
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+```
 
-## 📝 Notes
+## 📱 Mobile App Integration
 
-- **Pagination**: DRF PageNumberPagination (`page`, default `page_size` = 20)
-- **Media**: Thumbnails served under `/media/` when `DEBUG=True`
-- **CORS**: Configured for cross-origin requests in development
-- **Authentication**: Token-based auth with automatic token creation
-- **Responsive**: Console works on desktop, tablet, and mobile devices
+### Base URLs
+- **Development**: `http://10.0.2.2:8000/api/` (Android Emulator)
+- **Production**: `https://your-domain.com/api/`
 
-## 🎯 Keyboard Shortcuts
+### Key Endpoints for Mobile
+1. **Registration**: `/api/auth/register/`
+2. **Login**: `/api/auth/login/`
+3. **Profile**: `/api/profiles/my_profile/`
+4. **Settings**: `/api/security-settings/my_settings/`
+5. **Progress**: `/api/learning-progress/my_progress/`
 
-### Dashboard
-- `Ctrl+F`: Focus search box
-- `Ctrl+R`: Refresh data
+## 🚀 Deployment
 
-### Database Explorer
-- `Ctrl+F`: Focus search box
-- `Ctrl+R`: Refresh data
-- Click API cards to open endpoints in new tab
+### Production Checklist
+- [ ] Set `DEBUG = False`
+- [ ] Configure production database
+- [ ] Set up static file serving
+- [ ] Configure CORS for production domains
+- [ ] Set up SSL/HTTPS
+- [ ] Configure email backend
+- [ ] Set up monitoring and logging
 
-## 🔄 Updates
+### Docker Deployment
+```bash
+docker build -t investa-backend .
+docker run -p 8000:8000 investa-backend
+```
 
-This console and API are actively maintained. Check for updates regularly and refer to the commit history for detailed change logs.
+## 📚 Additional Resources
+
+- [Django REST Framework Documentation](https://www.django-rest-framework.org/)
+- [Django Documentation](https://docs.djangoproject.com/)
+- [Investa Mobile App Repository](link-to-mobile-repo)

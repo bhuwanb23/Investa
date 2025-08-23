@@ -14,15 +14,16 @@ from django.db import connection
 from django.apps import apps
 
 from .models import (
-    Language, UserProfile, Course, Lesson, Quiz, Question, Answer,
-    UserProgress, QuizAttempt, SimulatedTrade, Notification
+    Language, UserProfile, SecuritySettings, PrivacySettings,
+    LearningProgress, TradingPerformance, UserSession, Notification,
+    Badge, UserBadge
 )
 from .serializers import (
-    LanguageSerializer, UserProfileSerializer, CourseSerializer, LessonSerializer,
-    QuizSerializer, QuestionSerializer, AnswerSerializer, UserProgressSerializer,
-    QuizAttemptSerializer, SimulatedTradeSerializer, NotificationSerializer,
-    CourseDetailSerializer, LessonDetailSerializer, QuizDetailSerializer,
-    UserRegistrationSerializer, ProfileUpdateSerializer
+    LanguageSerializer, UserProfileSerializer, SecuritySettingsSerializer, PrivacySettingsSerializer,
+    LearningProgressSerializer, TradingPerformanceSerializer, UserSessionSerializer, NotificationSerializer,
+    BadgeSerializer, UserBadgeSerializer, UserProfileDetailSerializer, ProfileUpdateSerializer,
+    SecuritySettingsUpdateSerializer, PrivacySettingsUpdateSerializer, CompleteProfileSerializer,
+    UserRegistrationSerializer
 )
 
 
@@ -51,8 +52,8 @@ def _build_model_entries():
                 continue
 
         # Ensure our local models are present
-        from .models import Language, UserProfile, Course, Lesson, Quiz, Question, Answer, UserProgress, QuizAttempt, SimulatedTrade, Notification
-        custom_models = [Language, UserProfile, Course, Lesson, Quiz, Question, Answer, UserProgress, QuizAttempt, SimulatedTrade, Notification]
+        from .models import Language, UserProfile, SecuritySettings, PrivacySettings, LearningProgress, TradingPerformance, UserSession, Notification, Badge, UserBadge
+        custom_models = [Language, UserProfile, SecuritySettings, PrivacySettings, LearningProgress, TradingPerformance, UserSession, Notification, Badge, UserBadge]
         all_models.extend(custom_models)
 
         # Dedupe while keeping order
@@ -119,6 +120,7 @@ def _build_model_entries():
 
     return model_entries
 
+
 class LanguageViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for languages - read-only"""
     queryset = Language.objects.all()
@@ -134,15 +136,22 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return UserProfile.objects.filter(user=self.request.user)
     
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return UserProfileDetailSerializer
+        elif self.action in ['update', 'partial_update']:
+            return ProfileUpdateSerializer
+        return UserProfileSerializer
+    
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
     
     @action(detail=False, methods=['get'])
     def my_profile(self, request):
-        """Get current user's profile"""
+        """Get current user's complete profile"""
         try:
             profile = UserProfile.objects.get(user=request.user)
-            serializer = self.get_serializer(profile)
+            serializer = UserProfileDetailSerializer(profile)
             return Response(serializer.data)
         except UserProfile.DoesNotExist:
             return Response({'detail': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -159,232 +168,164 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except UserProfile.DoesNotExist:
             return Response({'detail': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
-
-
-class CourseViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet for courses"""
-    queryset = Course.objects.filter(is_active=True)
-    serializer_class = CourseSerializer
-    permission_classes = [permissions.IsAuthenticated]
     
-    def get_serializer_class(self):
-        if self.action == 'retrieve':
-            return CourseDetailSerializer
-        return CourseSerializer
-    
-    @action(detail=False, methods=['get'])
-    def by_language(self, request):
-        """Get courses by language"""
-        language_code = request.query_params.get('language', 'en')
+    @action(detail=False, methods=['post'])
+    def complete_profile(self, request):
+        """Complete user profile setup"""
         try:
-            language = Language.objects.get(code=language_code)
-            courses = self.queryset.filter(language=language)
-            serializer = self.get_serializer(courses, many=True)
-            return Response(serializer.data)
-        except Language.DoesNotExist:
-            return Response({'detail': 'Language not found'}, status=status.HTTP_404_NOT_FOUND)
-    
-    @action(detail=False, methods=['get'])
-    def by_difficulty(self, request):
-        """Get courses by difficulty level"""
-        difficulty = request.query_params.get('difficulty', 'beginner')
-        courses = self.queryset.filter(difficulty_level=difficulty)
-        serializer = self.get_serializer(courses, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=True, methods=['post'])
-    def enroll(self, request, pk=None):
-        """Enroll user in a course"""
-        course = self.get_object()
-        user = request.user
-        
-        # Create progress entries for all lessons in the course
-        lessons = course.lessons.all()
-        for lesson in lessons:
-            UserProgress.objects.get_or_create(
-                user=user,
-                course=course,
-                lesson=lesson,
-                defaults={'completed': False}
-            )
-        
-        return Response({'detail': 'Successfully enrolled in course'}, status=status.HTTP_201_CREATED)
+            profile = UserProfile.objects.get(user=request.user)
+            serializer = CompleteProfileSerializer(profile, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except UserProfile.DoesNotExist:
+            return Response({'detail': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
-class LessonViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet for lessons"""
-    queryset = Lesson.objects.filter(is_active=True)
-    serializer_class = LessonSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def get_serializer_class(self):
-        if self.action == 'retrieve':
-            return LessonDetailSerializer
-        return LessonSerializer
-    
-    @action(detail=True, methods=['post'])
-    def mark_completed(self, request, pk=None):
-        """Mark a lesson as completed"""
-        lesson = self.get_object()
-        user = request.user
-        
-        try:
-            progress = UserProgress.objects.get(
-                user=user,
-                course=lesson.course,
-                lesson=lesson
-            )
-            progress.completed = True
-            progress.completed_at = timezone.now()
-            progress.save()
-            
-            return Response({'detail': 'Lesson marked as completed'})
-        except UserProgress.DoesNotExist:
-            return Response({'detail': 'User not enrolled in this course'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class QuizViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet for quizzes"""
-    queryset = Quiz.objects.filter(is_active=True)
-    serializer_class = QuizSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def get_serializer_class(self):
-        if self.action == 'retrieve':
-            return QuizDetailSerializer
-        return QuizSerializer
-    
-    @action(detail=True, methods=['post'])
-    def submit_attempt(self, request, pk=None):
-        """Submit a quiz attempt"""
-        quiz = self.get_object()
-        user = request.user
-        
-        # Get answers from request
-        answers = request.data.get('answers', [])
-        
-        # Calculate score
-        total_questions = quiz.questions.count()
-        correct_answers = 0
-        
-        for answer_data in answers:
-            question_id = answer_data.get('question_id')
-            selected_answer_id = answer_data.get('answer_id')
-            
-            try:
-                question = Question.objects.get(id=question_id, quiz=quiz)
-                correct_answer = Answer.objects.filter(question=question, is_correct=True).first()
-                
-                if correct_answer and str(correct_answer.id) == str(selected_answer_id):
-                    correct_answers += 1
-            except Question.DoesNotExist:
-                continue
-        
-        score = int((correct_answers / total_questions) * 100) if total_questions > 0 else 0
-        passed = score >= quiz.passing_score
-        
-        # Create quiz attempt
-        attempt = QuizAttempt.objects.create(
-            user=user,
-            quiz=quiz,
-            score=score,
-            passed=passed,
-            time_taken=request.data.get('time_taken', 0)
-        )
-        
-        return Response({
-            'score': score,
-            'passed': passed,
-            'correct_answers': correct_answers,
-            'total_questions': total_questions,
-            'attempt_id': attempt.id
-        })
-
-
-class UserProgressViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet for user progress"""
-    serializer_class = UserProgressSerializer
+class SecuritySettingsViewSet(viewsets.ModelViewSet):
+    """ViewSet for security settings"""
+    serializer_class = SecuritySettingsSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return UserProgress.objects.filter(user=self.request.user)
+        return SecuritySettings.objects.filter(user=self.request.user)
     
-    @action(detail=False, methods=['get'])
-    def course_progress(self, request):
-        """Get progress for a specific course"""
-        course_id = request.query_params.get('course_id')
-        if not course_id:
-            return Response({'detail': 'course_id parameter required'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        progress = self.get_queryset().filter(course_id=course_id)
-        serializer = self.get_serializer(progress, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=False, methods=['get'])
-    def overall_progress(self, request):
-        """Get overall learning progress"""
-        user = request.user
-        total_courses = Course.objects.filter(is_active=True).count()
-        completed_lessons = UserProgress.objects.filter(user=user, completed=True).count()
-        total_lessons = Lesson.objects.filter(is_active=True).count()
-        
-        progress_percentage = (completed_lessons / total_lessons * 100) if total_lessons > 0 else 0
-        
-        return Response({
-            'total_courses': total_courses,
-            'completed_lessons': completed_lessons,
-            'total_lessons': total_lessons,
-            'progress_percentage': round(progress_percentage, 2)
-        })
-
-
-class SimulatedTradeViewSet(viewsets.ModelViewSet):
-    """ViewSet for simulated trading"""
-    serializer_class = SimulatedTradeSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def get_queryset(self):
-        return SimulatedTrade.objects.filter(user=self.request.user)
+    def get_serializer_class(self):
+        if self.action in ['update', 'partial_update']:
+            return SecuritySettingsUpdateSerializer
+        return SecuritySettingsSerializer
     
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
     
     @action(detail=False, methods=['get'])
-    def portfolio_summary(self, request):
-        """Get portfolio summary for simulated trading"""
-        user = request.user
-        trades = self.get_queryset()
-        
-        # Calculate portfolio value
-        portfolio_value = 0
-        holdings = {}
-        
-        for trade in trades:
-            symbol = trade.symbol
-            if symbol not in holdings:
-                holdings[symbol] = {'quantity': 0, 'avg_price': 0, 'total_cost': 0}
-            
-            if trade.trade_type == 'buy':
-                current_quantity = holdings[symbol]['quantity']
-                current_total = holdings[symbol]['total_cost']
-                
-                new_quantity = current_quantity + trade.quantity
-                new_total = current_total + trade.total_amount
-                
-                holdings[symbol]['quantity'] = new_quantity
-                holdings[symbol]['total_cost'] = new_total
-                holdings[symbol]['avg_price'] = new_total / new_quantity if new_quantity > 0 else 0
-            else:  # sell
-                holdings[symbol]['quantity'] -= trade.quantity
-                if holdings[symbol]['quantity'] <= 0:
-                    del holdings[symbol]
-        
-        return Response({
-            'holdings': holdings,
-            'total_trades': trades.count(),
-            'buy_trades': trades.filter(trade_type='buy').count(),
-            'sell_trades': trades.filter(trade_type='sell').count()
-        })
+    def my_settings(self, request):
+        """Get current user's security settings"""
+        try:
+            settings = SecuritySettings.objects.get(user=request.user)
+            serializer = self.get_serializer(settings)
+            return Response(serializer.data)
+        except SecuritySettings.DoesNotExist:
+            return Response({'detail': 'Security settings not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=False, methods=['put', 'patch'])
+    def update_settings(self, request):
+        """Update current user's security settings"""
+        try:
+            settings = SecuritySettings.objects.get(user=request.user)
+            serializer = SecuritySettingsUpdateSerializer(settings, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except SecuritySettings.DoesNotExist:
+            return Response({'detail': 'Security settings not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=False, methods=['post'])
+    def toggle_2fa(self, request):
+        """Toggle two-factor authentication"""
+        try:
+            settings = SecuritySettings.objects.get(user=request.user)
+            settings.two_factor_enabled = not settings.two_factor_enabled
+            settings.save()
+            return Response({'two_factor_enabled': settings.two_factor_enabled})
+        except SecuritySettings.DoesNotExist:
+            return Response({'detail': 'Security settings not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class PrivacySettingsViewSet(viewsets.ModelViewSet):
+    """ViewSet for privacy settings"""
+    serializer_class = PrivacySettingsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return PrivacySettings.objects.filter(user=self.request.user)
+    
+    def get_serializer_class(self):
+        if self.action in ['update', 'partial_update']:
+            return PrivacySettingsUpdateSerializer
+        return PrivacySettingsSerializer
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+    
+    @action(detail=False, methods=['get'])
+    def my_settings(self, request):
+        """Get current user's privacy settings"""
+        try:
+            settings = PrivacySettings.objects.get(user=request.user)
+            serializer = self.get_serializer(settings)
+            return Response(serializer.data)
+        except PrivacySettings.DoesNotExist:
+            return Response({'detail': 'Privacy settings not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=False, methods=['put', 'patch'])
+    def update_settings(self, request):
+        """Update current user's privacy settings"""
+        try:
+            settings = PrivacySettings.objects.get(user=request.user)
+            serializer = PrivacySettingsUpdateSerializer(settings, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except PrivacySettings.DoesNotExist:
+            return Response({'detail': 'Privacy settings not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class LearningProgressViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for learning progress"""
+    serializer_class = LearningProgressSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return LearningProgress.objects.filter(user=self.request.user)
+    
+    @action(detail=False, methods=['get'])
+    def my_progress(self, request):
+        """Get current user's learning progress"""
+        try:
+            progress = LearningProgress.objects.get(user=request.user)
+            serializer = self.get_serializer(progress)
+            return Response(serializer.data)
+        except LearningProgress.DoesNotExist:
+            return Response({'detail': 'Learning progress not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class TradingPerformanceViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for trading performance"""
+    serializer_class = TradingPerformanceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return TradingPerformance.objects.filter(user=self.request.user)
+    
+    @action(detail=False, methods=['get'])
+    def my_performance(self, request):
+        """Get current user's trading performance"""
+        try:
+            performance = TradingPerformance.objects.get(user=request.user)
+            serializer = self.get_serializer(performance)
+            return Response(serializer.data)
+        except TradingPerformance.DoesNotExist:
+            return Response({'detail': 'Trading performance not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class UserSessionViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for user sessions"""
+    serializer_class = UserSessionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return UserSession.objects.filter(user=self.request.user, is_active=True)
+    
+    @action(detail=False, methods=['post'])
+    def logout_all_devices(self, request):
+        """Logout from all devices except current"""
+        current_session = request.session.session_key
+        UserSession.objects.filter(user=request.user).exclude(session_key=current_session).update(is_active=False)
+        return Response({'detail': 'Logged out from all other devices'})
 
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
@@ -399,11 +340,11 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     def unread_count(self, request):
         """Return count of unread notifications"""
         count = self.get_queryset().filter(read=False).count()
-        return Response({ 'unread_count': count })
+        return Response({'unread_count': count})
 
     @action(detail=False, methods=['get'])
     def by_type(self, request):
-        """Filter notifications by type, e.g. ?type=course_update"""
+        """Filter notifications by type"""
         notification_type = request.query_params.get('type')
         queryset = self.get_queryset()
         if notification_type:
@@ -426,6 +367,20 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({'detail': 'All notifications marked as read'})
 
 
+class BadgeViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for badges"""
+    queryset = Badge.objects.all()
+    serializer_class = BadgeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @action(detail=False, methods=['get'])
+    def my_badges(self, request):
+        """Get current user's earned badges"""
+        badges = UserBadge.objects.filter(user=request.user)
+        serializer = UserBadgeSerializer(badges, many=True)
+        return Response(serializer.data)
+
+
 # Custom authentication views
 class CustomAuthToken(ObtainAuthToken):
     """Custom authentication token view"""
@@ -439,15 +394,23 @@ class CustomAuthToken(ObtainAuthToken):
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
         
-        # Get or create user profile
+        # Get or create user profile and related models
         profile, created = UserProfile.objects.get_or_create(user=user)
+        security_settings, created = SecuritySettings.objects.get_or_create(user=user)
+        privacy_settings, created = PrivacySettings.objects.get_or_create(user=user)
+        learning_progress, created = LearningProgress.objects.get_or_create(user=user)
+        trading_performance, created = TradingPerformance.objects.get_or_create(user=user)
         
         return Response({
             'token': token.key,
             'user_id': user.pk,
             'username': user.username,
             'email': user.email,
-            'profile': UserProfileSerializer(profile).data
+            'profile': UserProfileSerializer(profile).data,
+            'security_settings': SecuritySettingsSerializer(security_settings).data,
+            'privacy_settings': PrivacySettingsSerializer(privacy_settings).data,
+            'learning_progress': LearningProgressSerializer(learning_progress).data,
+            'trading_performance': TradingPerformanceSerializer(trading_performance).data,
         })
 
 
@@ -462,8 +425,12 @@ class UserRegistrationView(viewsets.GenericViewSet):
         if serializer.is_valid():
             user = serializer.save()
             
-            # Create user profile
+            # Create all related models for the new user
             UserProfile.objects.create(user=user)
+            SecuritySettings.objects.create(user=user)
+            PrivacySettings.objects.create(user=user)
+            LearningProgress.objects.create(user=user)
+            TradingPerformance.objects.create(user=user)
             
             # Create auth token
             token, created = Token.objects.get_or_create(user=user)
@@ -480,12 +447,17 @@ class UserRegistrationView(viewsets.GenericViewSet):
 
 
 class MeView(APIView):
-    """Return current authenticated user and profile"""
+    """Return current authenticated user and complete profile data"""
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
         user = request.user
         profile, _ = UserProfile.objects.get_or_create(user=user)
+        security_settings, _ = SecuritySettings.objects.get_or_create(user=user)
+        privacy_settings, _ = PrivacySettings.objects.get_or_create(user=user)
+        learning_progress, _ = LearningProgress.objects.get_or_create(user=user)
+        trading_performance, _ = TradingPerformance.objects.get_or_create(user=user)
+        
         return Response({
             'user_id': user.pk,
             'username': user.username,
@@ -493,11 +465,15 @@ class MeView(APIView):
             'first_name': user.first_name,
             'last_name': user.last_name,
             'profile': UserProfileSerializer(profile).data,
+            'security_settings': SecuritySettingsSerializer(security_settings).data,
+            'privacy_settings': PrivacySettingsSerializer(privacy_settings).data,
+            'learning_progress': LearningProgressSerializer(learning_progress).data,
+            'trading_performance': TradingPerformanceSerializer(trading_performance).data,
         })
 
 
 class LogoutView(APIView):
-    """Invalidate user's auth token (optional for clients that store tokens locally)"""
+    """Invalidate user's auth token"""
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
@@ -505,7 +481,7 @@ class LogoutView(APIView):
             Token.objects.filter(user=request.user).delete()
         except Exception:
             pass
-        return Response({ 'detail': 'Logged out' })
+        return Response({'detail': 'Logged out'})
 
 
 # Simple HTML views for development
@@ -515,10 +491,9 @@ def index(request):
 
 def dashboard(request):
     """Development dashboard to try API calls quickly"""
-    return render(request, 'dashboard.html', { 'models': _build_model_entries() })
-
+    return render(request, 'dashboard.html', {'models': _build_model_entries()})
 
 def database_view(request):
     """Render a page that shows all tables and sample contents"""
     model_entries = _build_model_entries()
-    return render(request, 'database.html', { 'models': model_entries })
+    return render(request, 'database.html', {'models': model_entries})

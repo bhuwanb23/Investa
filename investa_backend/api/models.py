@@ -25,16 +25,22 @@ class UserProfile(models.Model):
         ('aggressive', 'Aggressive'),
     ]
     
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    preferred_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, blank=True)
-    risk_profile = models.CharField(max_length=20, choices=RISK_PROFILE_CHOICES, default='moderate')
-    investment_experience = models.CharField(max_length=20, choices=[
+    EXPERIENCE_CHOICES = [
         ('beginner', 'Beginner'),
         ('intermediate', 'Intermediate'),
         ('advanced', 'Advanced'),
-    ], default='beginner')
+    ]
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     phone_number = models.CharField(max_length=15, blank=True)
+    preferred_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, blank=True)
+    learning_goal = models.TextField(blank=True, help_text="User's learning objective")
+    risk_profile = models.CharField(max_length=20, choices=RISK_PROFILE_CHOICES, default='moderate')
+    investment_experience = models.CharField(max_length=20, choices=EXPERIENCE_CHOICES, default='beginner')
     date_of_birth = models.DateField(null=True, blank=True)
+    level = models.IntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(100)])
+    experience_points = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -42,155 +48,108 @@ class UserProfile(models.Model):
         return f"{self.user.username}'s Profile"
 
 
-class Course(models.Model):
-    """Investment education courses"""
-    title = models.CharField(max_length=200)
-    description = models.TextField()
-    language = models.ForeignKey(Language, on_delete=models.CASCADE)
-    difficulty_level = models.CharField(max_length=20, choices=[
-        ('beginner', 'Beginner'),
-        ('intermediate', 'Intermediate'),
-        ('advanced', 'Advanced'),
-    ])
-    estimated_duration = models.IntegerField(help_text="Duration in minutes")
-    thumbnail = models.ImageField(upload_to='course_thumbnails/', blank=True, null=True)
-    is_active = models.BooleanField(default=True)
-    order = models.IntegerField(default=0)
+class SecuritySettings(models.Model):
+    """User security preferences and settings"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='security_settings')
+    biometric_enabled = models.BooleanField(default=False)
+    session_timeout = models.IntegerField(default=30, validators=[MinValueValidator(5), MaxValueValidator(120)])
+    login_notifications = models.BooleanField(default=True)
+    suspicious_activity_alerts = models.BooleanField(default=True)
+    two_factor_enabled = models.BooleanField(default=False)
+    two_factor_secret = models.CharField(max_length=32, blank=True)
+    backup_codes = models.JSONField(default=list, blank=True)
+    recovery_email = models.EmailField(blank=True)
+    last_password_change = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    class Meta:
-        ordering = ['order', 'title']
-    
     def __str__(self):
-        return f"{self.title} ({self.language.name})"
+        return f"{self.user.username}'s Security Settings"
 
 
-class Lesson(models.Model):
-    """Individual lessons within courses"""
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='lessons')
-    title = models.CharField(max_length=200)
-    content = models.TextField()
-    video_url = models.URLField(blank=True, null=True)
-    order = models.IntegerField(default=0)
-    estimated_duration = models.IntegerField(help_text="Duration in minutes")
-    is_active = models.BooleanField(default=True)
+class PrivacySettings(models.Model):
+    """User privacy preferences"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='privacy_settings')
+    profile_visibility = models.BooleanField(default=True)
+    activity_visibility = models.BooleanField(default=False)
+    data_sharing = models.BooleanField(default=True)
+    location_sharing = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    class Meta:
-        ordering = ['course', 'order']
-    
     def __str__(self):
-        return f"{self.course.title} - {self.title}"
+        return f"{self.user.username}'s Privacy Settings"
 
 
-class Quiz(models.Model):
-    """Quizzes for lessons"""
-    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='quizzes')
-    title = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    passing_score = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(100)], default=70)
-    time_limit = models.IntegerField(help_text="Time limit in minutes", null=True, blank=True)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    def __str__(self):
-        return f"{self.lesson.title} - {self.title}"
-
-
-class Question(models.Model):
-    """Questions for quizzes"""
-    QUESTION_TYPES = [
-        ('multiple_choice', 'Multiple Choice'),
-        ('true_false', 'True/False'),
-        ('fill_blank', 'Fill in the Blank'),
-    ]
-    
-    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions')
-    question_text = models.TextField()
-    question_type = models.CharField(max_length=20, choices=QUESTION_TYPES, default='multiple_choice')
-    points = models.IntegerField(default=1)
-    order = models.IntegerField(default=0)
-    
-    class Meta:
-        ordering = ['quiz', 'order']
-    
-    def __str__(self):
-        return f"{self.quiz.title} - Q{self.order}"
-
-
-class Answer(models.Model):
-    """Answers for quiz questions"""
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answers')
-    answer_text = models.CharField(max_length=500)
-    is_correct = models.BooleanField(default=False)
-    order = models.IntegerField(default=0)
-    
-    class Meta:
-        ordering = ['question', 'order']
-    
-    def __str__(self):
-        return f"{self.question.question_text[:50]} - {self.answer_text[:30]}"
-
-
-class UserProgress(models.Model):
-    """Track user progress through courses"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='progress')
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
-    completed = models.BooleanField(default=False)
-    completed_at = models.DateTimeField(null=True, blank=True)
-    time_spent = models.IntegerField(default=0, help_text="Time spent in seconds")
+class LearningProgress(models.Model):
+    """Track user's learning progress and achievements"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='learning_progress')
+    total_modules = models.IntegerField(default=0)
+    completed_modules = models.IntegerField(default=0)
+    total_hours_learned = models.IntegerField(default=0)
+    certificates_earned = models.IntegerField(default=0)
+    average_quiz_score = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    quizzes_taken = models.IntegerField(default=0)
+    quizzes_passed = models.IntegerField(default=0)
+    badges_earned = models.IntegerField(default=0)
+    last_activity = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    class Meta:
-        unique_together = ['user', 'course', 'lesson']
+    @property
+    def completion_percentage(self):
+        if self.total_modules == 0:
+            return 0
+        return round((self.completed_modules / self.total_modules) * 100, 1)
     
     def __str__(self):
-        return f"{self.user.username} - {self.course.title} - {self.lesson.title}"
+        return f"{self.user.username}'s Learning Progress"
 
 
-class QuizAttempt(models.Model):
-    """Track user quiz attempts"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_attempts')
-    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
-    score = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(100)])
-    passed = models.BooleanField()
-    time_taken = models.IntegerField(help_text="Time taken in seconds")
-    started_at = models.DateTimeField(auto_now_add=True)
-    completed_at = models.DateTimeField(auto_now=True)
+class TradingPerformance(models.Model):
+    """Track user's simulated trading performance"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='trading_performance')
+    portfolio_value = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    portfolio_growth_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    total_trades = models.IntegerField(default=0)
+    successful_trades = models.IntegerField(default=0)
+    total_profit_loss = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    best_trade_profit = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    worst_trade_loss = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    @property
+    def success_rate(self):
+        if self.total_trades == 0:
+            return 0
+        return round((self.successful_trades / self.total_trades) * 100, 1)
     
     def __str__(self):
-        return f"{self.user.username} - {self.quiz.title} - {self.score}%"
+        return f"{self.user.username}'s Trading Performance"
 
 
-class SimulatedTrade(models.Model):
-    """Simulated trading for practice"""
-    TRADE_TYPES = [
-        ('buy', 'Buy'),
-        ('sell', 'Sell'),
-    ]
-    
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='simulated_trades')
-    symbol = models.CharField(max_length=20, help_text="Stock symbol")
-    trade_type = models.CharField(max_length=10, choices=TRADE_TYPES)
-    quantity = models.IntegerField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    notes = models.TextField(blank=True)
+class UserSession(models.Model):
+    """Track user login sessions for security"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions')
+    session_key = models.CharField(max_length=40, unique=True)
+    device_info = models.TextField(blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    last_activity = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.user.username} - {self.trade_type} {self.quantity} {self.symbol}"
+        return f"{self.user.username} - {self.session_key[:8]}..."
 
 
 class Notification(models.Model):
     """User notifications"""
     NOTIFICATION_TYPES = [
-        ('course_update', 'Course Update'),
-        ('quiz_reminder', 'Quiz Reminder'),
+        ('security', 'Security Alert'),
+        ('learning', 'Learning Update'),
+        ('trading', 'Trading Update'),
         ('achievement', 'Achievement'),
         ('general', 'General'),
     ]
@@ -207,3 +166,37 @@ class Notification(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.title}"
+
+
+class Badge(models.Model):
+    """Achievement badges for users"""
+    BADGE_TYPES = [
+        ('learning', 'Learning'),
+        ('trading', 'Trading'),
+        ('security', 'Security'),
+        ('social', 'Social'),
+    ]
+    
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    badge_type = models.CharField(max_length=20, choices=BADGE_TYPES)
+    icon_name = models.CharField(max_length=50, help_text="Icon identifier")
+    color = models.CharField(max_length=7, default="#4f46e5", help_text="Hex color code")
+    criteria = models.JSONField(default=dict, help_text="Criteria to earn this badge")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.name
+
+
+class UserBadge(models.Model):
+    """User earned badges"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='earned_badges')
+    badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
+    earned_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['user', 'badge']
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.badge.name}"

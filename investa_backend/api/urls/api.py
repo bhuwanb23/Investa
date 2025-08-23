@@ -6,12 +6,13 @@ from .. import views
 router = DefaultRouter()
 router.register(r'languages', views.LanguageViewSet)
 router.register(r'profiles', views.UserProfileViewSet, basename='profile')
-router.register(r'courses', views.CourseViewSet, basename='course')
-router.register(r'lessons', views.LessonViewSet, basename='lesson')
-router.register(r'quizzes', views.QuizViewSet, basename='quiz')
-router.register(r'progress', views.UserProgressViewSet, basename='progress')
-router.register(r'trades', views.SimulatedTradeViewSet, basename='trade')
+router.register(r'security-settings', views.SecuritySettingsViewSet, basename='security')
+router.register(r'privacy-settings', views.PrivacySettingsViewSet, basename='privacy')
+router.register(r'learning-progress', views.LearningProgressViewSet, basename='learning')
+router.register(r'trading-performance', views.TradingPerformanceViewSet, basename='trading')
+router.register(r'sessions', views.UserSessionViewSet, basename='session')
 router.register(r'notifications', views.NotificationViewSet, basename='notification')
+router.register(r'badges', views.BadgeViewSet, basename='badge')
 
 urlpatterns = [
     # API endpoints

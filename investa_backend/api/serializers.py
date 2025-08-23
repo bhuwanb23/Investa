@@ -2,8 +2,9 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.models import User
 from .models import (
-    Language, UserProfile, Course, Lesson, Quiz, Question, Answer,
-    UserProgress, QuizAttempt, SimulatedTrade, Notification
+    Language, UserProfile, SecuritySettings, PrivacySettings,
+    LearningProgress, TradingPerformance, UserSession, Notification,
+    Badge, UserBadge
 )
 
 
@@ -30,131 +31,119 @@ class UserProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at', 'updated_at']
 
 
-class AnswerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Answer
-        fields = ['id', 'answer_text', 'order']
-
-
-class QuestionSerializer(serializers.ModelSerializer):
-    answers = AnswerSerializer(many=True, read_only=True)
+class SecuritySettingsSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
     
     class Meta:
-        model = Question
+        model = SecuritySettings
         fields = '__all__'
+        read_only_fields = ['user', 'created_at', 'updated_at', 'last_password_change']
 
 
-class QuizSerializer(serializers.ModelSerializer):
-    questions = QuestionSerializer(many=True, read_only=True)
+class PrivacySettingsSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
     
     class Meta:
-        model = Quiz
+        model = PrivacySettings
         fields = '__all__'
+        read_only_fields = ['user', 'created_at', 'updated_at']
 
 
-class LessonSerializer(serializers.ModelSerializer):
-    quizzes = QuizSerializer(many=True, read_only=True)
+class LearningProgressSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    completion_percentage = serializers.ReadOnlyField()
     
     class Meta:
-        model = Lesson
+        model = LearningProgress
         fields = '__all__'
+        read_only_fields = ['user', 'created_at', 'updated_at', 'last_activity']
 
 
-class CourseSerializer(serializers.ModelSerializer):
-    lessons = LessonSerializer(many=True, read_only=True)
-    language = LanguageSerializer(read_only=True)
+class TradingPerformanceSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    success_rate = serializers.ReadOnlyField()
     
     class Meta:
-        model = Course
+        model = TradingPerformance
         fields = '__all__'
+        read_only_fields = ['user', 'created_at', 'updated_at']
 
 
-class UserProgressSerializer(serializers.ModelSerializer):
-    course = CourseSerializer(read_only=True)
-    lesson = LessonSerializer(read_only=True)
+class UserSessionSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
     
     class Meta:
-        model = UserProgress
+        model = UserSession
         fields = '__all__'
-        read_only_fields = ['created_at', 'updated_at']
-
-
-class QuizAttemptSerializer(serializers.ModelSerializer):
-    quiz = QuizSerializer(read_only=True)
-    
-    class Meta:
-        model = QuizAttempt
-        fields = '__all__'
-        read_only_fields = ['started_at', 'completed_at']
-
-
-class SimulatedTradeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SimulatedTrade
-        fields = '__all__'
-        read_only_fields = ['timestamp']
+        read_only_fields = ['user', 'created_at', 'last_activity']
 
 
 class NotificationSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    
     class Meta:
         model = Notification
+        fields = '__all__'
+        read_only_fields = ['user', 'created_at']
+
+
+class BadgeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Badge
         fields = '__all__'
         read_only_fields = ['created_at']
 
 
+class UserBadgeSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    badge = BadgeSerializer(read_only=True)
+    
+    class Meta:
+        model = UserBadge
+        fields = '__all__'
+        read_only_fields = ['user', 'badge', 'earned_at']
+
+
 # Detailed serializers for specific use cases
-class CourseDetailSerializer(serializers.ModelSerializer):
-    lessons = LessonSerializer(many=True, read_only=True)
-    language = LanguageSerializer(read_only=True)
-    user_progress = serializers.SerializerMethodField()
+class UserProfileDetailSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    preferred_language = LanguageSerializer(read_only=True)
+    security_settings = SecuritySettingsSerializer(read_only=True)
+    privacy_settings = PrivacySettingsSerializer(read_only=True)
+    learning_progress = LearningProgressSerializer(read_only=True)
+    trading_performance = TradingPerformanceSerializer(read_only=True)
     
     class Meta:
-        model = Course
+        model = UserProfile
         fields = '__all__'
-    
-    def get_user_progress(self, obj):
-        user = self.context['request'].user
-        if user.is_authenticated:
-            progress = UserProgress.objects.filter(user=user, course=obj)
-            return UserProgressSerializer(progress, many=True).data
-        return []
+        read_only_fields = ['created_at', 'updated_at']
 
 
-class LessonDetailSerializer(serializers.ModelSerializer):
-    course = CourseSerializer(read_only=True)
-    quizzes = QuizSerializer(many=True, read_only=True)
-    user_progress = serializers.SerializerMethodField()
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
     
     class Meta:
-        model = Lesson
+        model = UserProfile
         fields = '__all__'
-    
-    def get_user_progress(self, obj):
-        user = self.context['request'].user
-        if user.is_authenticated:
-            try:
-                progress = UserProgress.objects.get(user=user, course=obj.course, lesson=obj)
-                return UserProgressSerializer(progress).data
-            except UserProgress.DoesNotExist:
-                return None
-        return None
+        read_only_fields = ['user', 'created_at', 'updated_at']
 
 
-class QuizDetailSerializer(serializers.ModelSerializer):
-    lesson = LessonSerializer(read_only=True)
-    questions = QuestionSerializer(many=True, read_only=True)
-    user_attempts = serializers.SerializerMethodField()
+class SecuritySettingsUpdateSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
     
     class Meta:
-        model = Quiz
+        model = SecuritySettings
         fields = '__all__'
+        read_only_fields = ['user', 'created_at', 'updated_at', 'last_password_change']
+
+
+class PrivacySettingsUpdateSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
     
-    def get_user_attempts(self, obj):
-        user = self.context['request'].user
-        if user.is_authenticated:
-            attempts = QuizAttempt.objects.filter(user=user, quiz=obj).order_by('-started_at')
-            return QuizAttemptSerializer(attempts, many=True).data
-        return []
+    class Meta:
+        model = PrivacySettings
+        fields = '__all__'
+        read_only_fields = ['user', 'created_at', 'updated_at']
 
 
 # Serializers for user registration and profile creation
@@ -188,10 +177,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 
-class ProfileUpdateSerializer(serializers.ModelSerializer):
+class CompleteProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     
     class Meta:
         model = UserProfile
-        fields = '__all__'
+        fields = [
+            'phone_number', 'preferred_language', 'learning_goal', 
+            'risk_profile', 'investment_experience', 'date_of_birth'
+        ]
         read_only_fields = ['user', 'created_at', 'updated_at']
