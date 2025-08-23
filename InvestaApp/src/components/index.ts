@@ -6,3 +6,4 @@ export { default as ProgressBar } from './ProgressBar';
 export { default as PrivacySettings } from './PrivacySettings';
 export { default as SecuritySettings } from './SecuritySettings';
 export { default as TwoFactorAuth } from './TwoFactorAuth';
+export { default as ApiTest } from './ApiTest';

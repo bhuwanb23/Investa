@@ -77,7 +77,7 @@ const CourseDetailScreen: React.FC = () => {
         </View>
       ) : course ? (
         <View>
-          <View style={styles.hero}>
+          <View style={[styles.hero, { marginHorizontal: 12 }]}>
             <View style={[styles.levelPill, { backgroundColor: DIFFICULTY_COLORS[course.difficulty_level] + '22' }]}>
               <Text style={[styles.levelPillText, { color: DIFFICULTY_COLORS[course.difficulty_level] }]}>
                 {DIFFICULTY_LABELS[course.difficulty_level]}
@@ -91,11 +91,13 @@ const CourseDetailScreen: React.FC = () => {
             </View>
           </View>
 
-          <Text style={styles.sectionTitle}>Lessons</Text>
-          <LessonList
-            lessons={((course.lessons || []).map(l => ({ ...l, is_active: l.is_active ?? true })) as unknown) as ApiLesson[]}
-            onPressLesson={onPressLesson}
-          />
+          <View style={{ marginHorizontal: 12 }}>
+            <Text style={styles.sectionTitle}>Lessons</Text>
+            <LessonList
+              lessons={((course.lessons || []).map(l => ({ ...l, is_active: l.is_active ?? true })) as unknown) as ApiLesson[]}
+              onPressLesson={onPressLesson}
+            />
+          </View>
         </View>
       ) : null}
       </ScrollView>
@@ -105,7 +107,7 @@ const CourseDetailScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: PAGE_BG },
-  scroll: { padding: 16, paddingBottom: 24 },
+  scroll: { paddingBottom: 24 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   loadingText: { marginTop: 10, color: TEXT_MUTED },
   errorText: { color: '#DC2626', marginBottom: 12 },

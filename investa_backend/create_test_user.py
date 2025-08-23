@@ -30,7 +30,7 @@ def create_test_user():
         user = User.objects.create_user(
             username='test@example.com',
             email='test@example.com',
-            password='testpass123',
+            password='test123',
             first_name='Test',
             last_name='User'
         )
@@ -55,7 +55,7 @@ def create_test_user():
         
         print("Test user created successfully!")
         print("Username: test@example.com")
-        print("Password: testpass123")
+        print("Password: test123")
         print("You can now test the login functionality")
         
     except Exception as e:

@@ -104,19 +104,21 @@ const LessonListScreen: React.FC = () => {
         </View>
 
         {/* Lesson list */}
-        <LessonListAdvanced
-          lessons={lessons as any}
-          onStart={(id) => {
-            const l = lessons.find(x => x.id === id);
-            if (!l || l.state === 'locked') return;
-            navigation.push('LessonDetail', { lessonId: String(id) });
-          }}
-          onContinue={(id) => {
-            const l = lessons.find(x => x.id === id);
-            if (!l || l.state === 'locked') return;
-            navigation.push('LessonDetail', { lessonId: String(id) });
-          }}
-        />
+        <View style={styles.lessonList}>
+          <LessonListAdvanced
+            lessons={lessons as any}
+            onStart={(id) => {
+              const l = lessons.find(x => x.id === id);
+              if (!l || l.state === 'locked') return;
+              navigation.push('LessonDetail', { lessonId: String(id) });
+            }}
+            onContinue={(id) => {
+              const l = lessons.find(x => x.id === id);
+              if (!l || l.state === 'locked') return;
+              navigation.push('LessonDetail', { lessonId: String(id) });
+            }}
+          />
+        </View>
 
         {/* Certificate CTA */}
         <View style={{ marginTop: 16, marginBottom: 20, alignItems: 'center' }}>
@@ -160,8 +162,8 @@ const styles = StyleSheet.create({
   progressWrap: { paddingHorizontal: 16, paddingBottom: 10, backgroundColor: '#fff' },
   progressTrack: { height: 8, backgroundColor: '#E5E7EB', borderRadius: 999 },
   progressFill: { height: '100%', backgroundColor: PRIMARY, borderRadius: 999 },
-  scroll: { padding: 16, paddingBottom: 32 },
-  ctaCard: { backgroundColor: '#3B82F6', borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  scroll: { paddingBottom: 32 },
+  ctaCard: { backgroundColor: '#3B82F6', borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 12 },
   ctaOver: { color: 'rgba(255,255,255,0.9)', fontSize: 12, fontWeight: '700' },
   ctaTitle: { color: '#fff', fontSize: 16, fontWeight: '800', marginTop: 2 },
   ctaSub: { color: 'rgba(255,255,255,0.9)', fontSize: 12, marginTop: 2 },
@@ -181,6 +183,7 @@ const styles = StyleSheet.create({
   primaryBtnText: { color: '#fff', fontWeight: '800' },
   darkBtn: { backgroundColor: '#111827', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 },
   darkBtnText: { color: '#fff', fontWeight: '700' },
+  lessonList: { marginHorizontal: 12 },
 });
 
 export default LessonListScreen;

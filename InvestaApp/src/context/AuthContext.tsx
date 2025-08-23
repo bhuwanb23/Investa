@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../services/api';
+import { authApi, AuthResponse, api } from '../services';
 
 interface User {
   id: number;
@@ -29,12 +29,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   // Temporary: offline auth mode to bypass backend
-  const USE_FAKE_AUTH = true;
+  const USE_FAKE_AUTH = false; // Set to false to use real API - IMPORTANT: Keep this false for real backend
 
   const checkAuthStatus = async () => {
     try {
+      console.log('🔐 AuthContext: Checking auth status...');
       const storedToken = await AsyncStorage.getItem('authToken');
       const storedUser = await AsyncStorage.getItem('user');
+      
+      console.log('🔐 AuthContext: Stored token:', storedToken ? storedToken.substring(0, 20) + '...' : 'None');
+      console.log('🔐 AuthContext: Stored user:', storedUser ? 'Found' : 'None');
+      
+      // Clear fake tokens (dev-token)
+      if (storedToken === 'dev-token') {
+        console.log('🔐 AuthContext: Found fake token, clearing storage...');
+        await AsyncStorage.removeItem('authToken');
+        await AsyncStorage.removeItem('user');
+        console.log('🔐 AuthContext: Fake token cleared');
+        return;
+      }
       
       if (storedToken && storedUser) {
         setToken(storedToken);
@@ -42,6 +55,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         // Set api default header
         api.defaults.headers.common['Authorization'] = `Token ${storedToken}`;
+        console.log('🔐 AuthContext: User authenticated, token set in API headers');
+      } else {
+        console.log('🔐 AuthContext: No stored auth data found');
       }
     } catch (error) {
       console.error('Error checking auth status:', error);
@@ -80,30 +96,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       // Online path (kept for later re-enable)
-      const response = await api.post('auth/login/', {
-        username: email,
-        password: password,
-      });
+      try {
+        const response = await authApi.login({
+          username: email,
+          password: password,
+        });
 
-      console.log('✅ Login API response:', response.data);
-      const { token: authToken, user_id, username, email: userEmail, profile } = response.data;
+        console.log('✅ Login API response:', response.data);
+        const { token: authToken, user_id, username, email: userEmail, profile } = response.data;
 
-      const userData = {
-        id: user_id,
-        username: username,
-        email: userEmail,
-        profile: profile,
-      };
+        const userData = {
+          id: user_id,
+          username: username,
+          email: userEmail,
+          profile: profile,
+        };
 
-      await AsyncStorage.setItem('authToken', authToken);
-      await AsyncStorage.setItem('user', JSON.stringify(userData));
+        await AsyncStorage.setItem('authToken', authToken);
+        await AsyncStorage.setItem('user', JSON.stringify(userData));
 
-      api.defaults.headers.common['Authorization'] = `Token ${authToken}`;
+        api.defaults.headers.common['Authorization'] = `Token ${authToken}`;
 
-      setToken(authToken);
-      setUser(userData);
+        setToken(authToken);
+        setUser(userData);
 
-      return { success: true, message: 'Login successful!' };
+        return { success: true, message: 'Login successful!' };
+             } catch (apiError) {
+         console.log('❌ API login failed:', apiError);
+         throw apiError; // Re-throw the original error
+       }
     } catch (error: any) {
       // Don't spam console in production
       if (__DEV__) {

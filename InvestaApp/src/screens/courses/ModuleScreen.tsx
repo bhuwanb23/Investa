@@ -31,33 +31,43 @@ const ModuleScreen: React.FC = () => {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scroll} stickyHeaderIndices={[0]}>
         <MainHeader title="Module Overview" iconName="library" showBackButton onBackPress={() => navigation.goBack()} />
-        <ModuleHero
-          title={course.title || 'Module Title'}
-          description={course.description || 'Module short description.'}
-          durationMinutes={course.estimated_duration || 180}
-          difficulty={(course.difficulty_level || 'intermediate') as string}
-        />
+        <View style={{ marginHorizontal: 12 }}>
+          <ModuleHero
+            title={course.title || 'Module Title'}
+            description={course.description || 'Module short description.'}
+            durationMinutes={course.estimated_duration || 180}
+            difficulty={(course.difficulty_level || 'intermediate') as string}
+          />
+        </View>
 
-        <ProgressCard percent={67} hint={'8 of 12 lessons completed'} />
+        <View style={{ marginHorizontal: 12 }}>
+          <ProgressCard percent={67} hint={'8 of 12 lessons completed'} />
+        </View>
 
-        <ObjectivesList
-          objectives={[
-            { text: 'Understand and implement closures in real-world scenarios', achieved: true },
-            { text: 'Master asynchronous programming with async/await', achieved: true },
-            { text: 'Build complex applications using modern ES6+ features' },
-            { text: 'Optimize code performance and memory management' },
-          ]}
-        />
+        <View style={{ marginHorizontal: 12 }}>
+          <ObjectivesList
+            objectives={[
+              { text: 'Understand and implement closures in real-world scenarios', achieved: true },
+              { text: 'Master asynchronous programming with async/await', achieved: true },
+              { text: 'Build complex applications using modern ES6+ features' },
+              { text: 'Optimize code performance and memory management' },
+            ]}
+          />
+        </View>
 
-        <BadgesGrid
-          badges={[
-            { icon: 'code', title: 'Code Master', subtitle: 'Complete all exercises', highlighted: true },
-            { icon: 'rocket', title: 'Speed Runner', subtitle: 'Finish in 3 days' },
-            { icon: 'trophy', title: 'Expert', subtitle: 'Score 95%+ on quiz' },
-          ]}
-        />
+        <View style={{ marginHorizontal: 12 }}>
+          <BadgesGrid
+            badges={[
+              { icon: 'code', title: 'Code Master', subtitle: 'Complete all exercises', highlighted: true },
+              { icon: 'rocket', title: 'Speed Runner', subtitle: 'Finish in 3 days' },
+              { icon: 'trophy', title: 'Expert', subtitle: 'Score 95%+ on quiz' },
+            ]}
+          />
+        </View>
 
-        <ModuleStats lessonsCount={12} quizzesCount={5} />
+        <View style={{ marginHorizontal: 12 }}>
+          <ModuleStats lessonsCount={12} quizzesCount={5} />
+        </View>
       </ScrollView>
 
       <View style={styles.footer}>
@@ -89,7 +99,7 @@ const styles = StyleSheet.create({
   },
   iconBtn: { padding: 8 },
   headerTitle: { fontSize: 18, fontWeight: '700', color: TEXT_DARK },
-  scroll: { padding: 16, paddingBottom: 100 },
+  scroll: { paddingBottom: 100 },
   hero: {
     backgroundColor: PRIMARY,
     borderRadius: 16,
@@ -145,18 +155,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-    padding: 14,
+    padding: 12,
+    paddingBottom: 20,
   },
   primaryBtn: {
     backgroundColor: PRIMARY,
     borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    gap: 8 as any,
+    gap: 6,
+    minHeight: 48,
+    marginHorizontal: 12,
   },
-  primaryBtnText: { color: '#fff', fontWeight: '800', marginLeft: 6 },
+  primaryBtnText: { 
+    color: '#fff', 
+    fontWeight: '800', 
+    marginLeft: 4,
+    fontSize: 14,
+  },
   nextHint: { textAlign: 'center', color: TEXT_MUTED, fontSize: 12, marginTop: 6 },
 });
 

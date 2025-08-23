@@ -43,9 +43,11 @@ const CourseBookmarksScreen: React.FC = () => {
 			<ScrollView contentContainerStyle={{ paddingBottom: 16 }} stickyHeaderIndices={[0]}>
 				<MainHeader title="Bookmarks" iconName="bookmark" showBackButton onBackPress={() => navigation.goBack()} />
 				{/* Filters */}
-				<BookmarkFilterBar selected={filter} onSelect={setFilter} />
-				<View style={{ paddingVertical: 16 }}>
-					<View style={{ paddingHorizontal: 16, marginBottom: 8 }}>
+				<View style={{ marginHorizontal: 12 }}>
+					<BookmarkFilterBar selected={filter} onSelect={setFilter} />
+				</View>
+				<View style={{ paddingVertical: 16, marginHorizontal: 12 }}>
+					<View style={{ marginBottom: 8 }}>
 						<Text style={styles.countText}>{items.length} bookmarked lessons</Text>
 					</View>
 					<BookmarksList

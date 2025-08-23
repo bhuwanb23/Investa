@@ -44,7 +44,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         except UserProfile.DoesNotExist:
             return Response({'detail': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
     
-    @action(detail=False, methods=['put', 'patch'])
+    @action(detail=False, methods=['put', 'patch'] )
     def update_profile(self, request):
         """Update current user's profile"""
         try:

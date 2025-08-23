@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,13 @@ import {
   Image,
   Pressable,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MainHeader } from '../../components';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
+import { useProfile } from '../../hooks';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -22,6 +24,15 @@ const TEXT_MUTED = '#6b7280';
 const ProfileScreen = () => {
   const { logout, user } = useAuth();
   const navigation = useNavigation();
+  const { 
+    profile, 
+    isLoading, 
+    isUpdating, 
+    error, 
+    fetchProfile, 
+    updateProfile, 
+    clearError 
+  } = useProfile();
 
   const handleLogout = async () => {
     try {
@@ -53,6 +64,23 @@ const ProfileScreen = () => {
     }
   };
 
+  // Fetch profile data on component mount only if user is authenticated
+  useEffect(() => {
+    if (user) {
+      console.log('🔐 ProfileScreen: User is authenticated, fetching profile...');
+      fetchProfile();
+    } else {
+      console.log('🔐 ProfileScreen: User is not authenticated, skipping profile fetch');
+    }
+  }, [fetchProfile, user]);
+
+  // Clear error when component unmounts
+  useEffect(() => {
+    return () => {
+      clearError();
+    };
+  }, [clearError]);
+
   const handleUpdateProfile = () => {
     Alert.alert(
       'Update Profile',
@@ -69,6 +97,55 @@ const ProfileScreen = () => {
     );
   };
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <MainHeader title="Profile" iconName="person" />
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={PRIMARY} />
+            <Text style={styles.loadingText}>Loading profile...</Text>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show login prompt if user is not authenticated
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <MainHeader title="Profile" iconName="person" />
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>Please log in to view your profile</Text>
+            <Pressable style={styles.retryButton} onPress={() => navigation.navigate('Login' as never)}>
+              <Text style={styles.retryButtonText}>Go to Login</Text>
+            </Pressable>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <MainHeader title="Profile" iconName="person" />
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+            <Pressable style={styles.retryButton} onPress={fetchProfile}>
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </Pressable>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -81,17 +158,26 @@ const ProfileScreen = () => {
             <View style={{ alignItems: 'center' }}>
               <View style={styles.avatarWrap}>
                 <Image
-                  source={{ uri: 'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-3.jpg' }}
+                  source={{ 
+                    uri: profile?.avatar || 'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-3.jpg' 
+                  }}
                   style={styles.avatarXL}
                 />
                 <Pressable style={styles.cameraBtn} android_ripple={{ color: '#e5e7eb' }}>
                   <Ionicons name="camera" size={14} color={PRIMARY} />
                 </Pressable>
               </View>
-              <Text style={styles.profileName}>Alex Johnson</Text>
+              <Text style={styles.profileName}>
+                {profile?.user?.first_name && profile?.user?.last_name 
+                  ? `${profile.user.first_name} ${profile.user.last_name}`
+                  : profile?.user?.username || 'User'
+                }
+              </Text>
               <View style={styles.levelPill}>
                 <Ionicons name="star" size={14} color="#facc15" />
-                <Text style={styles.levelPillText}>Level 7 • 2,450 XP</Text>
+                <Text style={styles.levelPillText}>
+                  Level {profile?.level || 1} • {profile?.experience_points?.toLocaleString() || 0} XP
+                </Text>
               </View>
             </View>
           </View>
@@ -110,7 +196,7 @@ const ProfileScreen = () => {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.detailLabel}>Email</Text>
-                <Text style={styles.detailValue}>alex.johnson@email.com</Text>
+                <Text style={styles.detailValue}>{profile?.user?.email || 'Not set'}</Text>
               </View>
             </View>
             <View style={styles.detailRow}>
@@ -119,7 +205,7 @@ const ProfileScreen = () => {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.detailLabel}>Phone</Text>
-                <Text style={styles.detailValue}>+1 (555) 123-4567</Text>
+                <Text style={styles.detailValue}>{profile?.phone_number || 'Not set'}</Text>
               </View>
             </View>
             <View style={styles.detailRow}>
@@ -128,7 +214,9 @@ const ProfileScreen = () => {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.detailLabel}>Language</Text>
-                <Text style={styles.detailValue}>English (US)</Text>
+                <Text style={styles.detailValue}>
+                  {profile?.preferred_language?.name || 'Not set'}
+                </Text>
               </View>
             </View>
             <View style={styles.detailRow}>
@@ -137,7 +225,7 @@ const ProfileScreen = () => {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.detailLabel}>Learning Goal</Text>
-                <Text style={styles.detailValue}>Advanced Trading Strategies</Text>
+                <Text style={styles.detailValue}>{profile?.learning_goal || 'Not set'}</Text>
               </View>
             </View>
           </View>
@@ -269,8 +357,17 @@ const ProfileScreen = () => {
 
           {/* Actions */}
           <View style={{ marginTop: 12, marginBottom: 20 }}>
-            <Pressable style={styles.primaryBtn} android_ripple={{ color: '#4338ca' }} onPress={handleUpdateProfile}>
-              <Text style={styles.primaryBtnText}>Update Profile</Text>
+            <Pressable 
+              style={[styles.primaryBtn, isUpdating && styles.disabledBtn]} 
+              android_ripple={{ color: '#4338ca' }} 
+              onPress={handleUpdateProfile}
+              disabled={isUpdating}
+            >
+              {isUpdating ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.primaryBtnText}>Update Profile</Text>
+              )}
             </Pressable>
             <Pressable style={styles.secondaryBtn} android_ripple={{ color: '#e5e7eb' }} onPress={handleResetPassword}>
               <Text style={styles.secondaryBtnText}>Reset Password</Text>
@@ -578,6 +675,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     marginBottom: 10,
   },
+  disabledBtn: {
+    opacity: 0.6,
+  },
   primaryBtnText: {
     color: '#fff',
     fontWeight: '800',
@@ -603,6 +703,41 @@ const styles = StyleSheet.create({
   },
   logoutBtnText: {
     color: '#ef4444',
+    fontWeight: '800',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  loadingText: {
+    marginTop: 16,
+    color: TEXT_MUTED,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: PRIMARY,
+    borderRadius: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  retryButtonText: {
+    color: '#fff',
     fontWeight: '800',
   },
 });

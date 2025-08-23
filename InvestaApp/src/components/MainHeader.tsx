@@ -41,7 +41,9 @@ const MainHeader: React.FC<Props> = ({
               <Ionicons name={iconName as any} size={18} color="#fff" />
             </View>
           )}
-          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+            {title}
+          </Text>
         </View>
         <View style={styles.actions}>
           <TouchableOpacity
@@ -72,10 +74,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    minHeight: 44,
   },
   leftRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    marginRight: 8,
   },
   iconWrap: {
     width: 32,
@@ -85,11 +90,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
+    flexShrink: 0,
   },
   title: {
     fontSize: 18,
     fontWeight: '700',
     color: '#1F2937',
+    flex: 1,
   },
   actions: {
     flexDirection: 'row',

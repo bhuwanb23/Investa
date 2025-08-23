@@ -24,7 +24,7 @@ const CertificateScreen: React.FC = () => {
 					</TouchableOpacity>
 				</View>
 
-				<View style={{ alignItems: 'center', marginTop: 24, marginBottom: 16 }}>
+				<View style={{ alignItems: 'center', marginTop: 24, marginBottom: 16, marginHorizontal: 12 }}>
 					<View style={styles.trophyCircle}>
 						<Ionicons name="trophy" size={36} color="#fff" />
 						<View style={styles.checkBadge}>
@@ -35,7 +35,7 @@ const CertificateScreen: React.FC = () => {
 					<Text style={styles.subtitle}>You've successfully completed</Text>
 				</View>
 
-				<View style={{ marginHorizontal: 16, marginBottom: 20 }}>
+				<View style={{ marginHorizontal: 12, marginBottom: 20 }}>
 					<CertificateCard
 						userName="Sarah Johnson"
 						courseTitle="Advanced React Development"
@@ -43,7 +43,7 @@ const CertificateScreen: React.FC = () => {
 					/>
 				</View>
 
-				<View style={styles.actions}>
+				<View style={[styles.actions, { marginHorizontal: 12 }]}>
 					<TouchableOpacity style={styles.primaryBtn} onPress={() => navigation.navigate('Downloads' as never)}>
 						<Ionicons name="download" size={18} color="#fff" />
 						<Text style={styles.primaryBtnText}>Download Certificate</Text>
@@ -54,9 +54,11 @@ const CertificateScreen: React.FC = () => {
 					</TouchableOpacity>
 				</View>
 
-				<SocialShareBar onPress={() => {}} />
+				<View style={{ marginHorizontal: 12 }}>
+					<SocialShareBar onPress={() => {}} />
+				</View>
 
-				<View style={styles.nextCard}>
+				<View style={[styles.nextCard, { marginHorizontal: 12 }]}>
 					<View style={styles.nextIconBox}>
 						<Ionicons name="rocket" size={18} color="#fff" />
 					</View>
@@ -80,15 +82,76 @@ const styles = StyleSheet.create({
 	scroll: { paddingBottom: 24 },
 	headerRow: { position: 'absolute', top: 16, left: 16, right: 16, zIndex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 	iconBtn: { backgroundColor: 'rgba(255,255,255,0.2)', padding: 10, borderRadius: 999 },
-	trophyCircle: { width: 96, height: 96, borderRadius: 48, backgroundColor: '#F59E0B', alignItems: 'center', justifyContent: 'center', alignSelf: 'center' },
-	checkBadge: { position: 'absolute', right: -2, top: -2, width: 28, height: 28, borderRadius: 14, backgroundColor: '#10B981', alignItems: 'center', justifyContent: 'center' },
-	congrats: { color: '#fff', fontSize: 24, fontWeight: '800', textAlign: 'center', marginTop: 12 },
-	subtitle: { color: 'rgba(255,255,255,0.8)', fontSize: 16, textAlign: 'center', marginTop: 4 },
-	actions: { paddingHorizontal: 16, gap: 12, marginBottom: 16 },
-	primaryBtn: { backgroundColor: '#7C3AED', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 12 },
-	primaryBtnText: { color: '#fff', fontWeight: '700' },
-	secondaryBtn: { backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: '#E9D5FF' },
-	secondaryBtnText: { color: '#7C3AED', fontWeight: '700' },
+	trophyCircle: { 
+    width: 80, 
+    height: 80, 
+    borderRadius: 40, 
+    backgroundColor: '#F59E0B', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    alignSelf: 'center' 
+  },
+  checkBadge: { 
+    position: 'absolute', 
+    right: -2, 
+    top: -2, 
+    width: 24, 
+    height: 24, 
+    borderRadius: 12, 
+    backgroundColor: '#10B981', 
+    alignItems: 'center', 
+    justifyContent: 'center' 
+  },
+  congrats: { 
+    color: '#fff', 
+    fontSize: 20, 
+    fontWeight: '800', 
+    textAlign: 'center', 
+    marginTop: 12 
+  },
+  subtitle: { 
+    color: 'rgba(255,255,255,0.8)', 
+    fontSize: 14, 
+    textAlign: 'center', 
+    marginTop: 4 
+  },
+	actions: { 
+    paddingHorizontal: 12, 
+    gap: 10, 
+    marginBottom: 16 
+  },
+  primaryBtn: { 
+    backgroundColor: '#7C3AED', 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    gap: 6, 
+    paddingVertical: 12, 
+    borderRadius: 12,
+    minHeight: 48,
+  },
+  primaryBtnText: { 
+    color: '#fff', 
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  secondaryBtn: { 
+    backgroundColor: '#fff', 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    gap: 6, 
+    paddingVertical: 12, 
+    borderRadius: 12, 
+    borderWidth: 1, 
+    borderColor: '#E9D5FF',
+    minHeight: 48,
+  },
+  secondaryBtnText: { 
+    color: '#7C3AED', 
+    fontWeight: '700',
+    fontSize: 14,
+  },
 	nextCard: { marginHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 16, padding: 16 },
 	nextIconBox: { width: 56, height: 56, borderRadius: 12, backgroundColor: '#10B981', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
 	nextTitle: { color: '#fff', fontWeight: '700', fontSize: 16, marginBottom: 4 },
