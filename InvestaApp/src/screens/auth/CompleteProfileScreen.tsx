@@ -17,7 +17,7 @@ const CompleteProfileScreen: React.FC<{ navigation: Navigation }> = ({ navigatio
     setSubmitting(true);
     setTimeout(() => {
       setSubmitting(false);
-      navigation.navigate('Home');
+      navigation.navigate('Login');
     }, 600);
   };
 

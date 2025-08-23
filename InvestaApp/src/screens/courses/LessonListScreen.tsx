@@ -18,13 +18,13 @@ const LessonListScreen: React.FC = () => {
   const course = route.params?.course || { title: 'Course', totalLessons: 24, completed: 12 };
 
   const DEFAULT_LESSONS = useMemo(() => ([
-    { id: 1, title: 'Introduction to JavaScript', minutes: 8, state: 'progress' as const, progress: 0 },
-    { id: 2, title: 'Variables and Data Types', minutes: 12, state: 'locked' as const },
-    { id: 3, title: 'Operators and Expressions', minutes: 15, state: 'locked' as const },
-    { id: 4, title: 'Conditional Statements', minutes: 10, state: 'locked' as const },
-    { id: 5, title: 'Loops and Iteration', minutes: 14, state: 'locked' as const },
-    { id: 6, title: 'Arrays and Objects', minutes: 18, state: 'locked' as const },
-    { id: 7, title: 'Functions Basics', minutes: 16, state: 'locked' as const },
+    { id: 1, title: 'Introduction to JavaScript', minutes: 8, state: 'completed' as const },
+    { id: 2, title: 'Variables and Data Types', minutes: 12, state: 'completed' as const },
+    { id: 3, title: 'Operators and Expressions', minutes: 15, state: 'completed' as const },
+    { id: 4, title: 'Conditional Statements', minutes: 10, state: 'completed' as const },
+    { id: 5, title: 'Loops and Iteration', minutes: 14, state: 'completed' as const },
+    { id: 6, title: 'Arrays and Objects', minutes: 18, state: 'completed' as const },
+    { id: 7, title: 'Functions Basics', minutes: 16, state: 'completed' as const },
   ]), []);
 
   const [lessons, setLessons] = useState<any[]>(DEFAULT_LESSONS);

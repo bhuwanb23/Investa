@@ -12,7 +12,6 @@ const CertificateScreen: React.FC = () => {
 
 	return (
 		<SafeAreaView style={styles.safe}>
-			<View style={styles.gradientTop} />
 			<CertificateConfetti />
 			<ScrollView contentContainerStyle={styles.scroll}>
 				{/* Header */}
@@ -71,25 +70,6 @@ const CertificateScreen: React.FC = () => {
 						</TouchableOpacity>
 					</View>
 				</View>
-
-				<View style={styles.bottomNav}>
-					<TouchableOpacity style={styles.navItem}>
-						<Ionicons name="home" size={18} color="rgba(255,255,255,0.6)" />
-						<Text style={styles.navTextDim}>Home</Text>
-					</TouchableOpacity>
-					<TouchableOpacity style={styles.navItem}>
-						<Ionicons name="book" size={18} color="rgba(255,255,255,0.6)" />
-						<Text style={styles.navTextDim}>Courses</Text>
-					</TouchableOpacity>
-					<TouchableOpacity style={styles.navItem}>
-						<Ionicons name="trophy" size={18} color="#FACC15" />
-						<Text style={styles.navTextBright}>Progress</Text>
-					</TouchableOpacity>
-					<TouchableOpacity style={styles.navItem}>
-						<Ionicons name="person" size={18} color="rgba(255,255,255,0.6)" />
-						<Text style={styles.navTextDim}>Profile</Text>
-					</TouchableOpacity>
-				</View>
 			</ScrollView>
 		</SafeAreaView>
 	);
@@ -98,7 +78,6 @@ const CertificateScreen: React.FC = () => {
 const styles = StyleSheet.create({
 	safe: { flex: 1, backgroundColor: '#111827' },
 	scroll: { paddingBottom: 24 },
-	gradientTop: { height: 200, backgroundColor: '#4F46E5' },
 	headerRow: { position: 'absolute', top: 16, left: 16, right: 16, zIndex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 	iconBtn: { backgroundColor: 'rgba(255,255,255,0.2)', padding: 10, borderRadius: 999 },
 	trophyCircle: { width: 96, height: 96, borderRadius: 48, backgroundColor: '#F59E0B', alignItems: 'center', justifyContent: 'center', alignSelf: 'center' },
@@ -117,10 +96,6 @@ const styles = StyleSheet.create({
 	nextCourse: { color: '#fff', fontWeight: '600', marginBottom: 10 },
 	nextCta: { alignSelf: 'flex-start', backgroundColor: '#10B981', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 6 },
 	nextCtaText: { color: '#fff', fontWeight: '700' },
-	bottomNav: { marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 28 },
-	navItem: { alignItems: 'center', gap: 4 },
-	navTextDim: { color: 'rgba(255,255,255,0.6)', fontSize: 12 },
-	navTextBright: { color: '#FACC15', fontSize: 12, fontWeight: '600' },
 });
 
 export default CertificateScreen;

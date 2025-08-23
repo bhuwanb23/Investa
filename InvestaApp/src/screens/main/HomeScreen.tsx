@@ -9,13 +9,14 @@ import {
   Dimensions,
   Alert,
   Image,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MainHeader from '../../components/MainHeader';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 // Define navigation types
 type RootStackParamList = {
@@ -335,20 +336,23 @@ const HomeScreen = () => {
   const renderAchievements = () => (
     <View style={styles.achievementsSection}>
       <Text style={styles.sectionTitle}>Your Achievements</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.achievementsScrollContainer}
-      >
-        {achievements.map((achievement) => (
-          <View key={achievement.id} style={styles.achievementCard}>
-            <View style={[styles.achievementIcon, { backgroundColor: achievement.bgColor }]}>
-              <Ionicons name={achievement.icon as any} size={24} color={achievement.iconColor} />
+      <View style={styles.achievementsContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.achievementsScrollContainer}
+          nestedScrollEnabled={true}
+        >
+          {achievements.map((achievement) => (
+            <View key={achievement.id} style={styles.achievementCard}>
+              <View style={[styles.achievementIcon, { backgroundColor: achievement.bgColor }]}>
+                <Ionicons name={achievement.icon as any} size={24} color={achievement.iconColor} />
+              </View>
+              <Text style={styles.achievementTitle}>{achievement.title}</Text>
             </View>
-            <Text style={styles.achievementTitle}>{achievement.title}</Text>
-          </View>
-        ))}
-      </ScrollView>
+          ))}
+        </ScrollView>
+      </View>
     </View>
   );
 
@@ -367,7 +371,12 @@ const HomeScreen = () => {
   const renderRecommended = () => (
     <View style={styles.recommendedSection}>
       <Text style={styles.sectionTitle}>Recommended For You</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 16 }}>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false} 
+        contentContainerStyle={styles.recommendedScrollContainer}
+        nestedScrollEnabled={true}
+      >
         {recommendedCourses.map((c) => (
           <TouchableOpacity key={c.id} style={styles.recoCard} activeOpacity={0.85} onPress={() => navigation.navigate('Courses')}>
             <View style={[styles.recoBadge, { backgroundColor: c.color }]}>
@@ -415,24 +424,28 @@ const HomeScreen = () => {
   );
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{ paddingBottom: 24 }}
-      showsVerticalScrollIndicator={false}
-      stickyHeaderIndices={[0]}
-    >
-      <MainHeader title="Home" iconName="home" />
-      {renderWelcomeSection()}
-      {renderDailyTip()}
-      {renderQuickAccess()}
-      {renderRecommended()}
-      {renderLearningPath()}
-      {renderMarket()}
-      {renderCTA()}
-      {renderPortfolioSnapshot()}
-      {renderAchievements()}
-      <View style={{ height: 84 }} />
-    </ScrollView>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#0891B2" />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        stickyHeaderIndices={[0]}
+        nestedScrollEnabled={true}
+      >
+        <MainHeader title="Home" iconName="home" />
+        {renderWelcomeSection()}
+        {renderDailyTip()}
+        {renderQuickAccess()}
+        {renderRecommended()}
+        {renderLearningPath()}
+        {renderMarket()}
+        {renderCTA()}
+        {renderPortfolioSnapshot()}
+        {renderAchievements()}
+        <View style={styles.bottomSpacing} />
+      </ScrollView>
+    </View>
   );
 };
 
@@ -441,29 +454,57 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 24,
+  },
   welcomeSection: {
     margin: 16,
     backgroundColor: '#0891B2',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
   statRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
-    gap: 10,
+    marginBottom: 16,
+    gap: 12,
   },
   statCard: {
     flex: 1,
-    borderRadius: 14,
-    paddingVertical: 12,
+    borderRadius: 16,
+    paddingVertical: 16,
     paddingHorizontal: 12,
     alignItems: 'center',
+    minHeight: 80,
   },
-  statIcon: { width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
-  statValue: { color: '#fff', fontWeight: '800', fontSize: 16 },
-  statLabel: { color: 'rgba(255,255,255,0.9)', fontSize: 11 },
+  statIcon: { 
+    width: 32, 
+    height: 32, 
+    borderRadius: 10, 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginBottom: 8 
+  },
+  statValue: { 
+    color: '#fff', 
+    fontWeight: '800', 
+    fontSize: 18,
+    marginBottom: 2,
+  },
+  statLabel: { 
+    color: 'rgba(255,255,255,0.9)', 
+    fontSize: 12,
+    fontWeight: '500',
+  },
   heroAccentCircle: {
     position: 'absolute',
     left: -20,
@@ -474,304 +515,464 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.08)'
   },
   welcomeHeader: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   profileImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 2,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 3,
     borderColor: 'rgba(255, 255, 255, 0.3)',
-    marginRight: 12,
+    marginRight: 16,
   },
   welcomeText: {
     flex: 1,
   },
   welcomeTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
     color: 'white',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   welcomeSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#CFFAFE',
+    fontWeight: '500',
   },
   progressContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   progressHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   progressLabel: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#CFFAFE',
+    fontWeight: '600',
   },
   progressPercentage: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: 'white',
   },
   progressBarBackground: {
     width: '100%',
-    height: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 4,
+    height: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    borderRadius: 5,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
     backgroundColor: 'white',
-    borderRadius: 4,
+    borderRadius: 5,
   },
   progressMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 10,
-    gap: 6,
+    marginTop: 12,
+    gap: 8,
   },
   progressPill: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   progressPillText: {
     color: '#fff',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
   },
   quickAccessSection: {
     margin: 16,
-    marginTop: 0,
+    marginTop: 8,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
     color: '#1F2937',
-    marginBottom: 16,
-  },
-  quickAccessGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    marginBottom: 20,
   },
   quickAccessCard: {
     width: (width - 64) / 2,
     backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
   },
   quickAccessIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   quickAccessTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: '#1F2937',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   quickAccessSubtitle: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#6B7280',
-    marginBottom: 12,
+    marginBottom: 16,
+    lineHeight: 18,
   },
   quickAccessBadge: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    alignSelf: 'flex-start',
   },
   learningPathSection: {
     margin: 16,
-    marginTop: 0,
+    marginTop: 8,
     backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 20,
+    padding: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
   },
   learningPathList: {
-    gap: 16,
+    gap: 20,
   },
   learningPathItem: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   learningPathIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 20,
   },
   learningPathContent: {
     flex: 1,
   },
   learningPathTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 2,
+    fontSize: 17,
+    fontWeight: '600',
+    marginBottom: 4,
   },
   learningPathDescription: {
-    fontSize: 14,
+    fontSize: 15,
+    fontWeight: '500',
   },
   portfolioSection: {
     margin: 16,
-    marginTop: 0,
+    marginTop: 8,
     backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 20,
+    padding: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
   },
   portfolioHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   portfolioProfit: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '600',
     color: '#059669',
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
   portfolioStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 16,
   },
   portfolioStat: {
     alignItems: 'center',
     flex: 1,
+    backgroundColor: '#F9FAFB',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
   },
   portfolioValue: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '800',
     color: '#1F2937',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   portfolioProfitValue: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '800',
     color: '#059669',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   portfolioLabel: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#6B7280',
+    fontWeight: '500',
   },
   achievementsSection: {
     margin: 16,
-    marginTop: 0,
-    marginBottom: 100,
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  achievementsContainer: {
+    minHeight: 120,
   },
   achievementsScrollContainer: {
     paddingRight: 16,
+    paddingLeft: 4,
   },
   achievementCard: {
     backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 16,
-    marginRight: 12,
+    borderRadius: 20,
+    padding: 20,
+    marginRight: 16,
     alignItems: 'center',
-    minWidth: 120,
+    minWidth: 140,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
   },
   achievementIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   achievementTitle: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
     color: '#1F2937',
     textAlign: 'center',
+    lineHeight: 20,
   },
   tipCard: {
     marginHorizontal: 16,
-    marginTop: 10,
+    marginTop: 8,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 14,
+    borderRadius: 20,
+    padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
   },
-  tipIconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  tipTitle: { fontSize: 12, color: '#6B7280', fontWeight: '700' },
-  tipText: { fontSize: 13, color: '#1F2937', marginTop: 2 },
-  recommendedSection: { margin: 16, marginTop: 6 },
+  tipIconWrap: { 
+    width: 44, 
+    height: 44, 
+    borderRadius: 12, 
+    alignItems: 'center', 
+    justifyContent: 'center' 
+  },
+  tipTitle: { 
+    fontSize: 13, 
+    color: '#6B7280', 
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  tipText: { 
+    fontSize: 14, 
+    color: '#1F2937', 
+    lineHeight: 20,
+  },
+  recommendedSection: { 
+    margin: 16, 
+    marginTop: 8 
+  },
+  recommendedScrollContainer: {
+    paddingRight: 16,
+    paddingLeft: 4,
+  },
   recoCard: {
-    width: 200,
+    width: 220,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 14,
-    marginRight: 12,
+    borderRadius: 20,
+    padding: 20,
+    marginRight: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
   },
-  recoBadge: { width: 28, height: 28, borderRadius: 6, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  recoTitle: { fontSize: 14, fontWeight: '700', color: '#111827' },
-  recoSub: { fontSize: 12, color: '#6B7280', marginTop: 4 },
-  recoTrack: { height: 6, backgroundColor: '#E5E7EB', borderRadius: 999, marginTop: 10 },
-  recoFill: { height: '100%', borderRadius: 999 },
-  recoHint: { fontSize: 11, color: '#6B7280', marginTop: 6 },
-  marketSection: { margin: 16, marginTop: 0, backgroundColor: '#FFFFFF', borderRadius: 16, padding: 14, elevation: 3, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 } },
-  marketList: { marginTop: 6 },
-  marketItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB' },
-  marketSymbolWrap: { width: 54 },
-  marketSymbol: { fontWeight: '800', color: '#111827' },
-  marketName: { fontSize: 12, color: '#6B7280' },
-  marketChange: { fontSize: 12, fontWeight: '700', marginTop: 2 },
-  bigCTA: { marginHorizontal: 16, backgroundColor: '#4F46E5', borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8 },
-  ctaLeft: { width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
-  bigCTATitle: { color: '#FFFFFF', fontWeight: '800' },
-  bigCTASub: { color: 'rgba(255,255,255,0.9)', fontSize: 12, marginTop: 2 },
-  ctaRight: { width: 28, height: 28, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' },
+  recoBadge: { 
+    width: 32, 
+    height: 32, 
+    borderRadius: 8, 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginBottom: 12 
+  },
+  recoTitle: { 
+    fontSize: 16, 
+    fontWeight: '700', 
+    color: '#111827',
+    marginBottom: 6,
+    lineHeight: 22,
+  },
+  recoSub: { 
+    fontSize: 13, 
+    color: '#6B7280', 
+    marginBottom: 16,
+    fontWeight: '500',
+  },
+  recoTrack: { 
+    height: 8, 
+    backgroundColor: '#E5E7EB', 
+    borderRadius: 999, 
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  recoFill: { 
+    height: '100%', 
+    borderRadius: 999 
+  },
+  recoHint: { 
+    fontSize: 12, 
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  marketSection: { 
+    margin: 16, 
+    marginTop: 8, 
+    backgroundColor: '#FFFFFF', 
+    borderRadius: 20, 
+    padding: 20, 
+    elevation: 6, 
+    shadowColor: '#000', 
+    shadowOpacity: 0.1, 
+    shadowRadius: 12, 
+    shadowOffset: { width: 0, height: 4 },
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  marketList: { 
+    marginTop: 8 
+  },
+  marketItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingVertical: 16, 
+    borderBottomWidth: StyleSheet.hairlineWidth, 
+    borderBottomColor: '#E5E7EB' 
+  },
+  marketSymbolWrap: { 
+    width: 60 
+  },
+  marketSymbol: { 
+    fontWeight: '800', 
+    color: '#111827',
+    fontSize: 16,
+  },
+  marketName: { 
+    fontSize: 13, 
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  marketChange: { 
+    fontSize: 14, 
+    fontWeight: '700',
+  },
+  bigCTA: { 
+    marginHorizontal: 16, 
+    backgroundColor: '#4F46E5', 
+    borderRadius: 20, 
+    padding: 20, 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 16, 
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  ctaLeft: { 
+    width: 44, 
+    height: 44, 
+    borderRadius: 12, 
+    backgroundColor: 'rgba(255,255,255,0.2)', 
+    alignItems: 'center', 
+    justifyContent: 'center' 
+  },
+  bigCTATitle: { 
+    color: '#FFFFFF', 
+    fontWeight: '800',
+    fontSize: 18,
+    marginBottom: 4,
+  },
+  bigCTASub: { 
+    color: 'rgba(255,255,255,0.9)', 
+    fontSize: 14, 
+    lineHeight: 20,
+  },
+  ctaRight: { 
+    width: 32, 
+    height: 32, 
+    borderRadius: 10, 
+    backgroundColor: 'rgba(255,255,255,0.2)', 
+    alignItems: 'center', 
+    justifyContent: 'center' 
+  },
   bottomSpacing: {
-    height: 84,
+    height: 100,
   },
 });
 
