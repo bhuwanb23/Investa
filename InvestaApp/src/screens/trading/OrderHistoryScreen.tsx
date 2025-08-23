@@ -50,6 +50,34 @@ const OrderHistoryScreen = () => {
     setExpandedItems(newExpandedItems);
   };
 
+  const getFilteredOrders = () => {
+    let filtered = ORDER_HISTORY;
+    
+    switch (selectedFilter) {
+      case 'Buy':
+        filtered = filtered.filter(order => order.type === 'BUY');
+        break;
+      case 'Sell':
+        filtered = filtered.filter(order => order.type === 'SELL');
+        break;
+      case 'This Week':
+        // Filter for orders from this week (mock implementation)
+        filtered = filtered.filter(order => Number(order.id) % 3 === 0); // Mock filter
+        break;
+      case 'This Month':
+        // Filter for orders from this month (mock implementation)
+        filtered = filtered.filter(order => Number(order.id) % 2 === 0); // Mock filter
+        break;
+      default:
+        // 'All' - no filtering
+        break;
+    }
+    
+    return filtered;
+  };
+
+  const filteredOrders = getFilteredOrders();
+
   const renderHeader = () => (
     <View style={styles.header}>
       <MainHeader title="Order History" iconName="time" showBackButton onBackPress={handleBack} />
@@ -120,15 +148,19 @@ const OrderHistoryScreen = () => {
               styles.stockBadge,
               { backgroundColor: trade.type === 'BUY' ? '#DBEAFE' : '#FEE2E2' }
             ]}>
-              <Text style={[
-                styles.stockSymbol,
-                { color: trade.type === 'BUY' ? '#2563EB' : '#DC2626' }
-              ]}>
-                {trade.symbol}
-              </Text>
+              <Ionicons 
+                name="business" 
+                size={20} 
+                color={trade.type === 'BUY' ? '#2563EB' : '#DC2626'} 
+              />
             </View>
             <View style={styles.tradeInfo}>
-              <Text style={styles.stockName}>{trade.name}</Text>
+              <View style={styles.stockHeader}>
+                <Text style={styles.stockSymbol}>{trade.symbol}</Text>
+                <Text style={styles.stockName} numberOfLines={1} ellipsizeMode="tail">
+                  {trade.name}
+                </Text>
+              </View>
               <Text style={styles.tradeTime}>Today, 2:45 PM</Text>
             </View>
           </View>
@@ -146,7 +178,9 @@ const OrderHistoryScreen = () => {
                 color="#9CA3AF" 
               />
             </View>
-            <Text style={styles.tradePrice}>{trade.price}</Text>
+            <Text style={styles.tradePrice} numberOfLines={1} ellipsizeMode="tail">
+              {trade.price}
+            </Text>
           </View>
         </TouchableOpacity>
 
@@ -194,7 +228,7 @@ const OrderHistoryScreen = () => {
 
   const renderTradesList = () => (
     <View style={styles.tradesList}>
-      {ORDER_HISTORY.map(renderTradeItem)}
+      {filteredOrders.map(renderTradeItem)}
     </View>
   );
 
@@ -313,11 +347,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 16,
+    minHeight: 80,
   },
   tradeLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    flex: 1,
+    marginRight: 12,
   },
   stockBadge: {
     width: 44,
@@ -329,18 +366,34 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
+    flexShrink: 0,
+  },
+  stockHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
   },
   stockSymbol: {
     fontSize: 14,
-    fontWeight: '600',
-  },
-  tradeInfo: {
-    gap: 4,
+    fontWeight: '700',
+    color: '#111827',
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
   stockName: {
     fontSize: 16,
     fontWeight: '500',
     color: '#111827',
+    flexShrink: 1,
+    flex: 1,
+  },
+  tradeInfo: {
+    flex: 1,
+    gap: 4,
+    minWidth: 0,
   },
   tradeTime: {
     fontSize: 14,
@@ -348,11 +401,14 @@ const styles = StyleSheet.create({
   },
   tradeRight: {
     alignItems: 'flex-end',
+    flexShrink: 0,
+    minWidth: 80,
   },
   tradeStatus: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    marginBottom: 8,
   },
   statusBadge: {
     paddingHorizontal: 10,
@@ -368,7 +424,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
     color: '#111827',
-    marginTop: 4,
+    textAlign: 'right',
+    flexShrink: 1,
   },
   tradeDetails: {
     paddingHorizontal: 16,

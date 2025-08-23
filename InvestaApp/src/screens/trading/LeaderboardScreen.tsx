@@ -184,7 +184,7 @@ const LeaderboardScreen = () => {
 
   const renderLeaderboardList = () => (
     <View style={styles.leaderboardList}>
-      {topUsers.slice(3).map((user: any, index: number) => (
+      {topUsers.slice(3, 20).map((user: any, index: number) => (
         <Animated.View
           key={user.rank}
           style={[
@@ -200,7 +200,7 @@ const LeaderboardScreen = () => {
               <Text style={styles.rankNumberText}>{user.rank}</Text>
             </View>
             <Image
-              source={{ uri: `https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-${user.rank}.jpg` }}
+              source={{ uri: `https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-${(user.rank % 20) + 1}.jpg` }}
               style={styles.userAvatar}
             />
             <View style={styles.userDetails}>

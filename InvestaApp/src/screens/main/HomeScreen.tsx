@@ -190,7 +190,7 @@ const HomeScreen = () => {
   const renderWelcomeSection = () => (
     <View style={styles.welcomeSection}>
       <View style={styles.heroAccentCircle} />
-      <View style={[styles.heroAccentCircle, { right: -24, top: -12, width: 120, height: 120, opacity: 0.15 }]} />
+      <View style={[styles.heroAccentCircle, { right: -16, top: -8, width: 100, height: 100, opacity: 0.15 }]} />
       <View style={styles.welcomeHeader}>
         <View style={styles.profileSection}>
           <Image
@@ -207,21 +207,21 @@ const HomeScreen = () => {
       <View style={styles.statRow}>
         <View style={[styles.statCard, { backgroundColor: 'rgba(255,255,255,0.12)' }]}>
           <View style={[styles.statIcon, { backgroundColor: 'rgba(255,255,255,0.18)' }]}>
-            <Ionicons name="book" size={16} color="#fff" />
+            <Ionicons name="book" size={14} color="#fff" />
           </View>
           <Text style={styles.statValue}>{userProgress.completedLessons}</Text>
           <Text style={styles.statLabel}>Lessons</Text>
         </View>
         <View style={[styles.statCard, { backgroundColor: 'rgba(255,255,255,0.12)' }]}>
           <View style={[styles.statIcon, { backgroundColor: 'rgba(255,255,255,0.18)' }]}>
-            <Ionicons name="flame" size={16} color="#fff" />
+            <Ionicons name="flame" size={14} color="#fff" />
           </View>
           <Text style={styles.statValue}>{userProgress.currentStreak}d</Text>
           <Text style={styles.statLabel}>Streak</Text>
         </View>
         <View style={[styles.statCard, { backgroundColor: 'rgba(255,255,255,0.12)' }]}>
           <View style={[styles.statIcon, { backgroundColor: 'rgba(255,255,255,0.18)' }]}>
-            <Ionicons name="trophy" size={16} color="#fff" />
+            <Ionicons name="trophy" size={14} color="#fff" />
           </View>
           <Text style={styles.statValue}>{userProgress.totalPoints}</Text>
           <Text style={styles.statLabel}>Points</Text>
@@ -242,8 +242,8 @@ const HomeScreen = () => {
           />
         </View>
         <View style={styles.progressMetaRow}>
-          <View style={styles.progressPill}><Text style={styles.progressPillText}>{userProgress.completedLessons} / {userProgress.totalLessons} Lessons</Text></View>
-          <View style={styles.progressPill}><Text style={styles.progressPillText}>Streak: {userProgress.currentStreak} days</Text></View>
+          <View style={styles.progressPill}><Text style={styles.progressPillText}>{userProgress.completedLessons} / {userProgress.totalLessons}</Text></View>
+          <View style={styles.progressPill}><Text style={styles.progressPillText}>Streak: {userProgress.currentStreak}d</Text></View>
           <View style={styles.progressPill}><Text style={styles.progressPillText}>{userProgress.totalPoints} pts</Text></View>
         </View>
       </View>
@@ -286,7 +286,7 @@ const HomeScreen = () => {
             <View style={[styles.learningPathIcon, { backgroundColor: item.color }]}>
               <Ionicons
                 name={item.icon as any}
-                size={16}
+                size={14}
                 color="white"
               />
             </View>
@@ -346,7 +346,7 @@ const HomeScreen = () => {
           {achievements.map((achievement) => (
             <View key={achievement.id} style={styles.achievementCard}>
               <View style={[styles.achievementIcon, { backgroundColor: achievement.bgColor }]}>
-                <Ionicons name={achievement.icon as any} size={24} color={achievement.iconColor} />
+                <Ionicons name={achievement.icon as any} size={20} color={achievement.iconColor} />
               </View>
               <Text style={styles.achievementTitle}>{achievement.title}</Text>
             </View>
@@ -359,7 +359,7 @@ const HomeScreen = () => {
   const renderDailyTip = () => (
     <View style={styles.tipCard}>
       <View style={[styles.tipIconWrap, { backgroundColor: '#E0E7FF' }]}>
-        <Ionicons name={dailyTip.icon as any} size={18} color="#4F46E5" />
+        <Ionicons name={dailyTip.icon as any} size={16} color="#4F46E5" />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={styles.tipTitle}>{dailyTip.title}</Text>
@@ -380,7 +380,7 @@ const HomeScreen = () => {
         {recommendedCourses.map((c) => (
           <TouchableOpacity key={c.id} style={styles.recoCard} activeOpacity={0.85} onPress={() => navigation.navigate('Courses')}>
             <View style={[styles.recoBadge, { backgroundColor: c.color }]}>
-              <Ionicons name="play" size={14} color="#fff" />
+              <Ionicons name="play" size={12} color="#fff" />
             </View>
             <Text style={styles.recoTitle} numberOfLines={2}>{c.title}</Text>
             <Text style={styles.recoSub}>{c.level}</Text>
@@ -403,7 +403,7 @@ const HomeScreen = () => {
               <Text style={styles.marketName}>{s.name}</Text>
               <Text style={[styles.marketChange, { color: s.up ? '#059669' : '#DC2626' }]}>{s.change}</Text>
             </View>
-            <Ionicons name={s.up ? 'trending-up' : 'trending-down'} size={18} color={s.up ? '#059669' : '#DC2626'} />
+            <Ionicons name={s.up ? 'trending-up' : 'trending-down'} size={16} color={s.up ? '#059669' : '#DC2626'} />
           </View>
         ))}
       </View>
@@ -413,13 +413,13 @@ const HomeScreen = () => {
   const renderCTA = () => (
     <TouchableOpacity activeOpacity={0.9} style={styles.bigCTA} onPress={() => navigation.navigate('Courses')}>
       <View style={styles.ctaLeft}>
-        <Ionicons name="sparkles" size={20} color="#fff" />
+        <Ionicons name="sparkles" size={18} color="#fff" />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={styles.bigCTATitle}>Continue Learning</Text>
         <Text style={styles.bigCTASub}>Pick up where you left off in Technical Analysis</Text>
       </View>
-      <View style={styles.ctaRight}><Ionicons name="arrow-forward" size={18} color="#fff" /></View>
+      <View style={styles.ctaRight}><Ionicons name="arrow-forward" size={16} color="#fff" /></View>
     </TouchableOpacity>
   );
 
@@ -461,92 +461,92 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   welcomeSection: {
-    margin: 16,
+    margin: 12,
     backgroundColor: '#0891B2',
-    borderRadius: 20,
-    padding: 24,
+    borderRadius: 16,
+    padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 6,
   },
   statRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
-    gap: 12,
+    marginBottom: 12,
+    gap: 8,
   },
   statCard: {
     flex: 1,
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
     alignItems: 'center',
-    minHeight: 80,
+    minHeight: 60,
   },
   statIcon: { 
-    width: 32, 
-    height: 32, 
-    borderRadius: 10, 
+    width: 24, 
+    height: 24, 
+    borderRadius: 8, 
     alignItems: 'center', 
     justifyContent: 'center', 
-    marginBottom: 8 
+    marginBottom: 6 
   },
   statValue: { 
     color: '#fff', 
     fontWeight: '800', 
-    fontSize: 18,
+    fontSize: 16,
     marginBottom: 2,
   },
   statLabel: { 
     color: 'rgba(255,255,255,0.9)', 
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
   },
   heroAccentCircle: {
     position: 'absolute',
-    left: -20,
-    top: -20,
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+    left: -16,
+    top: -16,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: 'rgba(255,255,255,0.08)'
   },
   welcomeHeader: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   profileImage: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 3,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.3)',
-    marginRight: 16,
+    marginRight: 12,
   },
   welcomeText: {
     flex: 1,
   },
   welcomeTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: 'white',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   welcomeSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#CFFAFE',
     fontWeight: '500',
   },
   progressContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 12,
+    padding: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
@@ -554,155 +554,158 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   progressLabel: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#CFFAFE',
     fontWeight: '600',
   },
   progressPercentage: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: 'white',
   },
   progressBarBackground: {
     width: '100%',
-    height: 10,
+    height: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    borderRadius: 5,
+    borderRadius: 4,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
     backgroundColor: 'white',
-    borderRadius: 5,
+    borderRadius: 4,
   },
   progressMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 12,
-    gap: 8,
+    marginTop: 10,
+    gap: 6,
   },
   progressPill: {
     backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
+    flex: 1,
+    alignItems: 'center',
   },
   progressPillText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
+    textAlign: 'center',
   },
   quickAccessSection: {
-    margin: 16,
-    marginTop: 8,
+    margin: 12,
+    marginTop: 6,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: '#1F2937',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   quickAccessCard: {
-    width: (width - 64) / 2,
+    width: (width - 48) / 2,
     backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
   quickAccessIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   quickAccessTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#1F2937',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   quickAccessSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#6B7280',
-    marginBottom: 16,
-    lineHeight: 18,
+    marginBottom: 12,
+    lineHeight: 16,
   },
   quickAccessBadge: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     backgroundColor: '#F9FAFB',
-    borderRadius: 12,
+    borderRadius: 10,
     alignSelf: 'flex-start',
   },
   learningPathSection: {
-    margin: 16,
-    marginTop: 8,
+    margin: 12,
+    marginTop: 6,
     backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 24,
+    borderRadius: 16,
+    padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
   learningPathList: {
-    gap: 20,
+    gap: 12,
   },
   learningPathItem: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   learningPathIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 20,
+    marginRight: 12,
   },
   learningPathContent: {
     flex: 1,
   },
   learningPathTitle: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   learningPathDescription: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '500',
   },
   portfolioSection: {
-    margin: 16,
-    marginTop: 8,
+    margin: 12,
+    marginTop: 6,
     backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 24,
+    borderRadius: 16,
+    padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
@@ -710,173 +713,173 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 12,
   },
   portfolioProfit: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#059669',
     backgroundColor: '#DCFCE7',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
   portfolioStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 16,
+    gap: 8,
   },
   portfolioStat: {
     alignItems: 'center',
     flex: 1,
     backgroundColor: '#F9FAFB',
-    padding: 16,
-    borderRadius: 16,
+    padding: 10,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
   portfolioValue: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '800',
     color: '#1F2937',
-    marginBottom: 6,
+    marginBottom: 3,
   },
   portfolioProfitValue: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '800',
     color: '#059669',
-    marginBottom: 6,
+    marginBottom: 3,
   },
   portfolioLabel: {
-    fontSize: 13,
+    fontSize: 11,
     color: '#6B7280',
     fontWeight: '500',
   },
   achievementsSection: {
-    margin: 16,
-    marginTop: 8,
-    marginBottom: 24,
+    margin: 12,
+    marginTop: 6,
+    marginBottom: 16,
   },
   achievementsContainer: {
-    minHeight: 120,
+    minHeight: 90,
   },
   achievementsScrollContainer: {
-    paddingRight: 16,
+    paddingRight: 12,
     paddingLeft: 4,
   },
   achievementCard: {
     backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 20,
-    marginRight: 16,
+    borderRadius: 14,
+    padding: 14,
+    marginRight: 10,
     alignItems: 'center',
-    minWidth: 140,
+    minWidth: 110,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 3,
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
   achievementIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   achievementTitle: {
-    fontSize: 15,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#374151',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 16,
   },
   tipCard: {
-    marginHorizontal: 16,
-    marginTop: 8,
+    marginHorizontal: 12,
+    marginTop: 6,
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 14,
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 3,
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
   tipIconWrap: { 
-    width: 44, 
-    height: 44, 
-    borderRadius: 12, 
+    width: 36, 
+    height: 36, 
+    borderRadius: 8, 
     alignItems: 'center', 
     justifyContent: 'center' 
   },
   tipTitle: { 
-    fontSize: 13, 
+    fontSize: 11, 
     color: '#6B7280', 
     fontWeight: '700',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   tipText: { 
-    fontSize: 14, 
+    fontSize: 12, 
     color: '#1F2937', 
-    lineHeight: 20,
+    lineHeight: 16,
   },
   recommendedSection: { 
-    margin: 16, 
-    marginTop: 8 
+    margin: 12, 
+    marginTop: 6 
   },
   recommendedScrollContainer: {
-    paddingRight: 16,
+    paddingRight: 12,
     paddingLeft: 4,
   },
   recoCard: {
-    width: 220,
+    width: 180,
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
-    marginRight: 16,
+    borderRadius: 14,
+    padding: 14,
+    marginRight: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 3,
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
   recoBadge: { 
-    width: 32, 
-    height: 32, 
-    borderRadius: 8, 
+    width: 24, 
+    height: 24, 
+    borderRadius: 5, 
     alignItems: 'center', 
     justifyContent: 'center', 
-    marginBottom: 12 
+    marginBottom: 8 
   },
   recoTitle: { 
-    fontSize: 16, 
+    fontSize: 14, 
     fontWeight: '700', 
     color: '#111827',
-    marginBottom: 6,
-    lineHeight: 22,
+    marginBottom: 3,
+    lineHeight: 18,
   },
   recoSub: { 
-    fontSize: 13, 
+    fontSize: 11, 
     color: '#6B7280', 
-    marginBottom: 16,
+    marginBottom: 10,
     fontWeight: '500',
   },
   recoTrack: { 
-    height: 8, 
+    height: 5, 
     backgroundColor: '#E5E7EB', 
     borderRadius: 999, 
-    marginBottom: 8,
+    marginBottom: 5,
     overflow: 'hidden',
   },
   recoFill: { 
@@ -884,70 +887,70 @@ const styles = StyleSheet.create({
     borderRadius: 999 
   },
   recoHint: { 
-    fontSize: 12, 
+    fontSize: 10, 
     color: '#6B7280',
     fontWeight: '500',
   },
   marketSection: { 
-    margin: 16, 
-    marginTop: 8, 
+    margin: 12, 
+    marginTop: 6, 
     backgroundColor: '#FFFFFF', 
-    borderRadius: 20, 
-    padding: 20, 
-    elevation: 6, 
+    borderRadius: 14, 
+    padding: 14, 
+    elevation: 3, 
     shadowColor: '#000', 
-    shadowOpacity: 0.1, 
-    shadowRadius: 12, 
-    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06, 
+    shadowRadius: 6, 
+    shadowOffset: { width: 0, height: 2 },
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
   marketList: { 
-    marginTop: 8 
+    marginTop: 5 
   },
   marketItem: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    paddingVertical: 16, 
+    paddingVertical: 10, 
     borderBottomWidth: StyleSheet.hairlineWidth, 
     borderBottomColor: '#E5E7EB' 
   },
   marketSymbolWrap: { 
-    width: 60 
+    width: 52 
   },
   marketSymbol: { 
     fontWeight: '800', 
     color: '#111827',
-    fontSize: 16,
+    fontSize: 14,
   },
   marketName: { 
-    fontSize: 13, 
+    fontSize: 11, 
     color: '#6B7280',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   marketChange: { 
-    fontSize: 14, 
+    fontSize: 12, 
     fontWeight: '700',
   },
   bigCTA: { 
-    marginHorizontal: 16, 
+    marginHorizontal: 12, 
     backgroundColor: '#4F46E5', 
-    borderRadius: 20, 
-    padding: 20, 
+    borderRadius: 14, 
+    padding: 14, 
     flexDirection: 'row', 
     alignItems: 'center', 
-    gap: 16, 
-    marginTop: 8,
+    gap: 10, 
+    marginTop: 6,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
   },
   ctaLeft: { 
-    width: 44, 
-    height: 44, 
-    borderRadius: 12, 
+    width: 36, 
+    height: 36, 
+    borderRadius: 8, 
     backgroundColor: 'rgba(255,255,255,0.2)', 
     alignItems: 'center', 
     justifyContent: 'center' 
@@ -955,24 +958,24 @@ const styles = StyleSheet.create({
   bigCTATitle: { 
     color: '#FFFFFF', 
     fontWeight: '800',
-    fontSize: 18,
-    marginBottom: 4,
+    fontSize: 15,
+    marginBottom: 2,
   },
   bigCTASub: { 
     color: 'rgba(255,255,255,0.9)', 
-    fontSize: 14, 
-    lineHeight: 20,
+    fontSize: 12, 
+    lineHeight: 16,
   },
   ctaRight: { 
-    width: 32, 
-    height: 32, 
-    borderRadius: 10, 
+    width: 24, 
+    height: 24, 
+    borderRadius: 6, 
     backgroundColor: 'rgba(255,255,255,0.2)', 
     alignItems: 'center', 
     justifyContent: 'center' 
   },
   bottomSpacing: {
-    height: 100,
+    height: 60,
   },
 });
 

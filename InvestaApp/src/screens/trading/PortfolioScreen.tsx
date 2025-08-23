@@ -42,27 +42,7 @@ const PortfolioScreen = () => {
   const renderHeader = () => (
     <View style={styles.header}>
       <MainHeader title="Portfolio" iconName="wallet" showBackButton onBackPress={() => navigation.navigate('Trading')} />
-      <View style={styles.headerTop}>
-        <View style={styles.profileSection}>
-          <Image
-            source={{ uri: 'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg' }}
-            style={styles.profileImage}
-          />
-          <View style={styles.profileInfo}>
-            <Text style={styles.headerTitle}>Portfolio</Text>
-            <Text style={styles.welcomeText}>Welcome back, Sarah</Text>
-          </View>
-        </View>
-        <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.trophyButton}>
-            <Ionicons name="trophy" size={16} color="#6366F1" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.notificationButton}>
-            <Ionicons name="notifications" size={20} color="#9CA3AF" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
+      
       <View style={styles.portfolioSummary}>
         <View style={styles.summaryHeader}>
           <View>
@@ -249,48 +229,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-    paddingHorizontal: 16,
-  },
-  profileSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  profileImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  profileInfo: {
-    gap: 4,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  welcomeText: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  trophyButton: {
-    backgroundColor: '#EEF2FF',
-    padding: 8,
-    borderRadius: 20,
-  },
-  notificationButton: {
-    padding: 4,
-  },
   portfolioSummary: {
     backgroundColor: '#6366F1',
     borderRadius: 16,
@@ -300,6 +238,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     marginHorizontal: 16,
+    marginTop: 16,
   },
   summaryHeader: {
     flexDirection: 'row',

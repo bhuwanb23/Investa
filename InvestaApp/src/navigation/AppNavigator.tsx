@@ -23,6 +23,9 @@ import TradingScreen from '../screens/main/TradingScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 import ProgressScreen from '../screens/main/ProgressScreen';
 
+// Settings Components
+import { PrivacySettings, SecuritySettings, TwoFactorAuth } from '../components';
+
 // Course Screens
 import CourseDetailScreen from '../screens/courses/CourseDetailScreen';
 import LessonDetailScreen from '../screens/courses/LessonDetailScreen';
@@ -101,6 +104,10 @@ export type MainStackParamList = {
   OrderHistory: undefined;
   Leaderboard: undefined;
   Notifications: undefined;
+  // Settings Navigation
+  PrivacySettings: undefined;
+  SecuritySettings: undefined;
+  TwoFactorAuth: undefined;
 };
 
 const AuthStack = createStackNavigator<AuthStackParamList>();
@@ -208,6 +215,22 @@ const MainStackNavigator = () => {
         name="Notifications" 
         component={NotificationsScreen}
         options={{ title: 'Notifications', headerShown: false }}
+      />
+      {/* Settings Screens */}
+      <MainStack.Screen 
+        name="PrivacySettings" 
+        component={PrivacySettings}
+        options={{ title: 'Privacy Settings', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="SecuritySettings" 
+        component={SecuritySettings}
+        options={{ title: 'Security Settings', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="TwoFactorAuth" 
+        component={TwoFactorAuth}
+        options={{ title: 'Two-Factor Authentication', headerShown: false }}
       />
       {/* Trading Screens */}
       <MainStack.Screen 

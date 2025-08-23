@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,9 +8,7 @@ type Props = {
   title: string;
   iconName: keyof typeof Ionicons.glyphMap | any;
   onNotificationsPress?: () => void;
-  onProfilePress?: () => void;
   showBadge?: boolean;
-  avatarUri?: string;
   showBackButton?: boolean;
   onBackPress?: () => void;
 };
@@ -21,9 +19,7 @@ const MainHeader: React.FC<Props> = ({
   title,
   iconName,
   onNotificationsPress,
-  onProfilePress,
   showBadge = true,
-  avatarUri = 'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg',
   showBackButton = false,
   onBackPress,
 }) => {
@@ -52,11 +48,8 @@ const MainHeader: React.FC<Props> = ({
             onPress={onNotificationsPress || (() => navigation.navigate('Notifications'))}
             style={styles.actionIcon}
           >
-            <Ionicons name="notifications" size={20} color="#6B7280" />
+            <Ionicons name="notifications" size={24} color="#374151" />
             {showBadge && <View style={styles.badge} />}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onProfilePress}>
-            <Image source={{ uri: avatarUri }} style={styles.avatar} />
           </TouchableOpacity>
         </View>
       </View>
@@ -104,7 +97,6 @@ const styles = StyleSheet.create({
   },
   actionIcon: {
     position: 'relative',
-    marginRight: 12,
   },
   badge: {
     position: 'absolute',
@@ -114,11 +106,6 @@ const styles = StyleSheet.create({
     height: 10,
     backgroundColor: '#EF4444',
     borderRadius: 5,
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
   },
 });
 

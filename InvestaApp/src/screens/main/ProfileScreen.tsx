@@ -10,8 +10,9 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import MainHeader from '../../components/MainHeader';
+import { MainHeader } from '../../components';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -20,6 +21,7 @@ const TEXT_MUTED = '#6b7280';
 
 const ProfileScreen = () => {
   const { logout, user } = useAuth();
+  const navigation = useNavigation();
 
   const handleLogout = async () => {
     try {
@@ -30,6 +32,41 @@ const ProfileScreen = () => {
     } catch (error) {
       console.error('❌ ProfileScreen: Error during logout:', error);
     }
+  };
+
+  const handleSettingPress = (settingType: string) => {
+    switch (settingType) {
+      case 'notifications':
+        navigation.navigate('Notifications' as never);
+        break;
+      case 'privacy':
+        navigation.navigate('PrivacySettings' as never);
+        break;
+      case 'security':
+        navigation.navigate('SecuritySettings' as never);
+        break;
+      case 'twoFactor':
+        navigation.navigate('TwoFactorAuth' as never);
+        break;
+      default:
+        console.log('Unknown setting type:', settingType);
+    }
+  };
+
+  const handleUpdateProfile = () => {
+    Alert.alert(
+      'Update Profile',
+      'Profile update functionality will be implemented here',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleResetPassword = () => {
+    Alert.alert(
+      'Reset Password',
+      'Password reset functionality will be implemented here',
+      [{ text: 'OK' }]
+    );
   };
 
   return (
@@ -194,11 +231,16 @@ const ProfileScreen = () => {
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Settings</Text>
             {[
-              { label: 'Notifications', iconBg: '#DBEAFE', iconColor: PRIMARY, icon: 'notifications' },
-              { label: 'Privacy', iconBg: '#F5F3FF', iconColor: '#a855f7', icon: 'shield' },
-              { label: 'Security', iconBg: '#FEE2E2', iconColor: '#ef4444', icon: 'lock-closed' },
+              { label: 'Notifications', iconBg: '#DBEAFE', iconColor: PRIMARY, icon: 'notifications', type: 'notifications' },
+              { label: 'Privacy', iconBg: '#F5F3FF', iconColor: '#a855f7', icon: 'shield', type: 'privacy' },
+              { label: 'Security', iconBg: '#FEE2E2', iconColor: '#ef4444', icon: 'lock-closed', type: 'security' },
             ].map((s, idx) => (
-              <Pressable key={idx} style={styles.settingRow} android_ripple={{ color: '#f3f4f6' }}>
+              <Pressable 
+                key={idx} 
+                style={styles.settingRow} 
+                android_ripple={{ color: '#f3f4f6' }}
+                onPress={() => handleSettingPress(s.type)}
+              >
                 <View style={styles.settingLeft}>
                   <View style={[styles.settingIconBox, { backgroundColor: s.iconBg }]}>
                     <Ionicons name={s.icon as any} size={16} color={s.iconColor as any} />
@@ -208,7 +250,11 @@ const ProfileScreen = () => {
                 <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
               </Pressable>
             ))}
-            <View style={styles.settingRow}>
+            <Pressable 
+              style={styles.settingRow} 
+              android_ripple={{ color: '#f3f4f6' }}
+              onPress={() => handleSettingPress('twoFactor')}
+            >
               <View style={styles.settingLeft}>
                 <View style={[styles.settingIconBox, { backgroundColor: '#DCFCE7' }]}>
                   <Ionicons name="key" size={16} color="#10b981" />
@@ -218,15 +264,15 @@ const ProfileScreen = () => {
               <View style={styles.toggleTrack}>
                 <View style={styles.toggleThumb} />
               </View>
-            </View>
+            </Pressable>
           </View>
 
           {/* Actions */}
           <View style={{ marginTop: 12, marginBottom: 20 }}>
-            <Pressable style={styles.primaryBtn} android_ripple={{ color: '#4338ca' }}>
+            <Pressable style={styles.primaryBtn} android_ripple={{ color: '#4338ca' }} onPress={handleUpdateProfile}>
               <Text style={styles.primaryBtnText}>Update Profile</Text>
             </Pressable>
-            <Pressable style={styles.secondaryBtn} android_ripple={{ color: '#e5e7eb' }}>
+            <Pressable style={styles.secondaryBtn} android_ripple={{ color: '#e5e7eb' }} onPress={handleResetPassword}>
               <Text style={styles.secondaryBtnText}>Reset Password</Text>
             </Pressable>
             <Pressable style={styles.logoutBtn} android_ripple={{ color: '#fee2e2' }} onPress={handleLogout}>

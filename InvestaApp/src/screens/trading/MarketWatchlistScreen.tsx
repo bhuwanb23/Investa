@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -33,14 +33,14 @@ type NavigationProp = {
 
 const MarketWatchlistScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const {
     stocks,
-    searchQuery,
-    selectedCategory,
     searchStocks,
     toggleFavorite,
     getStocksByCategory,
-    setSelectedCategory,
+    setSelectedCategory: setCategoryFromHook,
   } = useTradingData();
 
   const handleStockPress = (stock: any) => {
@@ -52,13 +52,33 @@ const MarketWatchlistScreen = () => {
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
+    setCategoryFromHook(category);
   };
 
   const handleSearchClear = () => {
+    setSearchQuery('');
     searchStocks('');
   };
 
-  const filteredStocks = getStocksByCategory(selectedCategory);
+  const handleSearchChange = (text: string) => {
+    setSearchQuery(text);
+    searchStocks(text);
+  };
+
+  const getFilteredStocks = () => {
+    let filtered = getStocksByCategory(selectedCategory);
+    
+    if (searchQuery.trim()) {
+      filtered = filtered.filter((stock: any) =>
+        stock.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        stock.symbol.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    return filtered;
+  };
+
+  const filteredStocks = getFilteredStocks();
 
   const renderStockItem = ({ item }: { item: any }) => (
     <StockCard
@@ -85,7 +105,7 @@ const MarketWatchlistScreen = () => {
         <MainHeader title="Watchlist" iconName="trending-up" showBackButton onBackPress={() => navigation.navigate('Trading')} />
         <SearchBar
           value={searchQuery}
-          onChangeText={searchStocks}
+          onChangeText={handleSearchChange}
           onClear={handleSearchClear}
         />
       </View>
