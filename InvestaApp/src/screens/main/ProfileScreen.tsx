@@ -73,6 +73,18 @@ const ProfileScreen = () => {
       console.log('🔐 ProfileScreen: User is not authenticated, skipping profile fetch');
     }
   }, [fetchProfile, user]);
+  
+  // Debug logging for development
+  useEffect(() => {
+    if (__DEV__) {
+      console.log('🔐 ProfileScreen: Profile state:', { 
+        hasProfile: !!profile, 
+        isLoading, 
+        error,
+        profileKeys: profile ? Object.keys(profile) : 'N/A'
+      });
+    }
+  }, [profile, isLoading, error]);
 
   // Clear error when component unmounts
   useEffect(() => {
@@ -170,7 +182,7 @@ const ProfileScreen = () => {
               <Text style={styles.profileName}>
                 {profile?.user?.first_name && profile?.user?.last_name 
                   ? `${profile.user.first_name} ${profile.user.last_name}`
-                  : profile?.user?.username || 'User'
+                  : profile?.user?.username || user?.username || 'User'
                 }
               </Text>
               <View style={styles.levelPill}>
@@ -196,7 +208,7 @@ const ProfileScreen = () => {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.detailLabel}>Email</Text>
-                <Text style={styles.detailValue}>{profile?.user?.email || 'Not set'}</Text>
+                <Text style={styles.detailValue}>{profile?.user?.email || user?.email || 'Not set'}</Text>
               </View>
             </View>
             <View style={styles.detailRow}>

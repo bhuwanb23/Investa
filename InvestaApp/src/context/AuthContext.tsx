@@ -2,6 +2,20 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authApi, AuthResponse, api } from '../services';
 
+/*
+ * DEVELOPMENT MODE AUTHENTICATION
+ * 
+ * This context is currently set to use fake authentication for development.
+ * To switch back to real backend authentication:
+ * 
+ * 1. Set USE_FAKE_AUTH = false in this file
+ * 2. Uncomment the token interceptor code in src/services/api.ts
+ * 3. Make sure your Django backend is running on port 8000
+ * 4. Update the API base URL in src/config/config.ts
+ * 
+ * Test credentials for development: test@example.com / test123
+ */
+
 interface User {
   id: number;
   username: string;
@@ -29,7 +43,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   // Temporary: offline auth mode to bypass backend
-  const USE_FAKE_AUTH = false; // Set to false to use real API - IMPORTANT: Keep this false for real backend
+  const USE_FAKE_AUTH = true; // Set to true for development without backend - Set to false when backend is ready
 
   const checkAuthStatus = async () => {
     try {
@@ -40,9 +54,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔐 AuthContext: Stored token:', storedToken ? storedToken.substring(0, 20) + '...' : 'None');
       console.log('🔐 AuthContext: Stored user:', storedUser ? 'Found' : 'None');
       
-      // Clear fake tokens (dev-token)
-      if (storedToken === 'dev-token') {
-        console.log('🔐 AuthContext: Found fake token, clearing storage...');
+      // Keep fake tokens for development
+      if (storedToken === 'dev-token' && __DEV__) {
+        console.log('🔐 AuthContext: Found development token, keeping it...');
+        const userData = JSON.parse(storedUser || '{}');
+        setToken(storedToken);
+        setUser(userData);
+        return;
+      }
+      
+      // Clear old fake tokens (non-dev environment)
+      if (storedToken === 'dev-token' && !__DEV__) {
+        console.log('🔐 AuthContext: Found fake token in production, clearing storage...');
         await AsyncStorage.removeItem('authToken');
         await AsyncStorage.removeItem('user');
         console.log('🔐 AuthContext: Fake token cleared');
@@ -90,7 +113,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
           setToken(fakeToken);
           setUser(userData);
-          return { success: true, message: 'Login successful (offline).' };
+          console.log('🔐 AuthContext: Fake authentication successful');
+          return { success: true, message: 'Login successful (development mode).' };
         }
         return { success: false, message: 'Invalid test credentials. Use test@example.com / test123.' };
       }

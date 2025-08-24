@@ -66,6 +66,10 @@ function resolveBaseUrl(): string {
   }
 
   // Production default (replace with your domain for real deployments)
+  // For development without backend, use a dummy URL
+  if (__DEV__) {
+    return 'http://localhost:3000/api/'; // Dummy URL for development
+  }
   return 'http://127.0.0.1:8000/api/';
 }
 

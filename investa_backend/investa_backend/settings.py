@@ -29,6 +29,9 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '10.0.2.2',
+    '192.168.31.67',
+    '0.0.0.0',
+    '*',
 ]
 
 
@@ -155,9 +158,26 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:19006",
     "http://localhost:8081",
     "http://127.0.0.1:8081",
+    "http://192.168.31.67:19006",
+    "http://192.168.31.67:3000",
+    "http://192.168.31.67:8081",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# Additional CORS settings for development
+CORS_ALLOW_ALL_ORIGINS = True  # Only for development!
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # Media files
 MEDIA_URL = '/media/'

@@ -29,20 +29,28 @@ if (__DEV__) {
   console.log('🔗 API base URL:', CONFIG.API.BASE_URL);
 }
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token (disabled for development)
 api.interceptors.request.use(
   async (config) => {
+    // Skip token requirement for development
+    if (__DEV__) {
+      console.log('🔐 API Request - Development mode, skipping token requirement');
+      console.log('🔐 API Request - URL:', config.url);
+    }
+    
+    // Uncomment this when you want to use real authentication
+    /*
     try {
       const token = await AsyncStorage.getItem('authToken');
       if (token) {
         config.headers.Authorization = `Token ${token}`;
-              if (__DEV__) {
-        console.log('🔐 API Request - Token found:', token.substring(0, 10) + '...');
-        console.log('🔐 API Request - URL:', config.url);
-        console.log('🔐 API Request - Headers:', JSON.stringify(config.headers, null, 2));
-        console.log('🔐 API Request - Method:', config.method);
-        console.log('🔐 API Request - Full Authorization header:', config.headers.Authorization);
-      }
+        if (__DEV__) {
+          console.log('🔐 API Request - Token found:', token.substring(0, 10) + '...');
+          console.log('🔐 API Request - URL:', config.url);
+          console.log('🔐 API Request - Headers:', JSON.stringify(config.headers, null, 2));
+          console.log('🔐 API Request - Method:', config.method);
+          console.log('🔐 API Request - Full Authorization header:', config.headers.Authorization);
+        }
       } else {
         if (__DEV__) {
           console.log('🔐 API Request - No token found');
@@ -52,6 +60,8 @@ api.interceptors.request.use(
     } catch (error) {
       console.error('Error getting auth token:', error);
     }
+    */
+    
     return config;
   },
   (error) => {
@@ -79,13 +89,18 @@ api.interceptors.response.use(
     
     if (error.response?.status === 401) {
       // Token expired or invalid - clear storage and redirect to login
-      try {
-        await AsyncStorage.removeItem('authToken');
-        await AsyncStorage.removeItem('user');
-        // You can emit an event here to notify the app about logout
-        console.log('🔐 Token expired, cleared storage');
-      } catch (storageError) {
-        console.error('Error clearing storage:', storageError);
+      // Disabled for development mode
+      if (!__DEV__) {
+        try {
+          await AsyncStorage.removeItem('authToken');
+          await AsyncStorage.removeItem('user');
+          // You can emit an event here to notify the app about logout
+          console.log('🔐 Token expired, cleared storage');
+        } catch (storageError) {
+          console.error('Error clearing storage:', storageError);
+        }
+      } else {
+        console.log('🔐 Development mode: Ignoring 401 error for token clearing');
       }
     }
     return Promise.reject(error);
