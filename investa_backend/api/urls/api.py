@@ -2,6 +2,10 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken.views import obtain_auth_token
 from .. import views
+from ..views.trading import (
+    StockViewSet, UserWatchlistViewSet, PortfolioViewSet, OrderViewSet,
+    TradeViewSet, TradingPerformanceViewSet, MarketDataViewSet, AchievementViewSet
+)
 
 router = DefaultRouter()
 router.register(r'languages', views.LanguageViewSet)
@@ -9,10 +13,19 @@ router.register(r'profiles', views.UserProfileViewSet, basename='profile')
 router.register(r'security-settings', views.SecuritySettingsViewSet, basename='security')
 router.register(r'privacy-settings', views.PrivacySettingsViewSet, basename='privacy')
 router.register(r'learning-progress', views.LearningProgressViewSet, basename='learning')
-router.register(r'trading-performance', views.TradingPerformanceViewSet, basename='trading')
+router.register(r'badges', views.BadgeViewSet, basename='badge')
 router.register(r'sessions', views.UserSessionViewSet, basename='session')
 router.register(r'notifications', views.NotificationViewSet, basename='notification')
-router.register(r'badges', views.BadgeViewSet, basename='badge')
+
+# Trading endpoints
+router.register(r'stocks', StockViewSet, basename='stock')
+router.register(r'watchlist', UserWatchlistViewSet, basename='watchlist')
+router.register(r'portfolio', PortfolioViewSet, basename='portfolio')
+router.register(r'orders', OrderViewSet, basename='order')
+router.register(r'trades', TradeViewSet, basename='trade')
+router.register(r'trading-performance', TradingPerformanceViewSet, basename='trading')
+router.register(r'market-data', MarketDataViewSet, basename='market')
+router.register(r'achievements', AchievementViewSet, basename='achievement')
 
 urlpatterns = [
     # API endpoints

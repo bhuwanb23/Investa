@@ -3,7 +3,9 @@ from django.utils.html import format_html
 from .models import (
     Language, UserProfile, SecuritySettings, PrivacySettings, 
     LearningProgress, TradingPerformance, UserSession, Notification,
-    Badge, UserBadge
+    Badge, UserBadge, Stock, StockPrice, UserWatchlist, Portfolio,
+    PortfolioHolding, Order, Trade, TradingSession, MarketData,
+    TechnicalIndicator, Achievement, UserAchievement
 )
 
 
@@ -46,12 +48,117 @@ class LearningProgressAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at', 'updated_at', 'last_activity', 'completion_percentage']
 
 
+@admin.register(Stock)
+class StockAdmin(admin.ModelAdmin):
+    list_display = ['symbol', 'name', 'exchange', 'sector', 'is_active', 'created_at']
+    list_filter = ['exchange', 'sector', 'is_active', 'created_at']
+    search_fields = ['symbol', 'name', 'sector']
+    readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(StockPrice)
+class StockPriceAdmin(admin.ModelAdmin):
+    list_display = ['stock', 'date', 'close_price', 'volume', 'change_percentage']
+    list_filter = ['date', 'stock__exchange']
+    search_fields = ['stock__symbol', 'stock__name']
+    readonly_fields = ['created_at']
+    
+    def change_percentage(self, obj):
+        if obj.stock.prices.count() > 1:
+            prev_price = obj.stock.prices.filter(date__lt=obj.date).first()
+            if prev_price:
+                change = ((obj.close_price - prev_price.close_price) / prev_price.close_price) * 100
+                return f"{change:.2f}%"
+        return "N/A"
+    change_percentage.short_description = "Change %"
+
+
+@admin.register(UserWatchlist)
+class UserWatchlistAdmin(admin.ModelAdmin):
+    list_display = ['user', 'stock', 'added_at']
+    list_filter = ['added_at', 'stock__exchange']
+    search_fields = ['user__username', 'stock__symbol']
+    readonly_fields = ['added_at']
+
+
+@admin.register(Portfolio)
+class PortfolioAdmin(admin.ModelAdmin):
+    list_display = ['user', 'total_value', 'total_invested', 'total_profit_loss', 'total_return_percentage', 'cash_balance']
+    list_filter = ['created_at', 'updated_at']
+    search_fields = ['user__username', 'user__email']
+    readonly_fields = ['created_at', 'updated_at', 'total_return_percentage']
+
+
+@admin.register(PortfolioHolding)
+class PortfolioHoldingAdmin(admin.ModelAdmin):
+    list_display = ['portfolio', 'stock', 'quantity', 'average_price', 'market_value', 'return_percentage']
+    list_filter = ['created_at', 'updated_at']
+    search_fields = ['portfolio__user__username', 'stock__symbol']
+    readonly_fields = ['created_at', 'updated_at', 'return_percentage']
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ['user', 'stock', 'side', 'order_type', 'quantity', 'price', 'status', 'created_at']
+    list_filter = ['order_type', 'side', 'status', 'created_at', 'stock__exchange']
+    search_fields = ['user__username', 'stock__symbol', 'stock__name']
+    readonly_fields = ['created_at', 'updated_at', 'filled_at', 'is_completed', 'remaining_quantity']
+
+
+@admin.register(Trade)
+class TradeAdmin(admin.ModelAdmin):
+    list_display = ['user', 'stock', 'side', 'quantity', 'price', 'total_amount', 'executed_at']
+    list_filter = ['side', 'executed_at', 'stock__exchange']
+    search_fields = ['user__username', 'stock__symbol']
+    readonly_fields = ['executed_at']
+
+
 @admin.register(TradingPerformance)
 class TradingPerformanceAdmin(admin.ModelAdmin):
     list_display = ['user', 'portfolio_value', 'portfolio_growth_percentage', 'total_trades', 'successful_trades', 'success_rate']
     list_filter = ['created_at', 'updated_at']
     search_fields = ['user__username', 'user__email']
     readonly_fields = ['created_at', 'updated_at', 'success_rate']
+
+
+@admin.register(TradingSession)
+class TradingSessionAdmin(admin.ModelAdmin):
+    list_display = ['user', 'start_time', 'end_time', 'trades_count', 'profit_loss', 'is_active']
+    list_filter = ['is_active', 'start_time']
+    search_fields = ['user__username']
+    readonly_fields = ['start_time']
+
+
+@admin.register(MarketData)
+class MarketDataAdmin(admin.ModelAdmin):
+    list_display = ['stock', 'current_price', 'change_percentage', 'volume', 'updated_at']
+    list_filter = ['updated_at', 'stock__exchange']
+    search_fields = ['stock__symbol', 'stock__name']
+    readonly_fields = ['updated_at']
+
+
+@admin.register(TechnicalIndicator)
+class TechnicalIndicatorAdmin(admin.ModelAdmin):
+    list_display = ['stock', 'indicator_name', 'value', 'signal', 'period', 'updated_at']
+    list_filter = ['indicator_name', 'signal', 'updated_at']
+    search_fields = ['stock__symbol', 'indicator_name']
+    readonly_fields = ['updated_at']
+
+
+@admin.register(Achievement)
+class AchievementAdmin(admin.ModelAdmin):
+    list_display = ['name', 'achievement_type', 'icon_name', 'color', 'criteria_value', 'created_at']
+    list_filter = ['achievement_type', 'created_at']
+    search_fields = ['name', 'description']
+    readonly_fields = ['created_at']
+
+
+@admin.register(UserAchievement)
+class UserAchievementAdmin(admin.ModelAdmin):
+    list_display = ['user', 'achievement', 'earned_at']
+    list_filter = ['earned_at', 'achievement__achievement_type']
+    search_fields = ['user__username', 'achievement__name']
+    readonly_fields = ['earned_at']
 
 
 @admin.register(UserSession)

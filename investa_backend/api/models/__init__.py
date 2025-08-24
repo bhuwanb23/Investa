@@ -4,7 +4,11 @@ from .user import Language, UserProfile
 from .security import SecuritySettings, UserSession
 from .privacy import PrivacySettings
 from .learning import LearningProgress, Badge, UserBadge
-from .trading import TradingPerformance
+from .trading import (
+    Stock, StockPrice, UserWatchlist, Portfolio, PortfolioHolding,
+    Order, Trade, TradingPerformance, TradingSession, MarketData,
+    TechnicalIndicator, Achievement, UserAchievement
+)
 from .notifications import Notification
 
 __all__ = [
@@ -25,7 +29,19 @@ __all__ = [
     'UserBadge',
     
     # Trading models
+    'Stock',
+    'StockPrice',
+    'UserWatchlist',
+    'Portfolio',
+    'PortfolioHolding',
+    'Order',
+    'Trade',
     'TradingPerformance',
+    'TradingSession',
+    'MarketData',
+    'TechnicalIndicator',
+    'Achievement',
+    'UserAchievement',
     
     # Notification models
     'Notification',

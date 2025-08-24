@@ -26,3 +26,12 @@ export type {
   Notification, 
   UnreadCountResponse 
 } from './notificationsApi';
+
+// Trading API
+export { default as tradingApi } from './tradingApi';
+export type {
+  Stock, StockPrice, MarketData, TechnicalIndicator, StockDetail,
+  Portfolio, PortfolioHolding, Order, Trade, TradingPerformance,
+  UserWatchlist, Achievement, UserAchievement, LeaderboardEntry,
+  MarketSummary, TopMovers, TradeSummary
+} from './tradingApi';
