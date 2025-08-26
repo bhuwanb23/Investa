@@ -204,15 +204,12 @@ const LeaderboardScreen = () => {
               style={styles.userAvatar}
             />
             <View style={styles.userDetails}>
-              <Text style={styles.userName}>{user.username}</Text>
+              <Text style={styles.userName} numberOfLines={1}>{user.username}</Text>
               <Text style={styles.leaderboardUserValue}>₹{user.totalValue}</Text>
             </View>
           </View>
           <View style={styles.leaderboardRight}>
             <Text style={styles.userReturnText}>+{user.totalReturn}</Text>
-            <TouchableOpacity style={styles.followButton}>
-              <Text style={styles.followButtonText}>Follow</Text>
-            </TouchableOpacity>
           </View>
         </Animated.View>
       ))}
@@ -453,11 +450,13 @@ const styles = StyleSheet.create({
   },
   leaderboardItem: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 16,
+    borderRadius: 10,
+    padding: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -469,7 +468,8 @@ const styles = StyleSheet.create({
   leaderboardLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
+    flexShrink: 1,
   },
   rankNumberSmall: {
     width: 32,
@@ -485,36 +485,35 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   userAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
   },
   userDetails: {
     gap: 4,
+    minWidth: 0,
+    flexShrink: 1,
   },
   userName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#111827',
+    minWidth: 0,
+    flexShrink: 1,
+    maxWidth: '100%',
   },
   leaderboardUserValue: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
   },
   leaderboardRight: {
     alignItems: 'flex-end',
+    marginLeft: 'auto',
   },
   userReturnText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#10B981',
-  },
-  followButton: {
-    marginTop: 4,
-  },
-  followButtonText: {
-    fontSize: 12,
-    color: '#3B82F6',
   },
   highlightsSection: {
     marginBottom: 12,
