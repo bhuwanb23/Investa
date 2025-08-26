@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..models import LearningProgress, Badge, UserBadge
+from ..models import LearningProgress, Badge, UserBadge, Course, Lesson, UserLessonProgress
 from .auth import UserSerializer
 
 
@@ -28,3 +28,29 @@ class UserBadgeSerializer(serializers.ModelSerializer):
         model = UserBadge
         fields = '__all__'
         read_only_fields = ['user', 'badge', 'earned_at']
+
+
+class LessonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lesson
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
+
+
+class CourseSerializer(serializers.ModelSerializer):
+    lessons = LessonSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Course
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
+
+
+class UserLessonProgressSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    lesson = LessonSerializer(read_only=True)
+
+    class Meta:
+        model = UserLessonProgress
+        fields = '__all__'
+        read_only_fields = ['user', 'lesson', 'started_at', 'completed_at']

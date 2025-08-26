@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from .user import Language
 
 
 class LearningProgress(models.Model):
@@ -25,6 +26,71 @@ class LearningProgress(models.Model):
     
     def __str__(self):
         return f"{self.user.username}'s Learning Progress"
+
+
+DIFFICULTY_LEVELS = [
+    ('beginner', 'Beginner'),
+    ('intermediate', 'Intermediate'),
+    ('advanced', 'Advanced'),
+]
+
+
+class Course(models.Model):
+    """Course metadata and structure"""
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    language = models.ForeignKey(Language, on_delete=models.PROTECT, related_name='courses')
+    difficulty_level = models.CharField(max_length=20, choices=DIFFICULTY_LEVELS, default='beginner')
+    estimated_duration = models.IntegerField(default=0, help_text="Estimated total minutes")
+    thumbnail = models.URLField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return self.title
+
+
+class Lesson(models.Model):
+    """Lessons within a course"""
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='lessons')
+    title = models.CharField(max_length=200)
+    content = models.TextField(blank=True)
+    video_url = models.URLField(null=True, blank=True)
+    order = models.IntegerField(default=0)
+    estimated_duration = models.IntegerField(default=0, help_text="Estimated minutes")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['course_id', 'order', 'id']
+
+    def __str__(self) -> str:
+        return f"{self.course.title} - {self.title}"
+
+
+class UserLessonProgress(models.Model):
+    """Per-user progress tracking for lessons"""
+    STATUS_CHOICES = [
+        ('locked', 'Locked'),
+        ('available', 'Available'),
+        ('progress', 'In Progress'),
+        ('completed', 'Completed'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='lesson_progress')
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='progress_records')
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default='available')
+    progress = models.PositiveIntegerField(default=0, help_text="0-100 percentage")
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = [('user', 'lesson')]
+
+    def __str__(self) -> str:
+        return f"{self.user.username} - {self.lesson.title} ({self.status})"
 
 
 class Badge(models.Model):

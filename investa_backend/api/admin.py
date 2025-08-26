@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.utils.html import format_html
 from .models import (
     Language, UserProfile, SecuritySettings, PrivacySettings, 
-    LearningProgress, TradingPerformance, UserSession, Notification,
+    LearningProgress, Course, Lesson, UserLessonProgress,
+    TradingPerformance, UserSession, Notification,
     Badge, UserBadge, Stock, StockPrice, UserWatchlist, Portfolio,
     PortfolioHolding, Order, Trade, TradingSession, MarketData,
     TechnicalIndicator, Achievement, UserAchievement
@@ -46,6 +47,29 @@ class LearningProgressAdmin(admin.ModelAdmin):
     list_filter = ['created_at', 'updated_at']
     search_fields = ['user__username', 'user__email']
     readonly_fields = ['created_at', 'updated_at', 'last_activity', 'completion_percentage']
+
+
+@admin.register(Course)
+class CourseAdmin(admin.ModelAdmin):
+    list_display = ['title', 'language', 'difficulty_level', 'estimated_duration', 'is_active', 'created_at']
+    list_filter = ['difficulty_level', 'is_active', 'language']
+    search_fields = ['title', 'description']
+    readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(Lesson)
+class LessonAdmin(admin.ModelAdmin):
+    list_display = ['title', 'course', 'order', 'estimated_duration', 'is_active']
+    list_filter = ['course', 'is_active']
+    search_fields = ['title', 'course__title']
+    readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(UserLessonProgress)
+class UserLessonProgressAdmin(admin.ModelAdmin):
+    list_display = ['user', 'lesson', 'status', 'progress', 'started_at', 'completed_at']
+    list_filter = ['status', 'started_at', 'completed_at']
+    search_fields = ['user__username', 'lesson__title', 'lesson__course__title']
 
 
 @admin.register(Stock)

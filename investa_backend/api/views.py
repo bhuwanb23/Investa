@@ -18,7 +18,10 @@ from .views.auth import CustomAuthToken, UserRegistrationView, MeView, LogoutVie
 from .views.user import LanguageViewSet, UserProfileViewSet
 from .views.security import SecuritySettingsViewSet, UserSessionViewSet
 from .views.privacy import PrivacySettingsViewSet
-from .views.learning import LearningProgressViewSet, BadgeViewSet
+from .views.learning import (
+    LearningProgressViewSet, BadgeViewSet, CourseViewSet,
+    LessonViewSet, UserLessonProgressViewSet
+)
 from .views.trading import TradingPerformanceViewSet
 from .views.notifications import NotificationViewSet
 from .views.console import index, dashboard, database_view, _build_model_entries
@@ -44,6 +47,9 @@ __all__ = [
     # Learning views
     'LearningProgressViewSet',
     'BadgeViewSet',
+    'CourseViewSet',
+    'LessonViewSet',
+    'UserLessonProgressViewSet',
     
     # Trading views
     'TradingPerformanceViewSet',

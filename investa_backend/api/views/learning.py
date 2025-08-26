@@ -2,9 +2,11 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..models import LearningProgress, Badge, UserBadge
+from django.utils import timezone
+from ..models import LearningProgress, Badge, UserBadge, Course, Lesson, UserLessonProgress
 from ..serializers import (
-    LearningProgressSerializer, BadgeSerializer, UserBadgeSerializer
+    LearningProgressSerializer, BadgeSerializer, UserBadgeSerializer,
+    CourseSerializer, LessonSerializer, UserLessonProgressSerializer
 )
 
 
@@ -58,3 +60,36 @@ class BadgeViewSet(viewsets.ReadOnlyModelViewSet):
         badges = Badge.objects.all()
         serializer = self.get_serializer(badges, many=True)
         return Response(serializer.data)
+
+
+class CourseViewSet(viewsets.ReadOnlyModelViewSet):
+    """List courses and retrieve details with lessons"""
+    queryset = Course.objects.prefetch_related('lessons').all()
+    serializer_class = CourseSerializer
+    permission_classes = [permissions.AllowAny]
+
+
+class LessonViewSet(viewsets.ReadOnlyModelViewSet):
+    """Retrieve lesson details"""
+    queryset = Lesson.objects.select_related('course').all()
+    serializer_class = LessonSerializer
+    permission_classes = [permissions.AllowAny]
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def mark_completed(self, request, pk=None):
+        lesson = self.get_object()
+        progress, _ = UserLessonProgress.objects.get_or_create(user=request.user, lesson=lesson)
+        progress.status = 'completed'
+        progress.progress = 100
+        progress.completed_at = timezone.now()
+        progress.save(update_fields=['status', 'progress', 'completed_at'])
+        return Response({'detail': 'Lesson marked as completed'})
+
+
+class UserLessonProgressViewSet(viewsets.ReadOnlyModelViewSet):
+    """Current user's lesson progress"""
+    serializer_class = UserLessonProgressSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return UserLessonProgress.objects.filter(user=self.request.user).select_related('lesson__course', 'user')

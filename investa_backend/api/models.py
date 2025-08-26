@@ -2,7 +2,7 @@
 from .models.user import Language, UserProfile
 from .models.security import SecuritySettings, UserSession
 from .models.privacy import PrivacySettings
-from .models.learning import LearningProgress, Badge, UserBadge
+from .models.learning import LearningProgress, Badge, UserBadge, Course, Lesson, UserLessonProgress
 from .models.trading import (
     Stock, StockPrice, UserWatchlist, Portfolio, PortfolioHolding,
     Order, Trade, TradingPerformance, TradingSession, MarketData,
@@ -24,6 +24,9 @@ __all__ = [
     
     # Learning models
     'LearningProgress',
+    'Course',
+    'Lesson',
+    'UserLessonProgress',
     'Badge',
     'UserBadge',
     

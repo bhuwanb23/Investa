@@ -3,7 +3,10 @@
 from .user import LanguageSerializer, UserProfileSerializer, UserProfileDetailSerializer, ProfileUpdateSerializer, CompleteProfileSerializer
 from .security import SecuritySettingsSerializer, SecuritySettingsUpdateSerializer, UserSessionSerializer
 from .privacy import PrivacySettingsSerializer, PrivacySettingsUpdateSerializer
-from .learning import LearningProgressSerializer, BadgeSerializer, UserBadgeSerializer
+from .learning import (
+    LearningProgressSerializer, BadgeSerializer, UserBadgeSerializer,
+    CourseSerializer, LessonSerializer, UserLessonProgressSerializer
+)
 from .trading import TradingPerformanceSerializer
 from .notifications import NotificationSerializer
 from .auth import UserSerializer, UserRegistrationSerializer
@@ -31,6 +34,9 @@ __all__ = [
     
     # Learning serializers
     'LearningProgressSerializer',
+    'CourseSerializer',
+    'LessonSerializer',
+    'UserLessonProgressSerializer',
     'BadgeSerializer',
     'UserBadgeSerializer',
     
