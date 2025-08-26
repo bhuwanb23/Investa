@@ -10,7 +10,7 @@ const DownloadsScreen: React.FC = () => {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={{ paddingBottom: 16 }} stickyHeaderIndices={[0]}>
         <MainHeader title="Downloads" iconName="download" showBackButton onBackPress={() => navigation.goBack()} />
-        <View style={{ flex: 1, marginHorizontal: 12 }}>
+        <View style={{ flex: 1 }}>
           <DownloadsContent />
         </View>
       </ScrollView>

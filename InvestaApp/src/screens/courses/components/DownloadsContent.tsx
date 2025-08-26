@@ -82,7 +82,7 @@ const DownloadsContent: React.FC = () => {
                   <Ionicons name={icon.name as any} size={18} color={icon.color} />
                 </View>
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <View style={styles.rowBetween}>
+                  <View style={styles.itemHeaderRow}>
                     <Text style={styles.itemTitle} numberOfLines={1}>{item.title}</Text>
                     <View style={[styles.statusPill, { backgroundColor: statusBg }]}> 
                       <View style={[styles.dot, { backgroundColor: statusColor }]} />
@@ -90,7 +90,7 @@ const DownloadsContent: React.FC = () => {
                     </View>
                   </View>
                   <Text style={styles.itemSubtitle} numberOfLines={1}>{item.subtitle}</Text>
-                  <View style={styles.rowBetween}>
+                  <View style={styles.rowBetweenWrap}>
                     <Text style={styles.metaText}>{item.size} • Downloaded {item.downloadedAgo}</Text>
                     <TouchableOpacity onPress={() => removeItem(item.id)}>
                       <Text style={{ color: '#EF4444', fontSize: 12, fontWeight: '700' }}>Remove</Text>
@@ -130,6 +130,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1,
   },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  rowBetweenWrap: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 as any },
   rowCenter: { flexDirection: 'row', alignItems: 'center', gap: 8 as any },
   cardTitle: { marginLeft: 8, fontSize: 13, fontWeight: '700', color: TEXT_DARK },
   cardHint: { fontSize: 11, color: TEXT_MUTED },
@@ -145,11 +146,12 @@ const styles = StyleSheet.create({
 
   itemCard: { backgroundColor: CARD_BG, borderWidth: 1, borderColor: BORDER, marginHorizontal: 16, marginTop: 12, borderRadius: 16, padding: 14 },
   itemRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 as any },
+  itemHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 as any, flexWrap: 'wrap' },
   itemIcon: { width: 48, height: 48, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  itemTitle: { fontSize: 14, fontWeight: '700', color: TEXT_DARK },
+  itemTitle: { fontSize: 14, fontWeight: '700', color: TEXT_DARK, flexShrink: 1, minWidth: 0, marginRight: 8 },
   itemSubtitle: { marginTop: 2, fontSize: 12, color: TEXT_MUTED },
   metaText: { marginTop: 6, fontSize: 11, color: '#9CA3AF', fontWeight: '600' },
-  statusPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, gap: 6 as any },
+  statusPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, gap: 6 as any, alignSelf: 'flex-start', marginTop: 4 },
   dot: { width: 6, height: 6, borderRadius: 3 },
   statusText: { fontSize: 11, fontWeight: '800' },
 
