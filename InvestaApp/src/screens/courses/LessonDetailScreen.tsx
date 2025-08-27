@@ -19,14 +19,15 @@ import type { MainStackParamList } from '../../navigation/AppNavigator';
 import MainHeader from '../../components/MainHeader';
 import { Ionicons } from '@expo/vector-icons';
 import { PAGE_BG, TEXT_DARK, TEXT_MUTED, BORDER, CARD_BG, PRIMARY, VIDEO_DATA } from './constants/courseConstants';
+import { fetchLessonDetail, markLessonCompleted } from './utils/coursesApi';
 
-// Local-first lesson detail (no backend)
+// Local-first lesson detail with backend when available
 type Language = { id: number; code: string; name: string; native_name: string };
 type Course = { id: number; title: string; description: string; language: Language; difficulty_level: 'beginner'|'intermediate'|'advanced'; estimated_duration: number };
 type LessonDetail = { id: number; title: string; order: number; estimated_duration: number; content?: string; video_url?: string | null; course: Course };
 
 type ParamList = {
-  LessonDetail: { lessonId: string };
+  LessonDetail: { lessonId: string; courseId?: string };
 };
 
 const { width } = Dimensions.get('window');
@@ -35,12 +36,12 @@ const LessonDetailScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
   const route = useRoute<RouteProp<ParamList, 'LessonDetail'>>();
   const lessonId = Number(route.params?.lessonId);
+  const courseId = route.params?.courseId;
   const [lesson, setLesson] = useState<LessonDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [completing, setCompleting] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const [videoWatched, setVideoWatched] = useState(false);
   const [showAskMeModal, setShowAskMeModal] = useState(false);
   const [question, setQuestion] = useState('');
   const [showTranscript, setShowTranscript] = useState(false);
@@ -51,16 +52,20 @@ const LessonDetailScreen: React.FC = () => {
     try {
       setError(null);
       setLoading(true);
-      // No backend fetch; show placeholder lesson
-      setLesson({
-        id: lessonId,
-        title: 'Introduction to Functions in Programming',
-        order: 1,
-        estimated_duration: 15,
-        content: 'Functions are one of the most fundamental concepts in programming. They allow you to write reusable code that can be called multiple times throughout your program. Think of a function as a recipe - you give it ingredients (parameters) and it gives you back a result (return value).',
-        video_url: 'https://example.com/video.mp4',
-        course: { id: 0, title: 'Programming Fundamentals', description: 'Learn the basics of programming', language: { id: 1, code: 'en', name: 'English', native_name: 'English' }, difficulty_level: 'beginner', estimated_duration: 60 },
-      });
+      if (Number.isFinite(lessonId) && lessonId > 0) {
+        const data = await fetchLessonDetail(lessonId);
+        setLesson({
+          id: data.id,
+          title: data.title,
+          order: data.order,
+          estimated_duration: data.estimated_duration,
+          content: data.content,
+          video_url: data.video_url || undefined,
+          course: data.course as any,
+        });
+      } else {
+        setError('Lesson not found');
+      }
     } catch (e: any) {
       setError(e?.response?.data?.detail || 'Failed to load lesson');
     } finally {
@@ -73,15 +78,19 @@ const LessonDetailScreen: React.FC = () => {
   }, [load]);
 
   const handleMarkCompleted = async () => {
-    setCompleting(true);
-    // Immediately reflect completion in UI for responsiveness
-    setCompleted(true);
-    setCompleting(false);
-    
-    // Navigate back to lesson list with completed lesson ID
-    setTimeout(() => {
-      navigation.navigate('LessonList', { completedLessonId: lessonId });
-    }, 500); // Small delay to show completion state
+    try {
+      setCompleting(true);
+      await markLessonCompleted(lessonId);
+      setCompleted(true);
+    } catch (e) {
+      // still reflect completion locally
+      setCompleted(true);
+    } finally {
+      setCompleting(false);
+      setTimeout(() => {
+        navigation.navigate('LessonList', { completedLessonId: lessonId, courseId: courseId });
+      }, 300);
+    }
   };
 
   const handleAskQuestion = () => {
@@ -105,11 +114,6 @@ const LessonDetailScreen: React.FC = () => {
 
   const handleShare = () => {
     Alert.alert('Share', `Sharing lesson: ${lesson?.title}`);
-  };
-
-  const handleVideoComplete = () => {
-    setVideoWatched(true);
-    Alert.alert('Video Complete', 'Great! You\'ve watched the entire video. You can now take the quiz to test your understanding.');
   };
 
   const formatTime = (seconds: number) => {
@@ -270,25 +274,23 @@ const LessonDetailScreen: React.FC = () => {
               <Text style={styles.smallMuted}>Estimated {lesson.estimated_duration} minutes</Text>
             </View>
 
-            {/* Quiz Section - Only show after video is watched */}
-            {videoWatched && (
-              <View style={styles.quizSection}>
-                <View style={styles.quizHeader}>
-                  <Ionicons name="help-circle" size={24} color="#10B981" />
-                  <Text style={styles.quizTitle}>Ready to Test Your Knowledge?</Text>
-                </View>
-                <Text style={styles.quizDescription}>
-                  Take a quick quiz to reinforce what you've learned in this lesson.
-                </Text>
-                <TouchableOpacity 
-                  style={styles.quizButton}
-                  onPress={() => (navigation as any).navigate('LessonQuiz', { currentLessonId: lessonId, nextLessonId: lessonId + 1 })}
-                >
-                  <Ionicons name="play" size={20} color="#FFFFFF" />
-                  <Text style={styles.quizButtonText}>Start Quiz</Text>
-                </TouchableOpacity>
+            {/* Quiz Section */}
+            <View style={styles.quizSection}>
+              <View style={styles.quizHeader}>
+                <Ionicons name="help-circle" size={24} color="#10B981" />
+                <Text style={styles.quizTitle}>Ready to Test Your Knowledge?</Text>
               </View>
-            )}
+              <Text style={styles.quizDescription}>
+                Take a quick quiz to reinforce what you've learned in this lesson.
+              </Text>
+              <TouchableOpacity 
+                style={styles.quizButton}
+                onPress={() => (navigation as any).navigate('LessonQuiz', { currentLessonId: lessonId, nextLessonId: lessonId + 1 })}
+              >
+                <Ionicons name="play" size={20} color="#FFFFFF" />
+                <Text style={styles.quizButtonText}>Start Quiz</Text>
+              </TouchableOpacity>
+            </View>
 
             <TouchableOpacity
               style={[styles.primaryBtn, completed && { backgroundColor: '#10B981' }]}
@@ -309,13 +311,6 @@ const LessonDetailScreen: React.FC = () => {
                 <Ionicons name="arrow-back" size={14} color={TEXT_DARK} />
                 <Text style={styles.secondaryBtnOutlineText}>Back to Lessons</Text>
               </TouchableOpacity>
-              
-              {!videoWatched && (
-                <TouchableOpacity style={styles.secondaryBtn} onPress={handleVideoComplete}>
-                  <Ionicons name="checkmark" size={14} color="#fff" />
-                  <Text style={styles.secondaryBtnText}>Mark Video Complete</Text>
-                </TouchableOpacity>
-              )}
             </View>
           </View>
         ) : null}

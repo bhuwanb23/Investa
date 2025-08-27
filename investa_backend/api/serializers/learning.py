@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from ..models import LearningProgress, Badge, UserBadge, Course, Lesson, UserLessonProgress
 from .auth import UserSerializer
+from .user import LanguageSerializer
 
 
 class LearningProgressSerializer(serializers.ModelSerializer):
@@ -38,6 +39,7 @@ class LessonSerializer(serializers.ModelSerializer):
 
 
 class CourseSerializer(serializers.ModelSerializer):
+    language = LanguageSerializer(read_only=True)
     lessons = LessonSerializer(many=True, read_only=True)
 
     class Meta:

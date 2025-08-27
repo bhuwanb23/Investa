@@ -18,8 +18,8 @@ django.setup()
 
 from django.contrib.auth.models import User
 from api.models import (
-    Language, UserProfile, Course, Lesson, Quiz, Question, Answer, 
-    UserProgress, QuizAttempt, SimulatedTrade, Notification
+    Language, UserProfile, Course, Lesson, UserLessonProgress, 
+    LearningProgress, Badge, UserBadge
 )
 
 def create_sample_data():
@@ -89,32 +89,28 @@ def create_sample_data():
             'description': 'Learn the fundamentals of stock market investing, including how stocks work, market analysis, and basic trading strategies.',
             'language': languages[0],  # English
             'difficulty_level': 'beginner',
-            'estimated_duration': 120,
-            'order': 1
+            'estimated_duration': 120
         },
         {
             'title': 'Portfolio Diversification',
             'description': 'Master the art of building a balanced portfolio that spreads risk across different asset classes and sectors.',
             'language': languages[0],  # English
             'difficulty_level': 'intermediate',
-            'estimated_duration': 180,
-            'order': 2
+            'estimated_duration': 180
         },
         {
             'title': 'Risk Management',
             'description': 'Understand how to identify, assess, and manage investment risks to protect your capital.',
             'language': languages[0],  # English
             'difficulty_level': 'advanced',
-            'estimated_duration': 240,
-            'order': 3
+            'estimated_duration': 240
         },
         {
             'title': 'Mutual Funds 101',
             'description': 'Learn about mutual funds, their types, benefits, and how to choose the right ones for your investment goals.',
             'language': languages[1],  # Hindi
             'difficulty_level': 'beginner',
-            'estimated_duration': 90,
-            'order': 4
+            'estimated_duration': 90
         }
     ]
     

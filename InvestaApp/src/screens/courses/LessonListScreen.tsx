@@ -6,7 +6,7 @@ import type { MainStackParamList } from '../../navigation/AppNavigator';
 import { PAGE_BG, TEXT_DARK, TEXT_MUTED, PRIMARY } from './constants/courseConstants';
 import MainHeader from '../../components/MainHeader';
 import LessonListAdvanced from './components/LessonListAdvanced';
-
+import { fetchCourseDetail } from './utils/coursesApi';
 
 type ParamList = {
   LessonList: { courseId?: string; course?: any; completedLessonId?: number };
@@ -15,24 +15,57 @@ type ParamList = {
 const LessonListScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
   const route = useRoute<RouteProp<ParamList, 'LessonList'>>();
-  const course = route.params?.course || { title: 'Course', totalLessons: 24, completed: 12 };
+  const courseParam = route.params?.course || { title: 'Course', totalLessons: 24, completed: 12 };
+  const courseIdParam = route.params?.courseId;
 
-  const DEFAULT_LESSONS = useMemo(() => ([
-    { id: 1, title: 'Introduction to JavaScript', minutes: 8, state: 'completed' as const },
-    { id: 2, title: 'Variables and Data Types', minutes: 12, state: 'completed' as const },
-    { id: 3, title: 'Operators and Expressions', minutes: 15, state: 'completed' as const },
-    { id: 4, title: 'Conditional Statements', minutes: 10, state: 'completed' as const },
-    { id: 5, title: 'Loops and Iteration', minutes: 14, state: 'completed' as const },
-    { id: 6, title: 'Arrays and Objects', minutes: 18, state: 'completed' as const },
-    { id: 7, title: 'Functions Basics', minutes: 16, state: 'available' as const },
-  ]), []);
+  const [lessons, setLessons] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [course, setCourse] = useState<any>(courseParam);
 
-  const [lessons, setLessons] = useState<any[]>(DEFAULT_LESSONS);
-
-  // When returning from LessonDetail with a completed lesson, mark it and unlock the next
+  // Fetch course data when component mounts or courseId changes
   useEffect(() => {
-    const completedIdRaw = (route.params as any)?.completedLessonId;
+    const loadCourseData = async () => {
+      if (courseIdParam) {
+        try {
+          setLoading(true);
+          const courseData = await fetchCourseDetail(Number(courseIdParam));
+          setCourse(courseData);
+          
+          // Transform backend lessons to frontend format
+          const transformedLessons = (courseData.lessons || []).map((l: any) => ({
+            id: l.id,
+            title: l.title,
+            minutes: l.estimated_duration || 15,
+            state: 'available' as const,
+          }));
+          
+          setLessons(transformedLessons);
+        } catch (error) {
+          console.error('Error loading course data:', error);
+          // Fallback to default data only if no courseId
+          if (!courseIdParam) {
+            setLessons(DEFAULT_LESSONS);
+            setCourse(courseParam);
+          }
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        // No courseId provided, use default data
+        setLessons(DEFAULT_LESSONS);
+        setCourse(courseParam);
+        setLoading(false);
+      }
+    };
+
+    loadCourseData();
+  }, [courseIdParam]);
+
+  // Handle lesson completion updates
+  useEffect(() => {
+    const completedIdRaw = route.params?.completedLessonId;
     const completedId = Number(completedIdRaw);
+    
     if (!Number.isFinite(completedId) || completedId <= 0) return;
     
     setLessons(prev => {
@@ -45,13 +78,7 @@ const LessonListScreen: React.FC = () => {
       next[idx].state = 'completed';
       delete (next[idx] as any).progress;
       
-      // For lesson 7, this completes the entire course
-      if (completedId === 7) {
-        // All lessons are now completed
-        return next;
-      }
-      
-      // For other lessons, unlock the next one if all previous are completed
+      // Unlock the next lesson if available
       const nextIdx = idx + 1;
       if (nextIdx < next.length) {
         const allPrevCompleted = next.slice(0, nextIdx).every(l => l.state === 'completed');
@@ -71,34 +98,77 @@ const LessonListScreen: React.FC = () => {
       return next;
     });
     
-    // clear the param after applying to avoid re-applying on future renders
+    // Clear the param after applying to avoid re-applying on future renders
     try {
       (navigation as any).setParams?.({ completedLessonId: undefined });
     } catch {}
-  }, [route.params]);
+  }, [route.params?.completedLessonId]);
+
+  const DEFAULT_LESSONS = useMemo(() => ([
+    { id: 1, title: 'Introduction to JavaScript', minutes: 8, state: 'completed' as const },
+    { id: 2, title: 'Variables and Data Types', minutes: 12, state: 'completed' as const },
+    { id: 3, title: 'Operators and Expressions', minutes: 15, state: 'completed' as const },
+    { id: 4, title: 'Conditional Statements', minutes: 10, state: 'completed' as const },
+    { id: 5, title: 'Loops and Iteration', minutes: 14, state: 'completed' as const },
+    { id: 6, title: 'Arrays and Objects', minutes: 18, state: 'completed' as const },
+    { id: 7, title: 'Functions Basics', minutes: 16, state: 'available' as const },
+  ]), []);
 
   const nextLessonId = useMemo(() => {
-    const inProgress = (lessons as any[]).find(l => l.state === 'progress');
+    const inProgress = lessons.find(l => l.state === 'progress');
     if (inProgress) return inProgress.id;
-    const available = (lessons as any[]).find(l => l.state === 'available');
+    const available = lessons.find(l => l.state === 'available');
     if (available) return available.id;
-    return (lessons as any[])[0]?.id ?? 1;
+    return lessons[0]?.id ?? 1;
   }, [lessons]);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <MainHeader title="Loading..." iconName="book" showBackButton onBackPress={() => navigation.goBack()} />
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading course...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scroll} stickyHeaderIndices={[0]}>
-        <MainHeader title={course.title || 'Course'} iconName="book" showBackButton onBackPress={() => navigation.goBack()} />
+        <MainHeader 
+          title={course.title || 'Course'} 
+          iconName="book" 
+          showBackButton 
+          onBackPress={() => navigation.goBack()} 
+        />
+        
         {/* Continue CTA */}
         <View style={styles.ctaCard}>
           <View style={{ flex: 1 }}>
             <Text style={styles.ctaOver}>Continue where you left off</Text>
-            <Text style={styles.ctaTitle}>Lesson {nextLessonId}: {lessons.find(l => l.id === nextLessonId)?.title || 'Functions Basics'}</Text>
+            <Text style={styles.ctaTitle}>
+              Lesson {nextLessonId}: {lessons.find(l => l.id === nextLessonId)?.title || 'Continue Learning'}
+            </Text>
             <Text style={styles.ctaSub}>
-              {nextLessonId === 7 ? 'Learn about function declarations and expressions' : 'Continue your learning journey'}
+              {lessons.find(l => l.id === nextLessonId)?.state === 'completed' 
+                ? 'Great job! Keep going!' 
+                : 'Continue your learning journey'}
             </Text>
           </View>
-          <TouchableOpacity style={styles.ctaBtn} onPress={() => navigation.push('LessonDetail', { lessonId: String(nextLessonId) })}>
+          <TouchableOpacity 
+            style={styles.ctaBtn} 
+            onPress={() => {
+              if (courseIdParam) {
+                navigation.push('LessonDetail', { 
+                  lessonId: String(nextLessonId),
+                  courseId: courseIdParam 
+                });
+              } else {
+                navigation.push('LessonDetail', { lessonId: String(nextLessonId) });
+              }
+            }}
+          >
             <Text style={styles.ctaBtnText}>Continue</Text>
           </TouchableOpacity>
         </View>
@@ -106,16 +176,32 @@ const LessonListScreen: React.FC = () => {
         {/* Lesson list */}
         <View style={styles.lessonList}>
           <LessonListAdvanced
-            lessons={lessons as any}
+            lessons={lessons}
             onStart={(id) => {
               const l = lessons.find(x => x.id === id);
               if (!l || l.state === 'locked') return;
-              navigation.push('LessonDetail', { lessonId: String(id) });
+              
+              if (courseIdParam) {
+                navigation.push('LessonDetail', { 
+                  lessonId: String(id),
+                  courseId: courseIdParam 
+                });
+              } else {
+                navigation.push('LessonDetail', { lessonId: String(id) });
+              }
             }}
             onContinue={(id) => {
               const l = lessons.find(x => x.id === id);
               if (!l || l.state === 'locked') return;
-              navigation.push('LessonDetail', { lessonId: String(id) });
+              
+              if (courseIdParam) {
+                navigation.push('LessonDetail', { 
+                  lessonId: String(id),
+                  courseId: courseIdParam 
+                });
+              } else {
+                navigation.push('LessonDetail', { lessonId: String(id) });
+              }
             }}
           />
         </View>
@@ -146,6 +232,17 @@ const LessonListScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: PAGE_BG },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: TEXT_MUTED,
+    textAlign: 'center',
+  },
   header: {
     backgroundColor: '#fff',
     borderBottomWidth: 1,

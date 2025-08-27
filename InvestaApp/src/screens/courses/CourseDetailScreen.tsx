@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, SafeAreaView, ScrollView, ActivityIndicator, To
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import type { MainStackParamList } from '../../navigation/AppNavigator';
-import type { Lesson as ApiLesson } from './utils/coursesApi';
+import type { Lesson as ApiLesson, CourseDetail as ApiCourseDetail } from './utils/coursesApi';
+import { fetchCourseDetail } from './utils/coursesApi';
 import MainHeader from '../../components/MainHeader';
 import LessonList from './components/LessonList';
 // Local-first: avoid backend calls
@@ -41,9 +42,29 @@ const CourseDetailScreen: React.FC = () => {
       setLoading(true);
       if (initialFromRoute) {
         setCourse(initialFromRoute);
+      } else if (Number.isFinite(courseId) && courseId > 0) {
+        const data = await fetchCourseDetail(courseId);
+        const normalized: CourseDetail = {
+          id: data.id,
+          title: data.title,
+          description: data.description,
+          language: data.language as any,
+          difficulty_level: data.difficulty_level as any,
+          estimated_duration: data.estimated_duration,
+          thumbnail: (data as ApiCourseDetail).thumbnail,
+          is_active: (data as any).is_active,
+          lessons: (data.lessons || []).map(l => ({
+            id: l.id,
+            title: l.title,
+            order: l.order,
+            estimated_duration: l.estimated_duration,
+            content: l.content,
+            video_url: l.video_url,
+            is_active: l.is_active,
+          })),
+        };
+        setCourse(normalized);
       } else {
-        // No backend fetch; just show minimal placeholder if none passed
-        setCourse(null);
         setError('Course not found');
       }
     } catch (e: any) {
@@ -58,7 +79,7 @@ const CourseDetailScreen: React.FC = () => {
   }, [load]);
 
   const onPressLesson = (lessonId: number) => {
-    navigation.navigate('LessonDetail', { lessonId: String(lessonId) });
+    navigation.navigate('LessonDetail', { lessonId: String(lessonId), courseId: String(courseId) });
   };
 
   return (

@@ -72,7 +72,7 @@ export type MainStackParamList = {
   Progress: undefined;
   Profile: undefined;
   CourseDetail: { courseId: string; course?: any; sample?: boolean };
-  LessonDetail: { lessonId: string };
+  LessonDetail: { lessonId: string; courseId?: string };
   LessonList: { courseId?: string; course?: any; completedLessonId?: number };
   ModuleScreen: { courseId: string; course?: any };
   Downloads: undefined;

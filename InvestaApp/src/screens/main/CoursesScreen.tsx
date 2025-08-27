@@ -1,18 +1,22 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import MainHeader from '../../components/MainHeader';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import type { MainStackParamList } from '../../navigation/AppNavigator';
 import type { Course as ApiCourse } from '../courses/utils/coursesApi';
+import { fetchCourses } from '../courses/utils/coursesApi';
 import CourseCard from '../courses/components/CourseCard';
 import { PAGE_BG, TEXT_DARK, TEXT_MUTED } from '../courses/constants/courseConstants';
 import { Ionicons } from '@expo/vector-icons';
 
 const CoursesScreen = () => {
   const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
-  // Local-only data (no backend), aligned to API types
-  const [courses] = useState<ApiCourse[]>([]);
+  // Courses from backend
+  const [courses, setCourses] = useState<ApiCourse[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const [selectedFilter, setSelectedFilter] = useState<'all'|'beginner'|'intermediate'|'advanced'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -61,7 +65,22 @@ const CoursesScreen = () => {
     },
   ]), []);
 
-  // Backend disabled: no effects or refresh logic
+  const load = useCallback(async () => {
+    try {
+      setError(null);
+      setLoading(true);
+      const data = await fetchCourses();
+      setCourses(Array.isArray(data) ? data : []);
+    } catch (e: any) {
+      setError('Failed to load courses');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const dataSource: ApiCourse[] = useMemo(() => {
     const source = Array.isArray(courses) && courses.length > 0 ? courses : sampleCourses;
@@ -125,6 +144,14 @@ const CoursesScreen = () => {
             </View>
           )}
 
+          {/* Loading / Error */}
+          {loading && (
+            <View style={styles.center}><Text style={styles.loadingText}>Loading courses…</Text></View>
+          )}
+          {!!error && !loading && (
+            <View style={styles.center}><Text style={styles.errorText}>{error}</Text></View>
+          )}
+
           {/* Courses list (stacked) */}
           <Text style={styles.sectionTitle}>All Courses</Text>
           <View style={{ gap: 12 }}>
@@ -133,7 +160,8 @@ const CoursesScreen = () => {
                 <CourseCard
                   course={c}
                   onPress={() => {
-                    navigation.navigate('ModuleScreen', { courseId: String(c.id), course: c });
+                    // Navigate to CourseDetail, backend will fetch by ID
+                    navigation.navigate('CourseDetail' as any, { courseId: String(c.id) });
                   }}
                 />
               </View>
