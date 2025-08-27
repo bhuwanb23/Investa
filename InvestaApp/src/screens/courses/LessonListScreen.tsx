@@ -21,7 +21,7 @@ const LessonListScreen: React.FC = () => {
   const [lessons, setLessons] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [course, setCourse] = useState<any>(courseParam);
-
+ 
   // Transform backend lessons to frontend format with proper unlocking logic
   const transformLessonsWithUnlocking = (lessons: any[]) => {
     console.log('🔄 Starting lesson transformation...');

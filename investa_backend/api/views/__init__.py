@@ -5,7 +5,8 @@ from .security import SecuritySettingsViewSet, UserSessionViewSet
 from .privacy import PrivacySettingsViewSet
 from .learning import (
     LearningProgressViewSet, BadgeViewSet,
-    CourseViewSet, LessonViewSet, UserLessonProgressViewSet
+    CourseViewSet, LessonViewSet, UserLessonProgressViewSet,
+    QuizViewSet, QuestionViewSet, AnswerViewSet, UserQuizAttemptViewSet
 )
 from .trading import TradingPerformanceViewSet
 from .notifications import NotificationViewSet
@@ -36,6 +37,10 @@ __all__ = [
     'CourseViewSet',
     'LessonViewSet',
     'UserLessonProgressViewSet',
+    'QuizViewSet',
+    'QuestionViewSet',
+    'AnswerViewSet',
+    'UserQuizAttemptViewSet',
     
     # Trading views
     'TradingPerformanceViewSet',

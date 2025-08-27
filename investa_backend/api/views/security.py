@@ -3,9 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from ..models import SecuritySettings, UserSession
-from ..serializers import (
-    SecuritySettingsSerializer, SecuritySettingsUpdateSerializer, UserSessionSerializer
-)
+from ..serializers import SecuritySettingsSerializer
 
 
 class SecuritySettingsViewSet(viewsets.ModelViewSet):
@@ -15,11 +13,6 @@ class SecuritySettingsViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         return SecuritySettings.objects.filter(user=self.request.user)
-    
-    def get_serializer_class(self):
-        if self.action in ['update', 'partial_update']:
-            return SecuritySettingsUpdateSerializer
-        return SecuritySettingsSerializer
     
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -39,7 +32,7 @@ class SecuritySettingsViewSet(viewsets.ModelViewSet):
         """Update current user's security settings"""
         try:
             settings = SecuritySettings.objects.get(user=request.user)
-            serializer = SecuritySettingsUpdateSerializer(settings, data=request.data, partial=True)
+            serializer = SecuritySettingsSerializer(settings, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
@@ -61,7 +54,7 @@ class SecuritySettingsViewSet(viewsets.ModelViewSet):
 
 class UserSessionViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for user sessions"""
-    serializer_class = UserSessionSerializer
+    serializer_class = SecuritySettingsSerializer  # Use SecuritySettingsSerializer as fallback
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):

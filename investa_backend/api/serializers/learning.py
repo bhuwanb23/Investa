@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..models import LearningProgress, Badge, UserBadge, Course, Lesson, UserLessonProgress
+from ..models import LearningProgress, Badge, UserBadge, Course, Lesson, UserLessonProgress, Quiz, Question, Answer, UserQuizAttempt, UserQuizAnswer
 from .auth import UserSerializer
 from .user import LanguageSerializer
 
@@ -56,3 +56,50 @@ class UserLessonProgressSerializer(serializers.ModelSerializer):
         model = UserLessonProgress
         fields = '__all__'
         read_only_fields = ['user', 'lesson', 'started_at', 'completed_at']
+
+
+class AnswerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Answer
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
+
+
+class QuestionSerializer(serializers.ModelSerializer):
+    answers = AnswerSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Question
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
+
+
+class QuizSerializer(serializers.ModelSerializer):
+    questions = QuestionSerializer(many=True, read_only=True)
+    question_count = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = Quiz
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
+
+
+class UserQuizAnswerSerializer(serializers.ModelSerializer):
+    question = QuestionSerializer(read_only=True)
+    selected_answer = AnswerSerializer(read_only=True)
+    
+    class Meta:
+        model = UserQuizAnswer
+        fields = '__all__'
+        read_only_fields = ['user_attempt', 'question', 'selected_answer', 'is_correct', 'points_earned', 'answered_at']
+
+
+class UserQuizAttemptSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    quiz = QuizSerializer(read_only=True)
+    answers = UserQuizAnswerSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = UserQuizAttempt
+        fields = '__all__'
+        read_only_fields = ['user', 'quiz', 'started_at', 'completed_at', 'passed']

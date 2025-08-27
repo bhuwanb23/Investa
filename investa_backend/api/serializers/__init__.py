@@ -1,47 +1,49 @@
-# Serializers package - Import all serializers for easy access
-
+# Import all serializers from subdirectories
+from .auth import UserSerializer, UserRegistrationSerializer
 from .user import LanguageSerializer, UserProfileSerializer, UserProfileDetailSerializer, ProfileUpdateSerializer, CompleteProfileSerializer
-from .security import SecuritySettingsSerializer, SecuritySettingsUpdateSerializer, UserSessionSerializer
+from .security import SecuritySettingsSerializer
 from .privacy import PrivacySettingsSerializer, PrivacySettingsUpdateSerializer
 from .learning import (
     LearningProgressSerializer, BadgeSerializer, UserBadgeSerializer,
-    CourseSerializer, LessonSerializer, UserLessonProgressSerializer
+    CourseSerializer, LessonSerializer, UserLessonProgressSerializer,
+    QuizSerializer, QuestionSerializer, AnswerSerializer, UserQuizAttemptSerializer, UserQuizAnswerSerializer
 )
-from .trading import TradingPerformanceSerializer
+from .trading import (
+    StockSerializer, StockDetailSerializer, StockPriceSerializer, UserWatchlistSerializer, StockWatchlistSerializer,
+    PortfolioSerializer, PortfolioSummarySerializer, PortfolioHoldingSerializer,
+    OrderSerializer, OrderHistorySerializer, TradeSerializer,
+    TradingPerformanceSerializer, TradingSessionSerializer,
+    MarketDataSerializer, TechnicalIndicatorSerializer,
+    AchievementSerializer, UserAchievementSerializer, LeaderboardSerializer
+)
 from .notifications import NotificationSerializer
-from .auth import UserSerializer, UserRegistrationSerializer
 
+# Export all serializers
 __all__ = [
     # Auth serializers
-    'UserSerializer',
-    'UserRegistrationSerializer',
+    'UserSerializer', 'UserRegistrationSerializer',
     
     # User serializers
-    'LanguageSerializer',
-    'UserProfileSerializer',
-    'UserProfileDetailSerializer',
-    'ProfileUpdateSerializer',
-    'CompleteProfileSerializer',
+    'LanguageSerializer', 'UserProfileSerializer', 'UserProfileDetailSerializer', 'ProfileUpdateSerializer', 'CompleteProfileSerializer',
     
     # Security serializers
     'SecuritySettingsSerializer',
-    'SecuritySettingsUpdateSerializer',
-    'UserSessionSerializer',
     
     # Privacy serializers
-    'PrivacySettingsSerializer',
-    'PrivacySettingsUpdateSerializer',
+    'PrivacySettingsSerializer', 'PrivacySettingsUpdateSerializer',
     
     # Learning serializers
-    'LearningProgressSerializer',
-    'CourseSerializer',
-    'LessonSerializer',
-    'UserLessonProgressSerializer',
-    'BadgeSerializer',
-    'UserBadgeSerializer',
+    'LearningProgressSerializer', 'BadgeSerializer', 'UserBadgeSerializer',
+    'CourseSerializer', 'LessonSerializer', 'UserLessonProgressSerializer',
+    'QuizSerializer', 'QuestionSerializer', 'AnswerSerializer', 'UserQuizAttemptSerializer', 'UserQuizAnswerSerializer',
     
     # Trading serializers
-    'TradingPerformanceSerializer',
+    'StockSerializer', 'StockDetailSerializer', 'StockPriceSerializer', 'UserWatchlistSerializer', 'StockWatchlistSerializer',
+    'PortfolioSerializer', 'PortfolioSummarySerializer', 'PortfolioHoldingSerializer',
+    'OrderSerializer', 'OrderHistorySerializer', 'TradeSerializer',
+    'TradingPerformanceSerializer', 'TradingSessionSerializer',
+    'MarketDataSerializer', 'TechnicalIndicatorSerializer',
+    'AchievementSerializer', 'UserAchievementSerializer', 'LeaderboardSerializer',
     
     # Notification serializers
     'NotificationSerializer',

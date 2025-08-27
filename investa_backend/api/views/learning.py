@@ -3,10 +3,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from django.utils import timezone
-from ..models import LearningProgress, Badge, UserBadge, Course, Lesson, UserLessonProgress
+from ..models import LearningProgress, Badge, UserBadge, Course, Lesson, UserLessonProgress, Quiz, Question, Answer, UserQuizAttempt, UserQuizAnswer
 from ..serializers import (
     LearningProgressSerializer, BadgeSerializer, UserBadgeSerializer,
-    CourseSerializer, LessonSerializer, UserLessonProgressSerializer
+    CourseSerializer, LessonSerializer, UserLessonProgressSerializer,
+    QuizSerializer, QuestionSerializer, AnswerSerializer, UserQuizAttemptSerializer, UserQuizAnswerSerializer
 )
 
 
@@ -355,3 +356,180 @@ class UserLessonProgressViewSet(viewsets.ReadOnlyModelViewSet):
         print(f"   - Lessons without progress: {len(debug_data['lessons_without_progress'])}")
         
         return Response(debug_data)
+
+
+class QuizViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for quizzes"""
+    queryset = Quiz.objects.prefetch_related('questions__answers').all()
+    serializer_class = QuizSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    @action(detail=True, methods=['get'], permission_classes=[permissions.AllowAny])
+    def for_lesson(self, request, pk=None):
+        """Get quiz for a specific lesson"""
+        try:
+            lesson = Lesson.objects.get(id=pk)
+            quiz = Quiz.objects.get(lesson=lesson, is_active=True)
+            serializer = self.get_serializer(quiz)
+            return Response(serializer.data)
+        except (Lesson.DoesNotExist, Quiz.DoesNotExist):
+            return Response({'detail': 'Quiz not found for this lesson'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for quiz questions"""
+    queryset = Question.objects.prefetch_related('answers').all()
+    serializer_class = QuestionSerializer
+    permission_classes = [permissions.AllowAny]
+
+
+class AnswerViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for quiz answers"""
+    queryset = Answer.objects.all()
+    serializer_class = AnswerSerializer
+    permission_classes = [permissions.AllowAny]
+
+
+class UserQuizAttemptViewSet(viewsets.ModelViewSet):
+    """ViewSet for user quiz attempts"""
+    serializer_class = UserQuizAttemptSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    def get_queryset(self):
+        # For development, create a default user if none exists
+        if not self.request.user.is_authenticated:
+            from django.contrib.auth.models import User
+            user, created = User.objects.get_or_create(
+                username='dev_user',
+                defaults={'email': 'dev@example.com'}
+            )
+            if created:
+                user.set_password('devpass123')
+                user.save()
+            return UserQuizAttempt.objects.filter(user=user)
+        return UserQuizAttempt.objects.filter(user=self.request.user)
+    
+    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
+    def start_quiz(self, request):
+        """Start a new quiz attempt"""
+        quiz_id = request.data.get('quiz_id')
+        if not quiz_id:
+            return Response({'detail': 'quiz_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            quiz = Quiz.objects.get(id=quiz_id, is_active=True)
+        except Quiz.DoesNotExist:
+            return Response({'detail': 'Quiz not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        # For development, create a default user if none exists
+        if not request.user.is_authenticated:
+            from django.contrib.auth.models import User
+            user, created = User.objects.get_or_create(
+                username='dev_user',
+                defaults={'email': 'dev@example.com'}
+            )
+            if created:
+                user.set_password('devpass123')
+                user.save()
+            request.user = user
+        
+        # Create new quiz attempt
+        attempt = UserQuizAttempt.objects.create(
+            user=request.user,
+            quiz=quiz,
+            total_questions=quiz.question_count
+        )
+        
+        serializer = self.get_serializer(attempt)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    @action(detail=True, methods=['post'], permission_classes=[permissions.AllowAny])
+    def submit_answer(self, request, pk=None):
+        """Submit an answer for a quiz question"""
+        attempt = self.get_object()
+        question_id = request.data.get('question_id')
+        answer_id = request.data.get('answer_id')
+        text_answer = request.data.get('text_answer', '')
+        
+        if not question_id:
+            return Response({'detail': 'question_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            question = Question.objects.get(id=question_id, quiz=attempt.quiz)
+        except Question.DoesNotExist:
+            return Response({'detail': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Check if answer already exists
+        user_answer, created = UserQuizAnswer.objects.get_or_create(
+            user_attempt=attempt,
+            question=question,
+            defaults={
+                'selected_answer_id': answer_id if answer_id else None,
+                'text_answer': text_answer,
+                'is_correct': False,
+                'points_earned': 0
+            }
+        )
+        
+        if not created:
+            # Update existing answer
+            user_answer.selected_answer_id = answer_id if answer_id else None
+            user_answer.text_answer = text_answer
+        
+        # Check if answer is correct
+        if answer_id:
+            try:
+                selected_answer = Answer.objects.get(id=answer_id, question=question)
+                user_answer.is_correct = selected_answer.is_correct
+                user_answer.points_earned = question.points if selected_answer.is_correct else 0
+            except Answer.DoesNotExist:
+                user_answer.is_correct = False
+                user_answer.points_earned = 0
+        
+        user_answer.save()
+        
+        # Update attempt statistics
+        attempt.correct_answers = attempt.answers.filter(is_correct=True).count()
+        if attempt.total_questions > 0:
+            attempt.score = int((attempt.correct_answers / attempt.total_questions) * 100)
+        attempt.save()
+        
+        return Response({
+            'is_correct': user_answer.is_correct,
+            'explanation': question.explanation,
+            'current_score': attempt.score
+        })
+    
+    @action(detail=True, methods=['post'], permission_classes=[permissions.AllowAny])
+    def complete_quiz(self, request, pk=None):
+        """Complete a quiz attempt"""
+        attempt = self.get_object()
+        time_taken = request.data.get('time_taken', 0)
+        
+        attempt.time_taken = time_taken
+        attempt.completed_at = timezone.now()
+        attempt.save()
+        
+        # Update learning progress
+        try:
+            progress = LearningProgress.objects.get(user=attempt.user)
+            progress.quizzes_taken += 1
+            if attempt.passed:
+                progress.quizzes_passed += 1
+            
+            # Update average score
+            total_score = progress.average_quiz_score * (progress.quizzes_taken - 1) + attempt.score
+            progress.average_quiz_score = total_score / progress.quizzes_taken
+            progress.save()
+        except LearningProgress.DoesNotExist:
+            pass
+        
+        serializer = self.get_serializer(attempt)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+    def my_attempts(self, request):
+        """Get current user's quiz attempts"""
+        attempts = self.get_queryset().order_by('-started_at')
+        serializer = self.get_serializer(attempts, many=True)
+        return Response(serializer.data)

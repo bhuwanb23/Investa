@@ -64,4 +64,68 @@ export async function markLessonCompleted(lessonId: number): Promise<void> {
   await api.post(`lessons/${lessonId}/mark_completed/`, {});
 }
 
+// Quiz API functions
+export const fetchQuizForLesson = async (lessonId: number) => {
+  try {
+    const response = await api.get(`/api/quiz/${lessonId}/for_lesson/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching quiz for lesson:', error);
+    throw error;
+  }
+};
+
+export const startQuizAttempt = async (quizId: number) => {
+  try {
+    const response = await api.post('/api/quiz-attempts/start_quiz/', {
+      quiz_id: quizId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error starting quiz attempt:', error);
+    throw error;
+  }
+};
+
+export const submitQuizAnswer = async (
+  attemptId: number, 
+  questionId: number, 
+  answerId: number | null, 
+  textAnswer?: string
+) => {
+  try {
+    const response = await api.post(`/api/quiz-attempts/${attemptId}/submit_answer/`, {
+      question_id: questionId,
+      answer_id: answerId,
+      text_answer: textAnswer || ''
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error submitting quiz answer:', error);
+    throw error;
+  }
+};
+
+export const completeQuizAttempt = async (attemptId: number, timeTaken: number) => {
+  try {
+    const response = await api.post(`/api/quiz-attempts/${attemptId}/complete_quiz/`, {
+      time_taken: timeTaken
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error completing quiz attempt:', error);
+    throw error;
+  }
+};
+
+export const getQuizAttempts = async () => {
+  try {
+    const response = await api.get('/api/quiz-attempts/my_attempts/');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching quiz attempts:', error);
+    throw error;
+  }
+};
+
 

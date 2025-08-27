@@ -24,15 +24,23 @@ interface QuizQuestion {
 interface LessonQuizContentProps {
   questionIndex: number;
   totalQuestions: number;
+  question?: any; // Backend question data
+  userAnswer?: any; // User's answer data
+  onAnswerSubmit?: (questionId: number, answerId: number | null, textAnswer?: string) => void;
   onNextQuestion: () => void;
   onCompleteQuiz: () => void;
+  quizAttempt?: any; // Quiz attempt data
 }
 
 const LessonQuizContent: React.FC<LessonQuizContentProps> = ({
   questionIndex,
   totalQuestions,
+  question,
+  userAnswer,
+  onAnswerSubmit,
   onNextQuestion,
   onCompleteQuiz,
+  quizAttempt,
 }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -41,7 +49,9 @@ const LessonQuizContent: React.FC<LessonQuizContentProps> = ({
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60); // 60 seconds per question
 
-  const currentQuestion = QUIZ_QUESTIONS[currentQuestionIndex];
+  // Use backend question data if available, otherwise fall back to local data
+  const currentQuestion = question || QUIZ_QUESTIONS[currentQuestionIndex];
+  const isBackendQuiz = !!question;
 
   useEffect(() => {
     if (quizCompleted) return;
@@ -65,6 +75,12 @@ const LessonQuizContent: React.FC<LessonQuizContentProps> = ({
   const handleAnswerSelect = (answerIndex: number) => {
     setSelectedAnswer(answerIndex);
     setAnswers(prev => ({ ...prev, [currentQuestionIndex]: answerIndex }));
+    
+    // If using backend quiz, submit answer immediately
+    if (isBackendQuiz && onAnswerSubmit && currentQuestion) {
+      const answerId = currentQuestion.answers?.[answerIndex]?.id || null;
+      onAnswerSubmit(currentQuestion.id, answerId);
+    }
   };
 
   const handleNextQuestion = () => {

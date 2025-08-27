@@ -20,6 +20,12 @@ router.register(r'badges', views.BadgeViewSet, basename='badge')
 router.register(r'sessions', views.UserSessionViewSet, basename='session')
 router.register(r'notifications', views.NotificationViewSet, basename='notification')
 
+# Quiz endpoints
+router.register(r'quiz', views.QuizViewSet, basename='quiz')
+router.register(r'questions', views.QuestionViewSet, basename='question')
+router.register(r'answers', views.AnswerViewSet, basename='answer')
+router.register(r'quiz-attempts', views.UserQuizAttemptViewSet, basename='quiz-attempt')
+
 # Trading endpoints
 router.register(r'stocks', StockViewSet, basename='stock')
 router.register(r'watchlist', UserWatchlistViewSet, basename='watchlist')

@@ -18,7 +18,8 @@ django.setup()
 
 from django.contrib.auth.models import User
 from api.models import (
-    Language, UserProfile, Course, Lesson, UserLessonProgress
+    Language, UserProfile, Course, Lesson, UserLessonProgress,
+    Quiz, Question, Answer
 )
 
 def create_sample_data():
@@ -676,18 +677,96 @@ def create_sample_data():
         if created:
             print(f"✅ Created user progress for {user.username} on lesson: {lesson.title}")
     
+    # Create sample quizzes for lessons
+    quizzes_created = 0
+    for lesson in lessons[:10]:  # Create quizzes for first 10 lessons
+        quiz, created = Quiz.objects.get_or_create(
+            lesson=lesson,
+            defaults={
+                'title': f'Quiz: {lesson.title}',
+                'description': f'Test your knowledge of {lesson.title}',
+                'time_limit': 10,  # 10 minutes
+                'passing_score': 70
+            }
+        )
+        if created:
+            quizzes_created += 1
+            print(f"✅ Created quiz: {quiz.title}")
+            
+            # Create questions for this quiz
+            questions_data = [
+                {
+                    'question_text': f'What is the main topic of {lesson.title}?',
+                    'question_type': 'multiple_choice',
+                    'points': 2,
+                    'order': 1,
+                    'explanation': 'This question tests your understanding of the lesson content.',
+                    'answers': [
+                        {'answer_text': 'The correct answer', 'is_correct': True, 'order': 1},
+                        {'answer_text': 'An incorrect option', 'is_correct': False, 'order': 2},
+                        {'answer_text': 'Another wrong choice', 'is_correct': False, 'order': 3},
+                        {'answer_text': 'Not the right answer', 'is_correct': False, 'order': 4},
+                    ]
+                },
+                {
+                    'question_text': f'True or False: {lesson.title} is important for learning.',
+                    'question_type': 'true_false',
+                    'points': 1,
+                    'order': 2,
+                    'explanation': 'This lesson provides fundamental knowledge.',
+                    'answers': [
+                        {'answer_text': 'True', 'is_correct': True, 'order': 1},
+                        {'answer_text': 'False', 'is_correct': False, 'order': 2},
+                    ]
+                },
+                {
+                    'question_text': f'Complete the sentence: {lesson.title} helps you understand...',
+                    'question_type': 'fill_blank',
+                    'points': 3,
+                    'order': 3,
+                    'explanation': 'This lesson provides comprehensive understanding.',
+                    'answers': [
+                        {'answer_text': 'investment concepts', 'is_correct': True, 'order': 1},
+                        {'answer_text': 'market dynamics', 'is_correct': True, 'order': 2},
+                        {'answer_text': 'financial planning', 'is_correct': True, 'order': 3},
+                    ]
+                }
+            ]
+            
+            for q_data in questions_data:
+                answers_data = q_data.pop('answers')
+                question, q_created = Question.objects.get_or_create(
+                    quiz=quiz,
+                    question_text=q_data['question_text'],
+                    defaults=q_data
+                )
+                if q_created:
+                    print(f"   ✅ Created question: {question.question_text[:50]}...")
+                    
+                    # Create answers for this question
+                    for a_data in answers_data:
+                        answer, a_created = Answer.objects.get_or_create(
+                            question=question,
+                            answer_text=a_data['answer_text'],
+                            defaults=a_data
+                        )
+                        if a_created:
+                            print(f"      ✅ Created answer: {answer.answer_text[:30]}...")
+    
     print("\n🎉 Sample data creation completed!")
-    print(f"📊 Created {len(languages)} languages, {len(users)} users, {len(courses)} courses, {len(lessons)} lessons")
+    print(f"📊 Created {len(languages)} languages, {len(users)} users, {len(courses)} courses, {len(lessons)} lessons, {quizzes_created} quizzes")
     print(f"\n📚 Course Breakdown:")
     print(f"   • Stock Market Basics: 15 lessons")
     print(f"   • Portfolio Diversification: 20 lessons") 
     print(f"   • Risk Management: 25 lessons")
     print(f"   • Mutual Funds 101: 12 lessons")
     print(f"   • Total: 72 lessons across 4 courses")
+    print(f"   • Quizzes: {quizzes_created} quizzes created")
     print(f"\n🔗 You can now:")
     print(f"   1. Visit http://localhost:8000/api/database/ to see all data")
     print(f"   2. Test the login with: john@example.com / testpass123")
     print(f"   3. Explore the database structure and sample records")
+    print(f"   4. Test quiz functionality with lesson quizzes")
 
 if __name__ == '__main__':
     create_sample_data()
