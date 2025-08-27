@@ -50,6 +50,11 @@ export async function fetchCourseDetail(courseId: number): Promise<CourseDetail>
   return res.data as CourseDetail;
 }
 
+export async function fetchCourseDetailWithProgress(courseId: number): Promise<CourseDetail> {
+  const res = await api.get(`courses/${courseId}/with_progress/`);
+  return res.data as CourseDetail;
+}
+
 export async function fetchLessonDetail(lessonId: number): Promise<LessonDetail> {
   const res = await api.get(`lessons/${lessonId}/`);
   return res.data as LessonDetail;

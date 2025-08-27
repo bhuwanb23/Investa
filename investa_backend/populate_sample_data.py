@@ -159,87 +159,23 @@ def create_sample_data():
         if created:
             print(f"✅ Created lesson: {lesson.title}")
     
-    # Create sample quizzes
-    quizzes = []
-    quiz_data = [
-        {
-            'lesson': lessons[0],  # What are Stocks?
-            'title': 'Stock Basics Quiz',
-            'description': 'Test your understanding of stock fundamentals',
-            'passing_score': 70,
-            'time_limit': 10
-        }
-    ]
-    
-    for quiz_info in quiz_data:
-        quiz, created = Quiz.objects.get_or_create(
-            lesson=quiz_info['lesson'],
-            title=quiz_info['title'],
-            defaults=quiz_info
-        )
-        quizzes.append(quiz)
-        if created:
-            print(f"✅ Created quiz: {quiz.title}")
-    
-    # Create sample questions and answers
-    if quizzes:
-        quiz = quizzes[0]
-        question_data = [
-            {
-                'question_text': 'What does owning a stock mean?',
-                'question_type': 'multiple_choice',
-                'points': 1,
-                'order': 1,
-                'answers': [
-                    {'text': 'You own a piece of the company', 'is_correct': True},
-                    {'text': 'You are an employee of the company', 'is_correct': False},
-                    {'text': 'You have a loan from the company', 'is_correct': False},
-                ]
-            },
-            {
-                'question_text': 'Which of the following is NOT a benefit of stock ownership?',
-                'question_type': 'multiple_choice',
-                'points': 1,
-                'order': 2,
-                'answers': [
-                    {'text': 'Potential for capital gains', 'is_correct': False},
-                    {'text': 'Dividend income', 'is_correct': False},
-                    {'text': 'Guaranteed returns', 'is_correct': True},
-                ]
-            }
-        ]
+    # Create sample learning progress
+    if users and lessons:
+        user = users[0]  # John Doe
+        lesson = lessons[0]  # What are Stocks?
         
-        for q_data in question_data:
-            answers = q_data.pop('answers')
-            question, created = Question.objects.get_or_create(
-                quiz=quiz,
-                question_text=q_data['question_text'],
-                defaults=q_data
-            )
-            if created:
-                print(f"✅ Created question: {question.question_text[:50]}...")
-                
-                # Create answers
-                for a_data in answers:
-                    Answer.objects.get_or_create(
-                        question=question,
-                        answer_text=a_data['text'],
-                        defaults={'is_correct': a_data['is_correct'], 'order': len(answers)}
-                    )
-    
-    # Create sample user progress
-    for user in users[:2]:  # First 2 users
-        for course in courses[:2]:  # First 2 courses
-            for lesson in course.lessons.all():
-                progress, created = UserProgress.objects.get_or_create(
-                    user=user,
-                    course=course,
-                    lesson=lesson,
-                    defaults={
-                        'completed': lesson.order == 1,  # First lesson completed
-                        'time_spent': 300 if lesson.order == 1 else 0
-                    }
-                )
+        progress, created = UserLessonProgress.objects.get_or_create(
+            user=user,
+            lesson=lesson,
+            defaults={
+                'status': 'completed',
+                'progress': 100,
+                'started_at': date.today() - timedelta(days=2),
+                'completed_at': date.today() - timedelta(days=1)
+            }
+        )
+        if created:
+            print(f"✅ Created user progress for {user.username} on lesson: {lesson.title}")
     
     # Create sample simulated trades
     trade_data = [
@@ -276,14 +212,8 @@ def create_sample_data():
                 notification_type=notif_data['notification_type']
             )
     
-    print(f"\n🎉 Sample data creation completed!")
-    print(f"📊 Created:")
-    print(f"   - {len(languages)} languages")
-    print(f"   - {len(users)} users with profiles")
-    print(f"   - {len(courses)} courses")
-    print(f"   - {len(lessons)} lessons")
-    print(f"   - {len(quizzes)} quizzes")
-    print(f"   - Sample progress, trades, and notifications")
+    print("\n🎉 Sample data creation completed!")
+    print(f"📊 Created {len(languages)} languages, {len(users)} users, {len(courses)} courses, {len(lessons)} lessons")
     print(f"\n🔗 You can now:")
     print(f"   1. Visit http://localhost:8000/api/database/ to see all data")
     print(f"   2. Test the login with: john@example.com / testpass123")

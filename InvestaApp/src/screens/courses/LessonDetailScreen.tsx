@@ -82,14 +82,28 @@ const LessonDetailScreen: React.FC = () => {
       setCompleting(true);
       await markLessonCompleted(lessonId);
       setCompleted(true);
+      
+      // Navigate back to lesson list with completion info
+      setTimeout(() => {
+        navigation.navigate('LessonList', { 
+          completedLessonId: lessonId, 
+          courseId: courseId,
+          lessonCompleted: true // Add this flag to indicate completion
+        });
+      }, 300);
     } catch (e) {
-      // still reflect completion locally
+      console.error('Error marking lesson as completed:', e);
+      // Still reflect completion locally and navigate
       setCompleted(true);
+      setTimeout(() => {
+        navigation.navigate('LessonList', { 
+          completedLessonId: lessonId, 
+          courseId: courseId,
+          lessonCompleted: true
+        });
+      }, 300);
     } finally {
       setCompleting(false);
-      setTimeout(() => {
-        navigation.navigate('LessonList', { completedLessonId: lessonId, courseId: courseId });
-      }, 300);
     }
   };
 

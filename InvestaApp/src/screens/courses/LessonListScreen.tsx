@@ -6,10 +6,10 @@ import type { MainStackParamList } from '../../navigation/AppNavigator';
 import { PAGE_BG, TEXT_DARK, TEXT_MUTED, PRIMARY } from './constants/courseConstants';
 import MainHeader from '../../components/MainHeader';
 import LessonListAdvanced from './components/LessonListAdvanced';
-import { fetchCourseDetail } from './utils/coursesApi';
+import { fetchCourseDetail, fetchCourseDetailWithProgress } from './utils/coursesApi';
 
 type ParamList = {
-  LessonList: { courseId?: string; course?: any; completedLessonId?: number };
+  LessonList: { courseId?: string; course?: any; completedLessonId?: number; lessonCompleted?: boolean };
 };
 
 const LessonListScreen: React.FC = () => {
@@ -28,7 +28,7 @@ const LessonListScreen: React.FC = () => {
       if (courseIdParam) {
         try {
           setLoading(true);
-          const courseData = await fetchCourseDetail(Number(courseIdParam));
+          const courseData = await fetchCourseDetailWithProgress(Number(courseIdParam));
           setCourse(courseData);
           
           // Transform backend lessons to frontend format
@@ -36,7 +36,8 @@ const LessonListScreen: React.FC = () => {
             id: l.id,
             title: l.title,
             minutes: l.estimated_duration || 15,
-            state: 'available' as const,
+            state: (l.user_progress?.status || 'available') as 'completed' | 'progress' | 'available' | 'locked',
+            progress: l.user_progress?.progress || 0,
           }));
           
           setLessons(transformedLessons);
@@ -65,44 +66,82 @@ const LessonListScreen: React.FC = () => {
   useEffect(() => {
     const completedIdRaw = route.params?.completedLessonId;
     const completedId = Number(completedIdRaw);
+    const lessonCompleted = route.params?.lessonCompleted;
     
     if (!Number.isFinite(completedId) || completedId <= 0) return;
     
-    setLessons(prev => {
-      const next = prev.map(l => ({ ...l }));
-      const idx = next.findIndex(l => l.id === completedId);
-      
-      if (idx === -1) return prev;
-      
-      // Mark the completed lesson
-      next[idx].state = 'completed';
-      delete (next[idx] as any).progress;
-      
-      // Unlock the next lesson if available
-      const nextIdx = idx + 1;
-      if (nextIdx < next.length) {
-        const allPrevCompleted = next.slice(0, nextIdx).every(l => l.state === 'completed');
-        if (allPrevCompleted) {
-          // Clear any prior in-progress marker
-          for (let i = 0; i < next.length; i++) {
-            if (next[i].state === 'progress') {
-              next[i].state = 'available';
-              delete (next[i] as any).progress;
+    console.log(`Marking lesson ${completedId} as completed`);
+    
+    // Refresh course data from backend to get latest progress
+    const refreshCourseData = async () => {
+      if (courseIdParam) {
+        try {
+          const courseData = await fetchCourseDetailWithProgress(Number(courseIdParam));
+          setCourse(courseData);
+          
+          // Transform backend lessons to frontend format
+          const transformedLessons = (courseData.lessons || []).map((l: any) => ({
+            id: l.id,
+            title: l.title,
+            minutes: l.estimated_duration || 15,
+            state: (l.user_progress?.status || 'available') as 'completed' | 'progress' | 'available' | 'locked',
+            progress: l.user_progress?.progress || 0,
+          }));
+          
+          setLessons(transformedLessons);
+          
+          // Now mark the completed lesson
+          setLessons(prev => {
+            const next = prev.map(l => ({ ...l }));
+            const idx = next.findIndex(l => l.id === completedId);
+            
+            if (idx === -1) {
+              console.log(`Lesson ${completedId} not found in current lessons`);
+              return prev;
             }
-          }
-          if (next[nextIdx].state === 'locked') next[nextIdx].state = 'available';
-          next[nextIdx].state = 'progress';
-          (next[nextIdx] as any).progress = 0;
+            
+            console.log(`Updating lesson ${completedId} state from ${next[idx].state} to completed`);
+            
+            // Mark the completed lesson
+            next[idx].state = 'completed';
+            delete (next[idx] as any).progress;
+            
+            // Unlock the next lesson if available
+            const nextIdx = idx + 1;
+            if (nextIdx < next.length) {
+              const allPrevCompleted = next.slice(0, nextIdx).every(l => l.state === 'completed');
+              if (allPrevCompleted) {
+                console.log(`Unlocking next lesson ${nextIdx + 1}`);
+                // Clear any prior in-progress marker
+                for (let i = 0; i < next.length; i++) {
+                  if (next[i].state === 'progress') {
+                    next[i].state = 'available';
+                    delete (next[i] as any).progress;
+                  }
+                }
+                if (next[nextIdx].state === 'locked') next[nextIdx].state = 'available';
+                next[nextIdx].state = 'progress';
+                (next[nextIdx] as any).progress = 0;
+              }
+            }
+            return next;
+          });
+        } catch (error) {
+          console.error('Error refreshing course data:', error);
         }
       }
-      return next;
-    });
+    };
     
-    // Clear the param after applying to avoid re-applying on future renders
+    refreshCourseData();
+    
+    // Clear the params after applying to avoid re-applying on future renders
     try {
-      (navigation as any).setParams?.({ completedLessonId: undefined });
+      (navigation as any).setParams?.({ 
+        completedLessonId: undefined, 
+        lessonCompleted: undefined 
+      });
     } catch {}
-  }, [route.params?.completedLessonId]);
+  }, [route.params?.completedLessonId, route.params?.lessonCompleted, courseIdParam]);
 
   const DEFAULT_LESSONS = useMemo(() => ([
     { id: 1, title: 'Introduction to JavaScript', minutes: 8, state: 'completed' as const },
