@@ -67,7 +67,7 @@ export async function markLessonCompleted(lessonId: number): Promise<void> {
 // Quiz API functions
 export const fetchQuizForLesson = async (lessonId: number) => {
   try {
-    const response = await api.get(`/api/quiz/${lessonId}/for_lesson/`);
+    const response = await api.get(`quiz/${lessonId}/for_lesson/`);
     return response.data;
   } catch (error) {
     console.error('Error fetching quiz for lesson:', error);
@@ -77,7 +77,7 @@ export const fetchQuizForLesson = async (lessonId: number) => {
 
 export const startQuizAttempt = async (quizId: number) => {
   try {
-    const response = await api.post('/api/quiz-attempts/start_quiz/', {
+    const response = await api.post('quiz-attempts/start_quiz/', {
       quiz_id: quizId
     });
     return response.data;
@@ -94,7 +94,7 @@ export const submitQuizAnswer = async (
   textAnswer?: string
 ) => {
   try {
-    const response = await api.post(`/api/quiz-attempts/${attemptId}/submit_answer/`, {
+    const response = await api.post(`quiz-attempts/${attemptId}/submit_answer/`, {
       question_id: questionId,
       answer_id: answerId,
       text_answer: textAnswer || ''
@@ -108,7 +108,7 @@ export const submitQuizAnswer = async (
 
 export const completeQuizAttempt = async (attemptId: number, timeTaken: number) => {
   try {
-    const response = await api.post(`/api/quiz-attempts/${attemptId}/complete_quiz/`, {
+    const response = await api.post(`quiz-attempts/${attemptId}/complete_quiz/`, {
       time_taken: timeTaken
     });
     return response.data;
@@ -120,7 +120,7 @@ export const completeQuizAttempt = async (attemptId: number, timeTaken: number) 
 
 export const getQuizAttempts = async () => {
   try {
-    const response = await api.get('/api/quiz-attempts/my_attempts/');
+    const response = await api.get('quiz-attempts/my_attempts/');
     return response.data;
   } catch (error) {
     console.error('Error fetching quiz attempts:', error);

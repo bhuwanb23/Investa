@@ -299,7 +299,7 @@ const LessonDetailScreen: React.FC = () => {
               </Text>
               <TouchableOpacity 
                 style={styles.quizButton}
-                onPress={() => (navigation as any).navigate('LessonQuiz', { currentLessonId: lessonId, nextLessonId: lessonId + 1 })}
+                onPress={() => (navigation as any).navigate('LessonQuiz', { lessonId: String(lessonId), courseId })}
               >
                 <Ionicons name="play" size={20} color="#FFFFFF" />
                 <Text style={styles.quizButtonText}>Start Quiz</Text>

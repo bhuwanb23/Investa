@@ -50,8 +50,17 @@ const LessonQuizContent: React.FC<LessonQuizContentProps> = ({
   const [timeLeft, setTimeLeft] = useState(60); // 60 seconds per question
 
   // Use backend question data if available, otherwise fall back to local data
-  const currentQuestion = question || QUIZ_QUESTIONS[currentQuestionIndex];
   const isBackendQuiz = !!question;
+  const currentQuestion = isBackendQuiz ? question : QUIZ_QUESTIONS[currentQuestionIndex];
+  const effectiveIndex = isBackendQuiz ? questionIndex : currentQuestionIndex;
+  const effectiveTotal = isBackendQuiz ? totalQuestions : QUIZ_QUESTIONS.length;
+  const backendAnswers = isBackendQuiz ? (currentQuestion?.answers || []) : [];
+  const correctIndex = isBackendQuiz 
+    ? backendAnswers.findIndex((a: any) => !!a?.is_correct)
+    : (currentQuestion?.correctAnswer ?? -1);
+  const options: string[] = isBackendQuiz
+    ? backendAnswers.map((a: any) => a?.answer_text ?? '')
+    : (currentQuestion?.options || []);
 
   useEffect(() => {
     if (quizCompleted) return;
@@ -93,11 +102,18 @@ const LessonQuizContent: React.FC<LessonQuizContentProps> = ({
     setSelectedAnswer(null);
     setTimeLeft(60);
 
-    if (currentQuestionIndex < QUIZ_QUESTIONS.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
+    if (isBackendQuiz) {
+      if (effectiveIndex < effectiveTotal - 1) {
+        onNextQuestion();
+      } else {
+        onCompleteQuiz();
+      }
     } else {
-      // Quiz completed
-      setQuizCompleted(true);
+      if (currentQuestionIndex < QUIZ_QUESTIONS.length - 1) {
+        setCurrentQuestionIndex(prev => prev + 1);
+      } else {
+        setQuizCompleted(true);
+      }
     }
   };
 
@@ -205,13 +221,13 @@ const LessonQuizContent: React.FC<LessonQuizContentProps> = ({
       <View style={styles.progressHeader}>
         <View style={styles.progressInfo}>
           <Text style={styles.progressText}>
-            Question {currentQuestionIndex + 1} of {QUIZ_QUESTIONS.length}
+            Question {effectiveIndex + 1} of {effectiveTotal}
           </Text>
           <View style={styles.progressBar}>
             <View 
               style={[
                 styles.progressFill, 
-                { width: `${((currentQuestionIndex + 1) / QUIZ_QUESTIONS.length) * 100}%` }
+                { width: `${((effectiveIndex + 1) / Math.max(1, effectiveTotal)) * 100}%` }
               ]} 
             />
           </View>
@@ -224,19 +240,19 @@ const LessonQuizContent: React.FC<LessonQuizContentProps> = ({
 
       {/* Question */}
       <View style={styles.questionContainer}>
-        <Text style={styles.questionText}>{currentQuestion.question}</Text>
+        <Text style={styles.questionText}>{isBackendQuiz ? currentQuestion?.question_text : currentQuestion?.question}</Text>
       </View>
 
       {/* Answer Options */}
       <View style={styles.optionsContainer}>
-        {currentQuestion.options.map((option, index) => (
+        {options.map((option, index) => (
           <TouchableOpacity
             key={index}
             style={[
               styles.optionButton,
               selectedAnswer === index && styles.selectedOption,
-              showExplanation && index === currentQuestion.correctAnswer && styles.correctOption,
-              showExplanation && selectedAnswer === index && index !== currentQuestion.correctAnswer && styles.incorrectOption,
+              showExplanation && index === correctIndex && styles.correctOption,
+              showExplanation && selectedAnswer === index && index !== correctIndex && styles.incorrectOption,
             ]}
             onPress={() => handleAnswerSelect(index)}
             disabled={showExplanation}
@@ -250,15 +266,15 @@ const LessonQuizContent: React.FC<LessonQuizContentProps> = ({
               <Text style={[
                 styles.optionText,
                 selectedAnswer === index && styles.selectedOptionText,
-                showExplanation && index === currentQuestion.correctAnswer && styles.correctOptionText,
+                showExplanation && index === correctIndex && styles.correctOptionText,
               ]}>
                 {option}
               </Text>
             </View>
-            {showExplanation && index === currentQuestion.correctAnswer && (
+            {showExplanation && index === correctIndex && (
               <Ionicons name="checkmark-circle" size={20} color="#10B981" />
             )}
-            {showExplanation && selectedAnswer === index && index !== currentQuestion.correctAnswer && (
+            {showExplanation && selectedAnswer === index && index !== correctIndex && (
               <Ionicons name="close-circle" size={20} color="#EF4444" />
             )}
           </TouchableOpacity>
@@ -272,7 +288,7 @@ const LessonQuizContent: React.FC<LessonQuizContentProps> = ({
             <Ionicons name="bulb" size={20} color="#F59E0B" />
             <Text style={styles.explanationTitle}>Explanation</Text>
           </View>
-          <Text style={styles.explanationText}>{currentQuestion.explanation}</Text>
+          <Text style={styles.explanationText}>{isBackendQuiz ? (currentQuestion?.explanation || 'No explanation provided.') : currentQuestion.explanation}</Text>
         </View>
       )}
 
@@ -286,7 +302,7 @@ const LessonQuizContent: React.FC<LessonQuizContentProps> = ({
         ) : selectedAnswer !== null && showExplanation ? (
           <TouchableOpacity style={styles.nextButton} onPress={handleNextQuestion}>
             <Text style={styles.nextButtonText}>
-              {currentQuestionIndex < QUIZ_QUESTIONS.length - 1 ? 'Next Question' : 'Finish Quiz'}
+              {effectiveIndex < effectiveTotal - 1 ? 'Next Question' : 'Finish Quiz'}
             </Text>
             <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
           </TouchableOpacity>
