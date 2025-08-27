@@ -6,6 +6,9 @@ import type { MainStackParamList } from '../../navigation/AppNavigator';
 import MainHeader from '../../components/MainHeader';
 import LessonQuizContent from './components/LessonQuizContent';
 import { fetchQuizForLesson, startQuizAttempt, submitQuizAnswer, completeQuizAttempt } from './utils/coursesApi';
+import { getQuizAttempt } from './utils/coursesApi';
+import { markLessonCompleted, fetchCourseDetailWithProgress } from './utils/coursesApi';
+import { Alert } from 'react-native';
 
 type ParamList = { 
   LessonQuiz: { 
@@ -61,7 +64,9 @@ const LessonQuizScreen: React.FC = () => {
   const handleCompleteQuiz = async (timeTaken: number) => {
     try {
       const result = await completeQuizAttempt(quizAttempt.id, timeTaken);
-      setAttemptResult(result);
+      // Fetch the persisted attempt with answers populated
+      const fresh = await getQuizAttempt(result.id || quizAttempt.id);
+      setAttemptResult(fresh || result);
       setQuizCompleted(true);
       return result;
     } catch (err) {
@@ -164,6 +169,38 @@ const LessonQuizScreen: React.FC = () => {
             activeOpacity={0.9}
           >
             <Text style={{ color: '#fff', fontWeight: '800' }}>Back to Lessons</Text>
+          </TouchableOpacity>
+
+          <View style={{ height: 10 }} />
+          <TouchableOpacity
+            onPress={async () => {
+              try {
+                const currentLessonIdNum = Number(lessonId);
+                if (Number.isFinite(currentLessonIdNum)) {
+                  await markLessonCompleted(currentLessonIdNum);
+                }
+                Alert.alert('Lesson Completed', 'Great job! This lesson has been marked as completed.');
+                if (courseId) {
+                  const course = await fetchCourseDetailWithProgress(Number(courseId));
+                  const lessonsArr = Array.isArray(course?.lessons) ? course.lessons : [];
+                  const idx = lessonsArr.findIndex((l: any) => l.id === currentLessonIdNum);
+                  const next = idx >= 0 && idx + 1 < lessonsArr.length ? lessonsArr[idx + 1] : null;
+                  if (next?.id) {
+                    navigation.push('LessonDetail', { lessonId: String(next.id), courseId: String(courseId) });
+                  } else {
+                    navigation.navigate('LessonList', { courseId: String(courseId), lessonCompleted: true, completedLessonId: currentLessonIdNum });
+                  }
+                } else {
+                  navigation.navigate('LessonList', { lessonCompleted: true, completedLessonId: Number(lessonId) });
+                }
+              } catch (e) {
+                navigation.navigate('LessonList', { courseId: courseId || '', lessonCompleted: true });
+              }
+            }}
+            style={{ backgroundColor: '#10B981', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
+            activeOpacity={0.9}
+          >
+            <Text style={{ color: '#fff', fontWeight: '800' }}>Continue to Next Lesson</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>

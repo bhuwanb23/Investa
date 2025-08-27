@@ -3,7 +3,7 @@
 {% block title %}Database Explorer - Investa Console{% endblock %}
 
 {% block extra_css %}
-<style>
+  <style>
   /* Database specific styles */
   .db-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -53,7 +53,7 @@
   
   .controls-section {
     background: white;
-    border: 1px solid var(--border);
+      border: 1px solid var(--border); 
     border-radius: 16px;
     padding: 20px;
     margin-bottom: 24px;
@@ -69,10 +69,10 @@
     width: 100%;
     padding: 12px 16px 12px 40px;
     border: 2px solid var(--border);
-    border-radius: 12px;
+      border-radius: 12px; 
     font-size: 14px;
-    transition: all 0.2s ease;
-  }
+      transition: all 0.2s ease;
+    }
   
   .search-box input:focus {
     border-color: var(--brand);
@@ -111,16 +111,16 @@
   }
   
   .control-btn:hover {
-    border-color: var(--brand);
+      border-color: var(--brand);
     color: var(--brand);
     transform: translateY(-1px);
-  }
+    }
   
   .control-btn.primary {
-    background: var(--brand);
+      background: var(--brand); 
     color: white;
-    border-color: var(--brand);
-  }
+      border-color: var(--brand);
+    }
   
   .control-btn.primary:hover {
     background: var(--brand-600);
@@ -197,7 +197,7 @@
     color: white;
     border: none;
     padding: 8px 16px;
-    border-radius: 8px;
+      border-radius: 8px; 
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -270,32 +270,32 @@
   }
 
   /* Model Content */
-  .model-content {
-    display: none;
-    animation: fadeIn 0.3s ease;
-  }
+    .model-content { 
+      display: none; 
+      animation: fadeIn 0.3s ease;
+    }
   
-  .model-content.active {
-    display: block;
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  .model-header {
+    .model-content.active { 
+      display: block; 
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .model-header {
     background: linear-gradient(135deg, #f8fafc, #e2e8f0);
     padding: 24px;
     border-radius: 16px;
     margin-bottom: 24px;
-    border: 1px solid var(--border);
-  }
+      border: 1px solid var(--border);
+    }
   
-  .model-title {
+    .model-title {
     font-size: 24px;
     font-weight: 800;
-    color: var(--ink);
+      color: var(--ink);
     margin-bottom: 16px;
     display: flex;
     align-items: center;
@@ -307,24 +307,24 @@
     font-size: 28px;
   }
   
-  .model-meta {
+    .model-meta {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 16px;
-  }
+      gap: 16px;
+    }
   
-  .meta-item {
+    .meta-item {
     background: white;
     padding: 12px 16px;
     border-radius: 10px;
     border: 1px solid var(--border);
-    display: flex;
-    align-items: center;
+      display: flex;
+      align-items: center;
     gap: 8px;
-  }
+    }
   
-  .meta-item strong {
-    color: var(--ink);
+    .meta-item strong {
+      color: var(--ink);
     font-weight: 700;
   }
   
@@ -555,7 +555,7 @@
       </button>
     </div>
   </div>
-</div>
+    </div>
 
 <!-- Category Navigation -->
 <div class="category-navigation" id="category-navigation">
@@ -564,39 +564,39 @@
       <div class="category-icon">👤</div>
       <div class="category-name">User</div>
       <div class="category-count">3 tables</div>
-    </div>
+        </div>
     
     <div class="category-card" data-category="security" onclick="showCategory('security')">
       <div class="category-icon">🔒</div>
       <div class="category-name">Security</div>
       <div class="category-count">3 tables</div>
-    </div>
-    
+      </div>
+
     <div class="category-card" data-category="learning" onclick="showCategory('learning')">
       <div class="category-icon">📚</div>
       <div class="category-name">Learning</div>
-      <div class="category-count">6 tables</div>
-    </div>
-    
+      <div class="category-count">– tables</div>
+        </div>
+
     <div class="category-card" data-category="trading" onclick="showCategory('trading')">
       <div class="category-icon">📈</div>
       <div class="category-name">Trading</div>
-      <div class="category-count">1 table</div>
-    </div>
+      <div class="category-count">– tables</div>
+        </div>
     
     <div class="category-card" data-category="notifications" onclick="showCategory('notifications')">
       <div class="category-icon">🔔</div>
       <div class="category-name">Notifications</div>
-      <div class="category-count">1 table</div>
-    </div>
+      <div class="category-count">– tables</div>
+      </div>
     
     <div class="category-card" data-category="system" onclick="showCategory('system')">
       <div class="category-icon">⚙️</div>
       <div class="category-name">System</div>
       <div class="category-count">Other tables</div>
-    </div>
-  </div>
-</div>
+          </div>
+        </div>
+      </div>
 
 <!-- Category Content -->
 <div class="category-content" id="category-content" style="display: none;">
@@ -607,34 +607,34 @@
   
   <div class="table-list" id="table-list">
     <!-- Tables will be populated here -->
-  </div>
-</div>
+        </div>
+      </div>
 
-<!-- Model Content -->
-{% for model in models %}
-<div class="model-content" data-model="{{ model.app_label }}.{{ model.model_name }}">
-  <div class="model-header">
-    <div class="model-title">{{ model.model_name }}</div>
-    <div class="model-meta">
-      <div class="meta-item">
+      <!-- Model Content -->
+      {% for model in models %}
+      <div class="model-content" data-model="{{ model.app_label }}.{{ model.model_name }}">
+        <div class="model-header">
+          <div class="model-title">{{ model.model_name }}</div>
+          <div class="model-meta">
+            <div class="meta-item">
         <strong>App:</strong> <span>{{ model.app_label }}</span>
       </div>
       <div class="meta-item">
         <strong>Table:</strong> <span>{{ model.table_name }}</span>
-      </div>
-      <div class="meta-item">
+            </div>
+            <div class="meta-item">
         <strong>Fields:</strong> <span>{{ model.fields|length }}</span>
-      </div>
-      <div class="meta-item">
+            </div>
+            <div class="meta-item">
         <strong>Records:</strong> <span>{{ model.total_count }}</span>
-      </div>
-      <div class="meta-item">
+            </div>
+            <div class="meta-item">
         <strong>Status:</strong> <span style="color: #10b981;">● Active</span>
-      </div>
-    </div>
-  </div>
+            </div>
+          </div>
+        </div>
 
-  {% if model.rows and model.rows|length > 0 %}
+        {% if model.rows and model.rows|length > 0 %}
   <div class="table-container">
     <div class="table-header">
       <div class="table-title">Data Records ({{ model.total_count }} total)</div>
@@ -644,19 +644,19 @@
         <button class="table-btn" onclick="showTableSchema('{{ model.model_name }}')">🔍 Schema</button>
       </div>
     </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            {% for f in model.fields %}
-            <th>{{ f }}</th>
-            {% endfor %}
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in model.rows %}
-          <tr>
-            {% for cell in row %}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {% for f in model.fields %}
+                <th>{{ f }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in model.rows %}
+              <tr>
+                {% for cell in row %}
             <td>
               {% if cell is not none %}
                 {% if cell|length > 50 %}
@@ -679,22 +679,22 @@
                 <span class="data-type null">null</span>
               {% endif %}
             </td>
-            {% endfor %}
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
     </div>
-  </div>
-  {% else %}
+        </div>
+        {% else %}
   <div class="empty-state">
     <div class="empty-icon">📭</div>
     <div class="empty-title">No Records Found</div>
     <div class="empty-desc">This table doesn't have any data yet. Records will appear here once they're added.</div>
-  </div>
-  {% endif %}
-</div>
-{% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
 {% endblock %}
 
 {% block extra_js %}
@@ -722,7 +722,10 @@
     learning: {
       name: 'Learning & Achievements',
       icon: '📚',
-      models: ['Course', 'Lesson', 'UserLessonProgress', 'LearningProgress', 'Badge', 'UserBadge']
+      models: [
+        'Course', 'Lesson', 'UserLessonProgress', 'LearningProgress', 'Badge', 'UserBadge',
+        'Quiz', 'Question', 'Answer', 'UserQuizAttempt', 'UserQuizAnswer'
+      ]
     },
     trading: {
       name: 'Trading & Performance',
@@ -876,6 +879,11 @@
       'LearningProgress': '📚',
       'Badge': '🏆',
       'UserBadge': '🎖️',
+      'Quiz': '❓',
+      'Question': '❔',
+      'Answer': '✔️',
+      'UserQuizAttempt': '📝',
+      'UserQuizAnswer': '🗳️',
       'TradingPerformance': '📈',
       'Notification': '🔔'
     };
@@ -1033,12 +1041,28 @@
       
       // Start with categories view
       showCategories();
+
+      // Dynamically set category counts from modelData
+      try {
+        const counts = {
+          user: modelData.filter(m => ['User','UserProfile','Language'].includes(m.model_name)).length,
+          security: modelData.filter(m => ['SecuritySettings','PrivacySettings','UserSession'].includes(m.model_name)).length,
+          learning: modelData.filter(m => categories.learning.models.includes(m.model_name)).length,
+          trading: modelData.filter(m => ['TradingPerformance'].includes(m.model_name)).length,
+          notifications: modelData.filter(m => ['Notification'].includes(m.model_name)).length,
+        };
+        document.querySelector('[data-category="learning"] .category-count').textContent = `${counts.learning} tables`;
+        document.querySelector('[data-category="trading"] .category-count').textContent = `${counts.trading} tables`;
+        document.querySelector('[data-category="notifications"] .category-count').textContent = `${counts.notifications} tables`;
+        document.querySelector('[data-category="user"] .category-count').textContent = `${counts.user} tables`;
+        document.querySelector('[data-category="security"] .category-count').textContent = `${counts.security} tables`;
+      } catch (e) { console.warn('Could not compute category counts', e); }
       console.log('=== INITIALIZATION COMPLETE ===');
     } catch (error) {
       console.error('Error initializing database page:', error);
     }
   });
-</script>
+  </script>
 {% endblock %}
 
 

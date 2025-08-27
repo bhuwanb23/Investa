@@ -128,4 +128,14 @@ export const getQuizAttempts = async () => {
   }
 };
 
+export const getQuizAttempt = async (attemptId: number) => {
+  try {
+    const response = await api.get(`quiz-attempts/${attemptId}/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching quiz attempt:', error);
+    throw error;
+  }
+};
+
 
