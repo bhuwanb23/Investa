@@ -160,8 +160,8 @@ const CoursesScreen = () => {
                 <CourseCard
                   course={c}
                   onPress={() => {
-                    // Navigate to CourseDetail, backend will fetch by ID
-                    navigation.navigate('CourseDetail' as any, { courseId: String(c.id) });
+                    // Navigate to ModuleScreen instead of CourseDetail
+                    navigation.navigate('ModuleScreen' as any, { courseId: String(c.id), course: c });
                   }}
                 />
               </View>

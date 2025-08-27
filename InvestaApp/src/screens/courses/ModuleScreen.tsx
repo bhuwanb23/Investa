@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -11,6 +11,7 @@ import ProgressCard from './components/ProgressCard';
 import ObjectivesList from './components/ObjectivesList';
 import BadgesGrid from './components/BadgesGrid';
 import ModuleStats from './components/ModuleStats';
+import { fetchCourseDetailWithProgress } from './utils/coursesApi';
 
 type ParamList = {
   ModuleScreen: { courseId: string; course?: any };
@@ -19,13 +20,64 @@ type ParamList = {
 const ModuleScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
   const route = useRoute<RouteProp<ParamList, 'ModuleScreen'>>();
-  const course = route.params?.course || {
-    id: Number(route.params?.courseId) || 0,
+  const courseIdParam = route.params?.courseId;
+  const courseParam = route.params?.course;
+
+  const [course, setCourse] = useState<any>(courseParam || {
+    id: Number(courseIdParam) || 0,
     title: 'Module Overview',
     description: 'Learn advanced concepts with a modern curriculum.',
     estimated_duration: 270,
     difficulty_level: 'intermediate',
-  };
+  });
+  const [loading, setLoading] = useState<boolean>(false);
+  const [lessons, setLessons] = useState<any[]>([]);
+
+  // Fetch course data when component mounts
+  useEffect(() => {
+    const loadCourseData = async () => {
+      if (courseIdParam) {
+        try {
+          setLoading(true);
+          console.log('🔄 Loading course data for ModuleScreen, courseId:', courseIdParam);
+          const courseData = await fetchCourseDetailWithProgress(Number(courseIdParam));
+          setCourse(courseData);
+          setLessons(courseData.lessons || []);
+          console.log('📊 Course data loaded for ModuleScreen:', courseData);
+        } catch (error) {
+          console.error('Error loading course data in ModuleScreen:', error);
+          // Keep the courseParam as fallback
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadCourseData();
+  }, [courseIdParam]);
+
+  // Calculate progress based on completed lessons
+  const completedLessons = lessons.filter((lesson: any) => 
+    lesson.user_progress?.status === 'completed'
+  ).length;
+  const totalLessons = lessons.length;
+  const progressPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+
+  // Get next lesson for the hint
+  const nextLesson = lessons.find((lesson: any) => 
+    lesson.user_progress?.status !== 'completed'
+  );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <MainHeader title="Loading..." iconName="library" showBackButton onBackPress={() => navigation.goBack()} />
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading module...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -41,16 +93,19 @@ const ModuleScreen: React.FC = () => {
         </View>
 
         <View style={{ marginHorizontal: 12 }}>
-          <ProgressCard percent={67} hint={'8 of 12 lessons completed'} />
+          <ProgressCard 
+            percent={progressPercentage} 
+            hint={`${completedLessons} of ${totalLessons} lessons completed`} 
+          />
         </View>
 
         <View style={{ marginHorizontal: 12 }}>
           <ObjectivesList
             objectives={[
-              { text: 'Understand and implement closures in real-world scenarios', achieved: true },
-              { text: 'Master asynchronous programming with async/await', achieved: true },
-              { text: 'Build complex applications using modern ES6+ features' },
-              { text: 'Optimize code performance and memory management' },
+              { text: 'Complete all lessons in the module', achieved: completedLessons === totalLessons && totalLessons > 0 },
+              { text: 'Achieve 80% or higher on assessments', achieved: false },
+              { text: 'Apply concepts in practical exercises', achieved: completedLessons >= Math.ceil(totalLessons * 0.5) },
+              { text: 'Participate in module discussions', achieved: false },
             ]}
           />
         </View>
@@ -58,15 +113,15 @@ const ModuleScreen: React.FC = () => {
         <View style={{ marginHorizontal: 12 }}>
           <BadgesGrid
             badges={[
-              { icon: 'code', title: 'Code Master', subtitle: 'Complete all exercises', highlighted: true },
-              { icon: 'rocket', title: 'Speed Runner', subtitle: 'Finish in 3 days' },
-              { icon: 'trophy', title: 'Expert', subtitle: 'Score 95%+ on quiz' },
+              { icon: 'code', title: 'Module Master', subtitle: 'Complete all lessons', highlighted: completedLessons === totalLessons && totalLessons > 0 },
+              { icon: 'rocket', title: 'Fast Learner', subtitle: 'Finish in 3 days', highlighted: false },
+              { icon: 'trophy', title: 'Perfect Score', subtitle: 'Score 100% on quiz', highlighted: false },
             ]}
           />
         </View>
 
         <View style={{ marginHorizontal: 12 }}>
-          <ModuleStats lessonsCount={12} quizzesCount={5} />
+          <ModuleStats lessonsCount={totalLessons} quizzesCount={Math.ceil(totalLessons / 5)} />
         </View>
       </ScrollView>
 
@@ -74,12 +129,23 @@ const ModuleScreen: React.FC = () => {
         <TouchableOpacity
           style={styles.primaryBtn}
           activeOpacity={0.85}
-          onPress={() => navigation.navigate('LessonList', { courseId: String(course.id), course })}
+          onPress={() => {
+            if (courseIdParam) {
+              navigation.navigate('LessonList', { 
+                courseId: courseIdParam, 
+                course: course 
+              });
+            }
+          }}
         >
           <Ionicons name="play" size={16} color="#fff" />
-          <Text style={styles.primaryBtnText}>Continue Module</Text>
+          <Text style={styles.primaryBtnText}>
+            {completedLessons === 0 ? 'Start Module' : 'Continue Module'}
+          </Text>
         </TouchableOpacity>
-        <Text style={styles.nextHint}>Next: Understanding Closures</Text>
+        {nextLesson && (
+          <Text style={styles.nextHint}>Next: {nextLesson.title}</Text>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -176,6 +242,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   nextHint: { textAlign: 'center', color: TEXT_MUTED, fontSize: 12, marginTop: 6 },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: PAGE_BG,
+  },
+  loadingText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: TEXT_DARK,
+  },
 });
 
 export default ModuleScreen;

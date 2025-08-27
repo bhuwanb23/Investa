@@ -22,24 +22,130 @@ const LessonListScreen: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [course, setCourse] = useState<any>(courseParam);
 
+  // Transform backend lessons to frontend format with proper unlocking logic
+  const transformLessonsWithUnlocking = (lessons: any[]) => {
+    console.log('🔄 Starting lesson transformation...');
+    console.log('📊 Raw lessons from backend:', lessons.map(l => ({ 
+      id: l.id, 
+      title: l.title, 
+      user_progress: l.user_progress 
+    })));
+    
+    const transformed = lessons.map((l: any) => {
+      // CRITICAL: Only mark as completed if the backend explicitly says it's completed
+      const backendStatus = l.user_progress?.status;
+      const isActuallyCompleted = backendStatus === 'completed';
+      
+      const lessonData = {
+        id: l.id,
+        title: l.title,
+        minutes: l.estimated_duration || 15,
+        state: isActuallyCompleted ? 'completed' : (backendStatus || 'available') as 'completed' | 'progress' | 'available' | 'locked',
+        progress: isActuallyCompleted ? 100 : (l.user_progress?.progress || 0),
+      };
+      
+      console.log(`🔍 Lesson ${l.id}: Backend status="${backendStatus}", IsCompleted=${isActuallyCompleted}, Final state="${lessonData.state}"`);
+      
+      return lessonData;
+    });
+    
+    console.log('📊 After initial transformation:', transformed.map(l => ({ 
+      id: l.id, 
+      title: l.title, 
+      state: l.state, 
+      progress: l.progress 
+    })));
+    
+    // Apply lesson unlocking logic - only unlock the next lesson when previous is completed
+    for (let i = 0; i < transformed.length; i++) {
+      const lesson = transformed[i];
+      
+      // If lesson already has progress data from backend, preserve it
+      if (lesson.state === 'completed' || lesson.state === 'progress') {
+        console.log(`✅ Lesson ${lesson.id} (${lesson.title}): Preserving backend status: ${lesson.state}`);
+        continue;
+      }
+      
+      // First lesson is always available
+      if (i === 0) {
+        lesson.state = 'available';
+        console.log(`🔓 Lesson ${lesson.id} (${lesson.title}): First lesson, always available`);
+        continue;
+      }
+      
+      // For subsequent lessons, check if previous lesson is completed
+      const previousLesson = transformed[i - 1];
+      if (previousLesson.state === 'completed') {
+        // Only unlock this lesson if the previous one is completed
+        lesson.state = 'available';
+        console.log(`🔓 Unlocked lesson ${lesson.id} (${lesson.title}) because previous lesson ${previousLesson.id} is completed`);
+      } else {
+        // Lock this lesson if previous is not completed
+        lesson.state = 'locked';
+        console.log(`🔒 Locked lesson ${lesson.id} (${lesson.title}) because previous lesson ${previousLesson.id} is not completed`);
+      }
+    }
+    
+    console.log('📊 Final transformed lessons:', transformed.map(l => ({ 
+      id: l.id, 
+      title: l.title, 
+      state: l.state, 
+      progress: l.progress 
+    })));
+    
+    return transformed;
+  };
+
+  // Test function to verify lesson transformation logic
+  const testLessonTransformation = () => {
+    const testLessons = [
+      { id: 1, title: 'Lesson 1', user_progress: { status: 'available', progress: 0 } },
+      { id: 2, title: 'Lesson 2', user_progress: { status: 'completed', progress: 100 } },
+      { id: 3, title: 'Lesson 3', user_progress: { status: 'available', progress: 0 } },
+      { id: 4, title: 'Lesson 4', user_progress: { status: 'available', progress: 0 } },
+    ];
+    
+    console.log('🧪 Testing lesson transformation logic...');
+    const result = transformLessonsWithUnlocking(testLessons);
+    console.log('🧪 Test result:', result.map(l => ({ id: l.id, state: l.state })));
+    
+    // Expected: Lesson 1: available, Lesson 2: completed, Lesson 3: available, Lesson 4: locked
+    const expected = ['available', 'completed', 'available', 'locked'];
+    const actual = result.map(l => l.state);
+    
+    if (JSON.stringify(expected) === JSON.stringify(actual)) {
+      console.log('✅ Test passed! Lesson transformation logic is working correctly.');
+    } else {
+      console.log('❌ Test failed! Expected:', expected, 'Got:', actual);
+    }
+  };
+
+  // Run test when component mounts
+  useEffect(() => {
+    testLessonTransformation();
+  }, []);
+
   // Fetch course data when component mounts or courseId changes
   useEffect(() => {
     const loadCourseData = async () => {
       if (courseIdParam) {
         try {
           setLoading(true);
+          console.log('🔄 Loading course data for courseId:', courseIdParam);
           const courseData = await fetchCourseDetailWithProgress(Number(courseIdParam));
           setCourse(courseData);
           
-          // Transform backend lessons to frontend format
-          const transformedLessons = (courseData.lessons || []).map((l: any) => ({
+          console.log('📊 Raw course data from backend:', courseData);
+          console.log('📊 Lessons from backend:', courseData.lessons?.map((l: any) => ({
             id: l.id,
             title: l.title,
-            minutes: l.estimated_duration || 15,
-            state: (l.user_progress?.status || 'available') as 'completed' | 'progress' | 'available' | 'locked',
-            progress: l.user_progress?.progress || 0,
-          }));
+            user_progress: l.user_progress
+          })));
           
+          // Transform backend lessons to frontend format with proper unlocking logic
+          const transformedLessons = transformLessonsWithUnlocking(courseData.lessons || []);
+          
+          console.log('📊 Final transformed lessons:', transformedLessons.map(l => ({ id: l.id, state: l.state, progress: l.progress })));
           setLessons(transformedLessons);
         } catch (error) {
           console.error('Error loading course data:', error);
@@ -70,62 +176,29 @@ const LessonListScreen: React.FC = () => {
     
     if (!Number.isFinite(completedId) || completedId <= 0) return;
     
-    console.log(`Marking lesson ${completedId} as completed`);
+    console.log(`🚨 LESSON COMPLETION TRIGGERED: Lesson ${completedId} was completed, refreshing data from backend`);
     
     // Refresh course data from backend to get latest progress
     const refreshCourseData = async () => {
       if (courseIdParam) {
         try {
+          console.log('🔄 Refreshing course data from backend...');
           const courseData = await fetchCourseDetailWithProgress(Number(courseIdParam));
           setCourse(courseData);
           
-          // Transform backend lessons to frontend format
-          const transformedLessons = (courseData.lessons || []).map((l: any) => ({
+          console.log('🔄 Raw refreshed course data:', courseData);
+          console.log('🔄 Lessons from refreshed data:', courseData.lessons?.map((l: any) => ({
             id: l.id,
             title: l.title,
-            minutes: l.estimated_duration || 15,
-            state: (l.user_progress?.status || 'available') as 'completed' | 'progress' | 'available' | 'locked',
-            progress: l.user_progress?.progress || 0,
-          }));
+            user_progress: l.user_progress
+          })));
           
+          // Transform backend lessons to frontend format with proper unlocking logic
+          const transformedLessons = transformLessonsWithUnlocking(courseData.lessons || []);
+          
+          console.log('🔄 Final refreshed lessons:', transformedLessons.map(l => ({ id: l.id, state: l.state, progress: l.progress })));
           setLessons(transformedLessons);
           
-          // Now mark the completed lesson
-          setLessons(prev => {
-            const next = prev.map(l => ({ ...l }));
-            const idx = next.findIndex(l => l.id === completedId);
-            
-            if (idx === -1) {
-              console.log(`Lesson ${completedId} not found in current lessons`);
-              return prev;
-            }
-            
-            console.log(`Updating lesson ${completedId} state from ${next[idx].state} to completed`);
-            
-            // Mark the completed lesson
-            next[idx].state = 'completed';
-            delete (next[idx] as any).progress;
-            
-            // Unlock the next lesson if available
-            const nextIdx = idx + 1;
-            if (nextIdx < next.length) {
-              const allPrevCompleted = next.slice(0, nextIdx).every(l => l.state === 'completed');
-              if (allPrevCompleted) {
-                console.log(`Unlocking next lesson ${nextIdx + 1}`);
-                // Clear any prior in-progress marker
-                for (let i = 0; i < next.length; i++) {
-                  if (next[i].state === 'progress') {
-                    next[i].state = 'available';
-                    delete (next[i] as any).progress;
-                  }
-                }
-                if (next[nextIdx].state === 'locked') next[nextIdx].state = 'available';
-                next[nextIdx].state = 'progress';
-                (next[nextIdx] as any).progress = 0;
-              }
-            }
-            return next;
-          });
         } catch (error) {
           console.error('Error refreshing course data:', error);
         }
