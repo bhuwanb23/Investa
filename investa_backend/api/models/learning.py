@@ -94,8 +94,8 @@ class UserLessonProgress(models.Model):
 
 
 class Quiz(models.Model):
-    """Quiz associated with a lesson"""
-    lesson = models.OneToOneField(Lesson, on_delete=models.CASCADE, related_name='quiz')
+    """Quiz associated with a lesson (multiple quizzes per lesson supported)"""
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='quizzes')
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     time_limit = models.IntegerField(default=0, help_text="Time limit in minutes (0 = no limit)")
