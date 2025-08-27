@@ -64,10 +64,40 @@ Investa addresses core challenges faced by retail investors in India:
 ## Architecture
 ```mermaid
 flowchart LR
-  A["React Native (Expo)"] -- "REST" --> B["Django REST API"]
-  B --> C[("Database")]
-  B -. "Media" .-> D[("Media Storage")]
-  A <-. "CORS" .-> B
+  %% Client Layer
+  subgraph Client["Client: Expo React Native (Android / iOS / Web)"]
+    UI["Screens & Components\nNavigation (AppNavigator)\nContext & Hooks"]
+    Services["Services\napi.ts, authApi, profileApi, tradingApi"]
+  end
+
+  %% API Layer
+  subgraph API["Django REST API (investa_backend/api)"]
+    Auth["Auth & Users"]
+    Learning["Learning\nCourses • Lessons • Quizzes • Progress"]
+    Trading["Trading\nPortfolio • Orders • Leaderboard"]
+    Notify["Notifications"]
+    Privacy["Privacy & Security"]
+  end
+
+  %% Data / Integrations
+  subgraph Data["Persistence & Integrations"]
+    DB[("Relational DB")]
+    Media[("Media Storage")]
+    Market[("Market Data Provider")]
+    Cache[("Caching Layer")] 
+  end
+
+  %% Flows
+  UI -->|"REST via Services"| API
+  Services -->|"Token Auth"| Auth
+  Auth --> DB
+  Learning --> DB
+  Trading --> DB
+  Notify --> DB
+  API -. "uploads" .-> Media
+  Trading -. "ingests" .-> Market
+  API <--> Cache
+  API <-. "CORS" .-> Client
 ```
 
 ## Monorepo Structure
