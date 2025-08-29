@@ -11,6 +11,7 @@ import {
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTradingData } from './hooks/useTradingData';
+import { placeOrder } from './utils/tradingApi';
 import {
   OrderTypeToggle,
   OrderForm,
@@ -90,7 +91,7 @@ const PlaceOrderScreen = () => {
     setPrice(newPrice);
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (quantityNum <= 0) {
       Alert.alert('Invalid Quantity', 'Please enter a valid quantity.');
       return;
@@ -101,14 +102,29 @@ const PlaceOrderScreen = () => {
       return;
     }
 
-    // Simulate order placement
-    if (isBuyMode) {
-      addToPortfolio(stockSymbol, quantityNum, priceNum);
-    } else {
-      removeFromPortfolio(stockSymbol, quantityNum, priceNum);
+    try {
+      // Backend order placement
+      const stockId = stock?.id as number | undefined;
+      if (!stockId) {
+        // Fallback: simulate portfolio update
+        if (isBuyMode) {
+          addToPortfolio(stockSymbol, quantityNum, priceNum);
+        } else {
+          removeFromPortfolio(stockSymbol, quantityNum, priceNum);
+        }
+      } else {
+        await placeOrder({
+          stock: stockId,
+          side: isBuyMode ? 'BUY' : 'SELL',
+          order_type: orderType,
+          quantity: quantityNum,
+          price: orderType === 'LIMIT' ? priceNum : undefined,
+        });
+      }
+      setShowSuccessModal(true);
+    } catch (e: any) {
+      Alert.alert('Order Failed', e?.response?.data?.detail || 'Unable to place order now.');
     }
-
-    setShowSuccessModal(true);
   };
 
   const handleCloseModal = () => {

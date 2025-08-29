@@ -88,7 +88,10 @@ class PortfolioHoldingSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     """Serializer for Order model"""
     user = UserSerializer(read_only=True)
-    stock = StockSerializer(read_only=True)
+    # Accept stock by primary key on create/update
+    stock = serializers.PrimaryKeyRelatedField(queryset=Stock.objects.all(), write_only=True)
+    # Also include detailed stock info in responses
+    stock_detail = StockSerializer(source='stock', read_only=True)
     
     class Meta:
         model = Order

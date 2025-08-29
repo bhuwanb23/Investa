@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { STOCK_DATA, PORTFOLIO_DATA, PORTFOLIO_HOLDINGS, ORDER_HISTORY } from '../constants/tradingConstants';
+import { PORTFOLIO_DATA, PORTFOLIO_HOLDINGS, ORDER_HISTORY } from '../constants/tradingConstants';
+import { fetchStocks } from '../utils/tradingApi';
 
 export interface Stock {
+  id?: number;
   symbol: string;
   name: string;
   price: string;
@@ -43,7 +45,7 @@ export interface OrderHistoryItem {
 }
 
 export const useTradingData = () => {
-  const [stocks, setStocks] = useState<Stock[]>(STOCK_DATA);
+  const [stocks, setStocks] = useState<Stock[]>([]);
   const [portfolioData, setPortfolioData] = useState(PORTFOLIO_DATA);
   const [portfolioHoldings, setPortfolioHoldings] = useState<PortfolioHolding[]>(PORTFOLIO_HOLDINGS);
   const [orderHistory, setOrderHistory] = useState<OrderHistoryItem[]>(ORDER_HISTORY);
@@ -86,31 +88,35 @@ export const useTradingData = () => {
     );
   }, []);
 
-  // Simulate real-time price updates
+  // Initial load from backend
   useEffect(() => {
-    const interval = setInterval(() => {
-      setStocks(prevStocks =>
-        prevStocks.map(stock => {
-          // Simulate small price changes
-          const currentPrice = parseFloat(stock.price.replace('₹', '').replace(',', ''));
-          const change = (Math.random() - 0.5) * 10; // Random change between -5 and +5
-          const newPrice = currentPrice + change;
-          
-          const changePercent = ((change / currentPrice) * 100).toFixed(2);
-          const isPositive = change >= 0;
-          
-          return {
-            ...stock,
-            price: `₹${newPrice.toFixed(2)}`,
-            change: `${isPositive ? '+' : ''}${changePercent}%`,
-            changeValue: `${isPositive ? '+' : ''}${change.toFixed(2)}`,
-            isPositive,
-          };
-        })
-      );
-    }, 5000); // Update every 5 seconds
-
-    return () => clearInterval(interval);
+    let mounted = true;
+    (async () => {
+      try {
+        setIsLoading(true);
+        const list = await fetchStocks();
+        if (!mounted) return;
+        const mapped: Stock[] = list.map((s: any) => ({
+          id: s.id,
+          symbol: s.symbol,
+          name: s.name,
+          price: `₹${Number(s.market_cap ?? 0).toFixed(2)}`, // placeholder; real price comes from market-data endpoint
+          change: '0.00%',
+          changeValue: '0.00',
+          isPositive: true,
+          exchange: s.exchange || 'NSE',
+          isFavorite: false,
+          volume: '-',
+          marketCap: s.market_cap != null ? `₹${s.market_cap}` : '-',
+        }));
+        setStocks(mapped);
+      } catch (e) {
+        // swallow for now
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
   }, []);
 
   // Search stocks

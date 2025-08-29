@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { ORDER_HISTORY } from './constants/tradingConstants';
+import { fetchOrderHistory } from './utils/tradingApi';
 import MainHeader from '../../components/MainHeader';
 
 // Define navigation types
@@ -29,6 +29,8 @@ const OrderHistoryScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const filters = ['All', 'Buy', 'Sell', 'This Week', 'This Month'];
 
@@ -50,15 +52,33 @@ const OrderHistoryScreen = () => {
     setExpandedItems(newExpandedItems);
   };
 
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setLoading(true);
+        const data = await fetchOrderHistory();
+        if (!mounted) return;
+        console.log('OrderHistory: Received orders data:', data);
+        setOrders(data);
+      } catch (error) {
+        console.error('OrderHistory: Error fetching orders:', error);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
   const getFilteredOrders = () => {
-    let filtered = ORDER_HISTORY;
+    let filtered = orders;
     
     switch (selectedFilter) {
       case 'Buy':
-        filtered = filtered.filter(order => order.type === 'BUY');
+        filtered = filtered.filter(order => (order.side || order.type) === 'BUY');
         break;
       case 'Sell':
-        filtered = filtered.filter(order => order.type === 'SELL');
+        filtered = filtered.filter(order => (order.side || order.type) === 'SELL');
         break;
       case 'This Week':
         // Filter for orders from this week (mock implementation)
@@ -134,31 +154,52 @@ const OrderHistoryScreen = () => {
   );
 
   const renderTradeItem = (trade: any) => {
-    const isExpanded = expandedItems.has(trade.id);
-    const isPositive = trade.isPositive;
+    // Map backend data structure to UI format
+    const symbol = trade?.stock_detail?.symbol || trade?.stock?.symbol || '-';
+    const name = trade?.stock_detail?.name || trade?.stock?.name || symbol;
+    const type = trade?.side || trade?.type || 'BUY';
+    const status = trade?.status || 'PENDING';
+    const qty = trade?.quantity ?? 0;
+    const price = trade?.price != null ? `₹${trade.price}` : '—';
+    const total = trade?.total_amount != null ? `₹${trade.total_amount}` : `₹${(trade.price * trade.quantity).toFixed(2)}`;
+    
+    const mapped = {
+      id: String(trade.id ?? Math.random()),
+      symbol,
+      name,
+      type,
+      status,
+      quantity: qty,
+      total,
+      price,
+      isPositive: type === 'SELL',
+    };
+    
+    const isExpanded = expandedItems.has(mapped.id);
+    const isPositive = mapped.isPositive;
 
     return (
-      <View key={trade.id} style={styles.tradeItem}>
+      <View key={mapped.id} style={styles.tradeItem}>
         <TouchableOpacity
           style={styles.tradeHeader}
-          onPress={() => toggleItemExpansion(trade.id)}
+          onPress={() => toggleItemExpansion(mapped.id)}
         >
           <View style={styles.tradeLeft}>
             <View style={[
               styles.stockBadge,
-              { backgroundColor: trade.type === 'BUY' ? '#DBEAFE' : '#FEE2E2' }
+              { backgroundColor: mapped.type === 'BUY' ? '#DBEAFE' : '#FEE2E2' }
             ]}>
               <Ionicons 
                 name="business" 
                 size={20} 
-                color={trade.type === 'BUY' ? '#2563EB' : '#DC2626'} 
+                color={mapped.type === 'BUY' ? '#2563EB' : '#DC2626'} 
               />
             </View>
             <View style={styles.tradeInfo}>
               <View style={styles.stockHeader}>
-                <Text style={styles.stockSymbol}>{trade.symbol}</Text>
+                <Text style={styles.stockSymbol}>{mapped.symbol}</Text>
                 <Text style={styles.stockName} numberOfLines={1} ellipsizeMode="tail">
-                  {trade.name}
+                  {mapped.name}
                 </Text>
               </View>
               <Text style={styles.tradeTime}>Today, 2:45 PM</Text>
@@ -168,9 +209,9 @@ const OrderHistoryScreen = () => {
             <View style={styles.tradeStatus}>
               <View style={[
                 styles.statusBadge,
-                { backgroundColor: trade.status === 'COMPLETED' ? '#10B981' : '#F59E0B' }
+                { backgroundColor: mapped.status === 'FILLED' || mapped.status === 'COMPLETED' ? '#10B981' : '#F59E0B' }
               ]}>
-                <Text style={styles.statusText}>{trade.type}</Text>
+                <Text style={styles.statusText}>{mapped.type}</Text>
               </View>
               <Ionicons 
                 name={isExpanded ? "chevron-up" : "chevron-down"} 
@@ -179,7 +220,7 @@ const OrderHistoryScreen = () => {
               />
             </View>
             <Text style={styles.tradePrice} numberOfLines={1} ellipsizeMode="tail">
-              {trade.price}
+              {mapped.price}
             </Text>
           </View>
         </TouchableOpacity>
@@ -189,24 +230,24 @@ const OrderHistoryScreen = () => {
             <View style={styles.detailsGrid}>
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>Quantity:</Text>
-                <Text style={styles.detailValue}>{trade.quantity} shares</Text>
+                <Text style={styles.detailValue}>{mapped.quantity} shares</Text>
               </View>
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>Total:</Text>
-                <Text style={styles.detailValue}>{trade.total}</Text>
+                <Text style={styles.detailValue}>{mapped.total}</Text>
               </View>
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>Status:</Text>
                 <Text style={[
                   styles.detailValue,
-                  { color: trade.status === 'COMPLETED' ? '#10B981' : '#F59E0B' }
+                  { color: mapped.status === 'FILLED' || mapped.status === 'COMPLETED' ? '#10B981' : '#DC2626' }
                 ]}>
-                  {trade.status}
+                  {mapped.status}
                 </Text>
               </View>
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>Order ID:</Text>
-                <Text style={styles.detailValue}>#{trade.id}</Text>
+                <Text style={styles.detailValue}>#{mapped.id}</Text>
               </View>
               {trade.profit && (
                 <View style={styles.detailItem}>
@@ -238,7 +279,11 @@ const OrderHistoryScreen = () => {
       {renderSummarySection()}
       {renderFilterSection()}
       <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
-        {renderTradesList()}
+        {loading ? (
+          <View style={{ padding: 16 }}><Text>Loading…</Text></View>
+        ) : (
+          renderTradesList()
+        )}
       </ScrollView>
     </SafeAreaView>
   );
