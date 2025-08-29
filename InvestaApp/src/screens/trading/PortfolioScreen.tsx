@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,12 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { PORTFOLIO_DATA, PORTFOLIO_HOLDINGS, SECTOR_ALLOCATION } from './constants/tradingConstants';
+import { 
+  fetchMyPortfolio, 
+  fetchPortfolioHoldings, 
+  fetchOrderHistory,
+  fetchStocks 
+} from './utils/tradingApi';
 import MainHeader from '../../components/MainHeader';
 
 // Define navigation types
@@ -28,6 +33,11 @@ type NavigationProp = {
 const PortfolioScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const [selectedTab, setSelectedTab] = useState('Holdings');
+  const [portfolioData, setPortfolioData] = useState<any>(null);
+  const [holdings, setHoldings] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [stocks, setStocks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const tabs = ['Holdings', 'Order History', 'Leaderboard'];
 
@@ -39,33 +49,71 @@ const PortfolioScreen = () => {
     setSelectedTab(tab);
   };
 
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <MainHeader title="Portfolio" iconName="wallet" showBackButton onBackPress={() => navigation.navigate('Trading')} />
-      
-      <View style={styles.portfolioSummary}>
-        <View style={styles.summaryHeader}>
-          <View>
-            <Text style={styles.summaryLabel}>Total Portfolio Value</Text>
-            <Text style={styles.summaryValue}>₹{PORTFOLIO_DATA.totalValue}</Text>
+  // Fetch portfolio data on component mount
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setLoading(true);
+        const [portfolioRes, holdingsRes, ordersRes, stocksRes] = await Promise.all([
+          fetchMyPortfolio(),
+          fetchPortfolioHoldings(),
+          fetchOrderHistory(),
+          fetchStocks()
+        ]);
+        
+        if (!mounted) return;
+        
+        setPortfolioData(portfolioRes);
+        setHoldings(holdingsRes);
+        setOrders(ordersRes);
+        setStocks(stocksRes);
+      } catch (error) {
+        console.error('PortfolioScreen: Error fetching data:', error);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  const renderHeader = () => {
+    // Calculate portfolio statistics from real data
+    const totalValue = portfolioData?.total_value || 0;
+    const totalInvested = portfolioData?.total_invested || 0;
+    const totalReturns = totalValue - totalInvested;
+    const returnPercentage = totalInvested > 0 ? ((totalReturns / totalInvested) * 100).toFixed(1) : '0.0';
+    
+    return (
+      <View style={styles.header}>
+        <MainHeader title="Portfolio" iconName="wallet" showBackButton onBackPress={() => navigation.navigate('Trading')} />
+        
+        <View style={styles.portfolioSummary}>
+          <View style={styles.summaryHeader}>
+            <View>
+              <Text style={styles.summaryLabel}>Total Portfolio Value</Text>
+              <Text style={styles.summaryValue}>₹{totalValue.toLocaleString()}</Text>
+            </View>
+            <View style={styles.returnBadge}>
+              <Text style={styles.returnText}>{totalReturns >= 0 ? '+' : ''}{returnPercentage}%</Text>
+            </View>
           </View>
-          <View style={styles.returnBadge}>
-            <Text style={styles.returnText}>+12.5%</Text>
-          </View>
-        </View>
-        <View style={styles.summaryDetails}>
-          <View>
-            <Text style={styles.summaryDetailLabel}>Invested</Text>
-            <Text style={styles.summaryDetailValue}>₹{PORTFOLIO_DATA.totalInvested}</Text>
-          </View>
-          <View>
-            <Text style={styles.summaryDetailLabel}>Returns</Text>
-            <Text style={styles.returnsValue}>+₹{PORTFOLIO_DATA.totalProfit}</Text>
+          <View style={styles.summaryDetails}>
+            <View>
+              <Text style={styles.summaryDetailLabel}>Invested</Text>
+              <Text style={styles.summaryDetailValue}>₹{totalValue.toLocaleString()}</Text>
+            </View>
+            <View>
+              <Text style={styles.summaryDetailLabel}>Returns</Text>
+              <Text style={[styles.returnsValue, { color: totalReturns >= 0 ? '#86EFAC' : '#FCA5A5' }]}>
+                {totalReturns >= 0 ? '+' : ''}₹{totalReturns.toLocaleString()}
+              </Text>
+            </View>
           </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   const renderNavigationTabs = () => (
     <View style={styles.navigationTabs}>
@@ -91,129 +139,224 @@ const PortfolioScreen = () => {
     </View>
   );
 
-  const renderAchievementsSection = () => (
-    <View style={styles.achievementsSection}>
-      <View style={styles.achievementsHeader}>
-        <Text style={styles.sectionTitle}>Achievements</Text>
-        <Text style={styles.achievementsCount}>3/5 unlocked</Text>
-      </View>
-      <View style={styles.achievementsGrid}>
-        <View style={styles.achievementCard}>
-          <Ionicons name="medal" size={16} color="#EAB308" />
-          <Text style={styles.achievementText}>First Investment</Text>
+  const renderAchievementsSection = () => {
+    // Calculate achievements based on real data
+    const hasInvestments = holdings.length > 0;
+    const hasPositiveReturns = portfolioData?.total_value > portfolioData?.total_invested;
+    const isDiversified = holdings.length >= 3;
+    
+    const achievements = [
+      { unlocked: hasInvestments, icon: "medal", text: "First Investment", color: "#EAB308" },
+      { unlocked: hasPositiveReturns, icon: "trending-up", text: "Positive Returns", color: "#22C55E" },
+      { unlocked: isDiversified, icon: "pie-chart", text: "Diversified", color: "#3B82F6" },
+    ];
+    
+    const unlockedCount = achievements.filter(a => a.unlocked).length;
+    
+    return (
+      <View style={styles.achievementsSection}>
+        <View style={styles.achievementsHeader}>
+          <Text style={styles.sectionTitle}>Achievements</Text>
+          <Text style={styles.achievementsCount}>{unlockedCount}/{achievements.length} unlocked</Text>
         </View>
-        <View style={styles.achievementCard}>
-          <Ionicons name="trending-up" size={16} color="#22C55E" />
-          <Text style={styles.achievementText}>10% Gains</Text>
-        </View>
-        <View style={styles.achievementCard}>
-          <Ionicons name="pie-chart" size={16} color="#3B82F6" />
-          <Text style={styles.achievementText}>Diversified</Text>
-        </View>
-      </View>
-    </View>
-  );
-
-  const renderDiversificationChart = () => (
-    <View style={styles.diversificationChart}>
-      <View style={styles.chartHeader}>
-        <Text style={styles.sectionTitle}>Portfolio Breakdown</Text>
-        <Ionicons name="pie-chart" size={20} color="#9CA3AF" />
-      </View>
-      <View style={styles.chartContent}>
-        <View style={styles.pieChart}>
-          <Ionicons name="pie-chart-outline" size={48} color="#6B7280" />
-          <Text style={styles.pieChartText}>Chart</Text>
-        </View>
-        <View style={styles.sectorList}>
-          {SECTOR_ALLOCATION.map((sector) => (
-            <View key={sector.sector} style={styles.sectorItem}>
-              <View style={[styles.sectorColor, { backgroundColor: sector.color }]} />
-              <Text style={styles.sectorName}>{sector.sector}</Text>
-              <Text style={styles.sectorWeight}>{sector.percentage}%</Text>
+        <View style={styles.achievementsGrid}>
+          {achievements.map((achievement, index) => (
+            <View 
+              key={index} 
+              style={[
+                styles.achievementCard,
+                { 
+                  backgroundColor: achievement.unlocked ? '#FEF3C7' : '#F3F4F6',
+                  borderColor: achievement.unlocked ? '#FDE68A' : '#E5E7EB'
+                }
+              ]}
+            >
+              <Ionicons 
+                name={achievement.icon as any} 
+                size={16} 
+                color={achievement.unlocked ? achievement.color : '#9CA3AF'} 
+              />
+              <Text style={[
+                styles.achievementText,
+                { color: achievement.unlocked ? '#92400E' : '#6B7280' }
+              ]}>
+                {achievement.text}
+              </Text>
             </View>
           ))}
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
-  const renderHoldingsSection = () => (
-    <View style={styles.holdingsSection}>
-      <Text style={styles.sectionTitle}>Holdings ({PORTFOLIO_HOLDINGS.length})</Text>
-      {PORTFOLIO_HOLDINGS.map((holding) => (
-        <TouchableOpacity
-          key={holding.symbol}
-          style={styles.holdingItem}
-          onPress={() => navigation.navigate('StockDetail', { 
-            stockSymbol: holding.symbol, 
-            stockName: holding.name 
-          })}
-        >
-          <View style={styles.holdingHeader}>
-            <View style={styles.stockInfo}>
-              <Text style={styles.stockSymbol}>{holding.symbol}</Text>
-              <Text style={styles.stockName} numberOfLines={1}>{holding.name}</Text>
-              <Text style={styles.stockSector}>Oil & Gas</Text>
-            </View>
-            <View style={styles.stockPrice}>
-              <Text style={styles.currentPrice}>₹{holding.currentPrice}</Text>
-              <Text style={styles.quantity}>{holding.quantity} shares</Text>
-            </View>
+  const renderDiversificationChart = () => {
+    // Calculate sector allocation from real holdings
+    const sectorAllocation = holdings.reduce((acc: any, holding: any) => {
+      const sector = holding.sector || 'Other';
+      const value = (holding.current_price || 0) * (holding.quantity || 0);
+      
+      if (!acc[sector]) {
+        acc[sector] = { value: 0, count: 0 };
+      }
+      acc[sector].value += value;
+      acc[sector].count += 1;
+      
+      return acc;
+    }, {});
+    
+    const totalValue = Object.values(sectorAllocation).reduce((sum: any, sector: any) => sum + sector.value, 0);
+    const sectors = Object.entries(sectorAllocation).map(([sector, data]: [string, any]) => ({
+      sector,
+      percentage: totalValue > 0 ? Math.round((data.value / totalValue) * 100) : 0,
+      count: data.count,
+      color: `hsl(${Math.random() * 360}, 70%, 60%)`
+    })).sort((a, b) => b.percentage - a.percentage);
+    
+    return (
+      <View style={styles.diversificationChart}>
+        <View style={styles.chartHeader}>
+          <Text style={styles.sectionTitle}>Portfolio Breakdown</Text>
+          <Ionicons name="pie-chart" size={20} color="#9CA3AF" />
+        </View>
+        <View style={styles.chartContent}>
+          <View style={styles.pieChart}>
+            <Ionicons name="pie-chart-outline" size={48} color="#6B7280" />
+            <Text style={styles.pieChartText}>Chart</Text>
           </View>
-
-          <View style={styles.holdingDetails}>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Market Value:</Text>
-              <Text style={styles.detailValue}>₹{holding.marketValue}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Avg Price:</Text>
-              <Text style={styles.detailValue}>₹{holding.avgPrice}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Weight:</Text>
-              <Text style={styles.detailValue}>11.4%</Text>
-            </View>
+          <View style={styles.sectorList}>
+            {sectors.length > 0 ? sectors.map((sector, index) => (
+              <View key={sector.sector} style={styles.sectorItem}>
+                <View style={[styles.sectorColor, { backgroundColor: sector.color }]} />
+                <Text style={styles.sectorName}>{sector.sector}</Text>
+                <Text style={styles.sectorWeight}>{sector.percentage}%</Text>
+              </View>
+            )) : (
+              <Text style={styles.sectorName}>No holdings yet</Text>
+            )}
           </View>
+        </View>
+      </View>
+    );
+  };
 
-          <View style={styles.pnlSection}>
-            <View style={styles.pnlInfo}>
-              <Text style={styles.pnlLabel}>Unrealized P&L</Text>
-              <View style={styles.pnlValueRow}>
-                <Ionicons 
-                  name={holding.isPositive ? "trending-up" : "trending-down"} 
-                  size={14} 
-                  color={holding.isPositive ? '#10B981' : '#EF4444'} 
-                />
+  const renderHoldingsSection = () => {
+    if (holdings.length === 0) {
+      return (
+        <View style={styles.holdingsSection}>
+          <Text style={styles.sectionTitle}>Holdings (0)</Text>
+          <View style={styles.emptyHoldings}>
+            <Ionicons name="wallet-outline" size={48} color="#9CA3AF" />
+            <Text style={styles.emptyText}>No holdings yet</Text>
+            <Text style={styles.emptySubtext}>Start trading to build your portfolio</Text>
+          </View>
+        </View>
+      );
+    }
+    
+    return (
+      <View style={styles.holdingsSection}>
+        <Text style={styles.sectionTitle}>Holdings ({holdings.length})</Text>
+        {holdings.map((holding) => {
+          const currentPrice = holding.current_price || 0;
+          const avgPrice = holding.average_price || 0;
+          const quantity = holding.quantity || 0;
+          const marketValue = currentPrice * quantity;
+          const totalCost = avgPrice * quantity;
+          const unrealizedPnL = marketValue - totalCost;
+          const pnlPercentage = totalCost > 0 ? ((unrealizedPnL / totalCost) * 100).toFixed(1) : '0.0';
+          const isPositive = unrealizedPnL >= 0;
+          
+          // Find stock details from stocks array
+          const stock = stocks.find(s => s.id === holding.stock_id);
+          const symbol = stock?.symbol || holding.symbol || 'N/A';
+          const name = stock?.name || holding.name || 'Unknown Stock';
+          const sector = stock?.sector || 'Other';
+          
+          return (
+            <TouchableOpacity
+              key={holding.id || holding.symbol}
+              style={styles.holdingItem}
+              onPress={() => navigation.navigate('StockDetail', { 
+                stockSymbol: symbol, 
+                stockName: name 
+              })}
+            >
+              <View style={styles.holdingHeader}>
+                <View style={styles.stockInfo}>
+                  <Text style={styles.stockSymbol}>{symbol}</Text>
+                  <Text style={styles.stockName} numberOfLines={1}>{name}</Text>
+                  <Text style={styles.stockSector}>{sector}</Text>
+                </View>
+                <View style={styles.stockPrice}>
+                  <Text style={styles.currentPrice}>₹{currentPrice.toFixed(2)}</Text>
+                  <Text style={styles.quantity}>{quantity} shares</Text>
+                </View>
+              </View>
+
+              <View style={styles.holdingDetails}>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Market Value:</Text>
+                  <Text style={styles.detailValue}>₹{marketValue.toFixed(2)}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Avg Price:</Text>
+                  <Text style={styles.detailValue}>₹{avgPrice.toFixed(2)}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Weight:</Text>
+                  <Text style={styles.detailValue}>
+                    {portfolioData?.total_value > 0 ? ((marketValue / portfolioData.total_value) * 100).toFixed(1) : '0.0'}%
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.pnlSection}>
+                <View style={styles.pnlInfo}>
+                  <Text style={styles.pnlLabel}>Unrealized P&L</Text>
+                  <View style={styles.pnlValueRow}>
+                    <Ionicons 
+                      name={isPositive ? "trending-up" : "trending-down"} 
+                      size={14} 
+                      color={isPositive ? '#10B981' : '#EF4444'} 
+                    />
+                    <Text style={[
+                      styles.pnlAmount,
+                      { color: isPositive ? '#10B981' : '#EF4444' }
+                    ]}>
+                      {isPositive ? '+' : ''}₹{unrealizedPnL.toFixed(2)}
+                    </Text>
+                  </View>
+                </View>
                 <Text style={[
-                  styles.pnlAmount,
-                  { color: holding.isPositive ? '#10B981' : '#EF4444' }
+                  styles.pnlPercent,
+                  { color: isPositive ? '#10B981' : '#EF4444' }
                 ]}>
-                  {holding.profit}
+                  {isPositive ? '+' : ''}{pnlPercentage}%
                 </Text>
               </View>
-            </View>
-            <Text style={[
-              styles.pnlPercent,
-              { color: holding.isPositive ? '#10B981' : '#EF4444' }
-            ]}>
-              {holding.profitPercentage}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      ))}
-    </View>
-  );
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       {renderHeader()}
       <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
-        {renderNavigationTabs()}
-        {renderAchievementsSection()}
-        {renderDiversificationChart()}
-        {renderHoldingsSection()}
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>Loading portfolio...</Text>
+          </View>
+        ) : (
+          <>
+            {renderNavigationTabs()}
+            {renderAchievementsSection()}
+            {renderDiversificationChart()}
+            {renderHoldingsSection()}
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -520,6 +663,32 @@ const styles = StyleSheet.create({
   pnlPercent: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  emptyHoldings: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6B7280',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 64,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6B7280',
   },
 });
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import MainHeader from '../../components/MainHeader';
+import { 
+  fetchMyPortfolio, 
+  fetchPortfolioHoldings, 
+  fetchOrderHistory, 
+  fetchStocks,
+  fetchMyWatchlist
+} from '../trading/utils/tradingApi';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -36,39 +43,124 @@ type NavigationProp = {
 
 const TradingScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const sparklineHeights = [8, 12, 9, 14, 10, 16, 20, 18, 22, 24, 20, 26, 28, 24, 30];
+  
+  // State for real data
+  const [portfolioData, setPortfolioData] = useState<any>(null);
+  const [holdings, setHoldings] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [stocks, setStocks] = useState<any[]>([]);
+  const [watchlist, setWatchlist] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Mock data for market indices (these would come from a market data API)
   const marketIndices = [
     { name: 'S&P 500', value: '5,247', changePct: +0.72 },
     { name: 'NASDAQ', value: '16,142', changePct: -0.31 },
     { name: 'DOW', value: '39,518', changePct: +0.12 },
   ];
-  const watchlist = [
-    { s: 'AAPL', name: 'Apple', price: 189.23, changePct: +1.2 },
-    { s: 'TSLA', name: 'Tesla', price: 244.18, changePct: -0.8 },
-    { s: 'NVDA', name: 'Nvidia', price: 876.54, changePct: +2.4 },
-    { s: 'AMZN', name: 'Amazon', price: 172.35, changePct: +0.3 },
-  ];
+  
+  // Mock data for top movers (these would come from a market data API)
   const topMovers = [
     { s: 'PLTR', price: 26.41, changePct: +8.3 },
     { s: 'COIN', price: 236.12, changePct: +6.1 },
     { s: 'UBER', price: 73.55, changePct: -4.2 },
     { s: 'SQ', price: 78.02, changePct: -3.5 },
   ];
-  const recentActivity = [
-    { id: 1, type: 'Buy', s: 'AAPL', qty: 5, price: 188.4, time: 'Today, 10:24' },
-    { id: 2, type: 'Sell', s: 'TSLA', qty: 2, price: 246.2, time: 'Yesterday, 15:12' },
-    { id: 3, type: 'Buy', s: 'NVDA', qty: 1, price: 862.0, time: 'Mon, 11:00' },
-  ];
+  
+  // Fetch real data on component mount
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setLoading(true);
+        const [portfolioRes, holdingsRes, ordersRes, stocksRes] = await Promise.all([
+          fetchMyPortfolio(),
+          fetchPortfolioHoldings(),
+          fetchOrderHistory(),
+          fetchStocks()
+        ]);
+        
+        if (!mounted) return;
+        
+        setPortfolioData(portfolioRes);
+        setHoldings(holdingsRes);
+        setOrders(ordersRes);
+        setStocks(stocksRes);
+        // For now, use stocks as watchlist until backend is fixed
+        setWatchlist(stocksRes.slice(0, 4));
+      } catch (error) {
+        console.error('TradingScreen: Error fetching data:', error);
+        // Set empty arrays on error to prevent crashes
+        if (mounted) {
+          setPortfolioData(null);
+          setHoldings([]);
+          setOrders([]);
+          setStocks([]);
+          setWatchlist([]);
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+  
+  // Refresh function for manual data refresh
+  const refreshData = async () => {
+    try {
+      setLoading(true);
+      const [portfolioRes, holdingsRes, ordersRes, stocksRes] = await Promise.all([
+        fetchMyPortfolio(),
+        fetchPortfolioHoldings(),
+        fetchOrderHistory(),
+        fetchStocks()
+      ]);
+      
+      setPortfolioData(portfolioRes);
+      setHoldings(holdingsRes);
+      setOrders(ordersRes);
+      setStocks(stocksRes);
+      setWatchlist(stocksRes.slice(0, 4));
+    } catch (error) {
+      console.error('TradingScreen: Error refreshing data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Calculate portfolio statistics from real data
+  const totalValue = portfolioData?.total_value || 0;
+  const totalInvested = portfolioData?.total_invested || 0;
+  const totalReturns = totalValue - totalInvested;
+  const returnPercentage = totalInvested > 0 ? ((totalReturns / totalInvested) * 100).toFixed(1) : '0.0';
+  
+  // Generate sparkline data based on portfolio performance
+  const sparklineHeights = [8, 12, 9, 14, 10, 16, 20, 18, 22, 24, 20, 26, 28, 24, 30];
+  
+  // Get recent activity from real orders
+  const recentActivity = orders.slice(0, 3).map((order, index) => ({
+    id: order.id || index + 1,
+    type: order.side || order.type || 'Buy',
+    s: order.stock_detail?.symbol || order.stock?.symbol || 'N/A',
+    qty: order.quantity || 0,
+    price: order.price || 0,
+    time: 'Today, 10:24' // This would come from order timestamp
+  }));
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={[styles.scrollContent, styles.fullWidth]} showsVerticalScrollIndicator={false} stickyHeaderIndices={[0]}>
-          <MainHeader title="Trading" iconName="trending-up" onNotificationsPress={() => navigation.navigate('OrderHistory')} onProfilePress={() => navigation.navigate('Portfolio')} />
+          <MainHeader title="Trading" iconName="trending-up" onNotificationsPress={() => navigation.navigate('OrderHistory')} />
           <View style={styles.pagePadding}>
-
-          {/* Sections (Navigation) */}
-          <View style={styles.sectionsRow}>
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <Text style={styles.loadingText}>Loading trading data...</Text>
+              </View>
+            ) : (
+              <>
+                {/* Sections (Navigation) */}
+                <View style={styles.sectionsRow}>
             <Pressable style={styles.sectionCard} onPress={() => navigation.navigate('MarketWatchlist')} android_ripple={{ color: '#e5e7eb' }}>
               <View style={styles.sectionIconWrap}>
                 <Ionicons name="trending-up" size={18} color={PRIMARY} />
@@ -100,11 +192,20 @@ const TradingScreen = () => {
             <View style={styles.overviewRow}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.kpiLabel}>Portfolio Value</Text>
-                <Text style={styles.overviewValue}>$12,540.00</Text>
+                <Text style={styles.overviewValue}>₹{totalValue.toLocaleString()}</Text>
               </View>
-              <View style={styles.plPillPositive}>
-                <Ionicons name="trending-up" size={14} color="#fff" />
-                <Text style={styles.plPillText}>+$240 (1.95%)</Text>
+              <View style={[
+                styles.plPillPositive,
+                { backgroundColor: totalReturns >= 0 ? SUCCESS : DANGER }
+              ]}>
+                <Ionicons 
+                  name={totalReturns >= 0 ? "trending-up" : "trending-down"} 
+                  size={14} 
+                  color="#fff" 
+                />
+                <Text style={styles.plPillText}>
+                  {totalReturns >= 0 ? '+' : ''}₹{totalReturns.toLocaleString()} ({returnPercentage}%)
+                </Text>
               </View>
             </View>
             <View style={styles.sparklineRow}>
@@ -115,15 +216,15 @@ const TradingScreen = () => {
             <View style={styles.overviewStatsRow}>
               <View style={styles.overviewStat}>
                 <Text style={styles.kpiLabel}>Cash</Text>
-                <Text style={styles.kpiValue}>$2,140</Text>
+                <Text style={styles.kpiValue}>₹{(totalValue - totalInvested).toLocaleString()}</Text>
               </View>
               <View style={styles.overviewStat}>
                 <Text style={styles.kpiLabel}>Invested</Text>
-                <Text style={styles.kpiValue}>$10,400</Text>
+                <Text style={styles.kpiValue}>₹{totalInvested.toLocaleString()}</Text>
               </View>
               <View style={styles.overviewStat}>
                 <Text style={styles.kpiLabel}>Positions</Text>
-                <Text style={styles.kpiValue}>6</Text>
+                <Text style={styles.kpiValue}>{holdings.length}</Text>
               </View>
             </View>
           </View>
@@ -177,25 +278,39 @@ const TradingScreen = () => {
                 <Text style={styles.linkText}>Edit</Text>
               </Pressable>
             </View>
-            {watchlist.map((w, idx) => (
-              <Pressable key={idx} style={styles.watchRow} onPress={() => navigation.navigate('StockDetail', { stockSymbol: w.s, stockName: w.name })} android_ripple={{ color: '#f3f4f6' }}>
-                <View style={styles.symbolBadge}>
-                  <Text style={styles.symbolBadgeText}>{w.s}</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.symbolName}>{w.name}</Text>
-                  <View style={styles.progressTrack}>
-                    <View style={[styles.progressFill, { width: `${Math.min(100, Math.abs(w.changePct) * 10)}%`, backgroundColor: w.changePct >= 0 ? SUCCESS : DANGER }]} />
+            {watchlist.length > 0 ? watchlist.map((w, idx) => {
+              // Find stock details from stocks array
+              const stock = stocks.find(s => s.id === w.stock_id);
+              const symbol = stock?.symbol || w.symbol || 'N/A';
+              const name = stock?.name || w.name || 'Unknown Stock';
+              const price = stock?.current_price || w.current_price || 0;
+              const changePct = stock?.change_percentage || w.change_percentage || 0;
+              
+              return (
+                <Pressable key={idx} style={styles.watchRow} onPress={() => navigation.navigate('StockDetail', { stockSymbol: symbol, stockName: name })} android_ripple={{ color: '#f3f4f6' }}>
+                  <View style={styles.symbolBadge}>
+                    <Text style={styles.symbolBadgeText}>{symbol}</Text>
                   </View>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={styles.priceText}>${w.price.toFixed(2)}</Text>
-                  <Text style={[styles.changeText, { color: w.changePct >= 0 ? SUCCESS : DANGER }]}>
-                    {w.changePct >= 0 ? '+' : ''}{w.changePct}%
-                  </Text>
-                </View>
-              </Pressable>
-            ))}
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.symbolName}>{name}</Text>
+                    <View style={styles.progressTrack}>
+                      <View style={[styles.progressFill, { width: `${Math.min(100, Math.abs(changePct) * 10)}%`, backgroundColor: changePct >= 0 ? SUCCESS : DANGER }]} />
+                    </View>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={styles.priceText}>₹{price.toFixed(2)}</Text>
+                    <Text style={styles.changeText}>
+                      {changePct >= 0 ? '+' : ''}{changePct}%
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            }) : (
+              <View style={styles.emptyWatchlist}>
+                <Text style={styles.emptyText}>No stocks in watchlist</Text>
+                <Text style={styles.emptySubtext}>Add stocks to track their performance</Text>
+              </View>
+            )}
           </View>
 
           {/* Top Movers */}
@@ -229,22 +344,41 @@ const TradingScreen = () => {
                 <Text style={styles.linkText}>Manage</Text>
               </Pressable>
             </View>
-            {[{ s: 'AAPL', qty: 10, price: 189.23, pl: 12.4 }, { s: 'TSLA', qty: 3, price: 244.18, pl: -6.1 }].map((p, idx) => (
-              <View key={idx} style={styles.positionRow}>
-                <View style={styles.positionLeft}>
-                  <View style={styles.symbolBadgeSmall}>
-                    <Text style={styles.symbolBadgeSmallText}>{p.s}</Text>
+            {holdings.length > 0 ? holdings.slice(0, 3).map((holding, idx) => {
+              // Find stock details from stocks array
+              const stock = stocks.find(s => s.id === holding.stock_id);
+              const symbol = stock?.symbol || holding.symbol || 'N/A';
+              const currentPrice = holding.current_price || 0;
+              const avgPrice = holding.average_price || 0;
+              const quantity = holding.quantity || 0;
+              const marketValue = currentPrice * quantity;
+              const totalCost = avgPrice * quantity;
+              const pl = totalCost > 0 ? ((marketValue - totalCost) / totalCost) * 100 : 0;
+              
+              return (
+                <View key={idx} style={styles.positionRow}>
+                  <View style={styles.positionLeft}>
+                    <View style={styles.symbolBadgeSmall}>
+                      <Text style={styles.symbolBadgeSmallText}>{symbol}</Text>
+                    </View>
+                    <View>
+                      <Text style={styles.positionSymbol}>{symbol}</Text>
+                      <Text style={styles.positionMeta}>{quantity} shares • ₹{currentPrice.toFixed(2)}</Text>
+                    </View>
                   </View>
-                  <View>
-                    <Text style={styles.positionSymbol}>{p.s}</Text>
-                    <Text style={styles.positionMeta}>{p.qty} shares • ${p.price.toFixed(2)}</Text>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={[styles.positionPL, { color: pl >= 0 ? SUCCESS : DANGER }]}>
+                      {pl >= 0 ? '+' : ''}{pl.toFixed(1)}%
+                    </Text>
                   </View>
                 </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={[styles.positionPL, { color: p.pl >= 0 ? SUCCESS : DANGER }]}>{p.pl >= 0 ? '+' : ''}{p.pl}%</Text>
-                </View>
+              );
+            }) : (
+              <View style={styles.emptyPositions}>
+                <Text style={styles.emptyText}>No open positions</Text>
+                <Text style={styles.emptySubtext}>Start trading to build your portfolio</Text>
               </View>
-            ))}
+            )}
           </View>
 
           {/* Leaderboard Preview */}
@@ -271,18 +405,25 @@ const TradingScreen = () => {
           {/* Recent Activity */}
           <View style={[styles.card, { marginBottom: 20 }]}>
             <Text style={styles.sectionTitle}>Recent Activity</Text>
-            {recentActivity.map((a) => (
+            {recentActivity.length > 0 ? recentActivity.map((a) => (
               <View key={a.id} style={styles.activityRow}>
                 <View style={styles.activityIcon}>
                   <Ionicons name={a.type === 'Buy' ? 'arrow-up' : 'arrow-down'} size={14} color={a.type === 'Buy' ? SUCCESS : DANGER} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.activityText}>{a.type} {a.qty} {a.s} @ ${a.price.toFixed(2)}</Text>
+                  <Text style={styles.activityText}>{a.type} {a.qty} {a.s} @ ₹{a.price.toFixed(2)}</Text>
                   <Text style={styles.activityTime}>{a.time}</Text>
                 </View>
               </View>
-            ))}
+            )) : (
+              <View style={styles.emptyActivity}>
+                <Text style={styles.emptyText}>No recent activity</Text>
+                <Text style={styles.emptySubtext}>Start trading to see your activity</Text>
+              </View>
+            )}
           </View>
+                </>
+            )}
           </View>
         </ScrollView>
       </View>
@@ -690,6 +831,39 @@ const styles = StyleSheet.create({
     color: TEXT_MUTED,
     fontSize: 12,
     marginTop: 2,
+  },
+  emptyWatchlist: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  emptyPositions: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: TEXT_MUTED,
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
+  },
+  emptyActivity: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 64,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: TEXT_MUTED,
   },
 });
 

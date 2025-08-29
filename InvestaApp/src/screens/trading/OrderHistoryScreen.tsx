@@ -104,24 +104,46 @@ const OrderHistoryScreen = () => {
     </View>
   );
 
-  const renderSummarySection = () => (
-    <View style={styles.summarySection}>
-      <View style={styles.summaryGrid}>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryValue}>142</Text>
-          <Text style={styles.summaryLabel}>Total Trades</Text>
-        </View>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryValueSuccess}>68%</Text>
-          <Text style={styles.summaryLabel}>Win Rate</Text>
-        </View>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryValueSuccess}>+₹2,840</Text>
-          <Text style={styles.summaryLabel}>Net P&L</Text>
+  const renderSummarySection = () => {
+    // Calculate real statistics from orders
+    const totalOrders = orders.length;
+    const buyOrders = orders.filter(order => (order.side || order.type) === 'BUY').length;
+    const sellOrders = orders.filter(order => (order.side || order.type) === 'SELL').length;
+    
+    // Calculate total value of orders
+    const totalValue = orders.reduce((sum, order) => {
+      const orderValue = (order.price || 0) * (order.quantity || 0);
+      return sum + orderValue;
+    }, 0);
+    
+    // Calculate completion rate based on order status
+    const completedOrders = orders.filter(order => 
+      order.status === 'FILLED' || order.status === 'COMPLETED'
+    ).length;
+    const completionRate = totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0;
+    
+    // Calculate average order value
+    const avgOrderValue = totalOrders > 0 ? Math.round(totalValue / totalOrders) : 0;
+    
+    return (
+      <View style={styles.summarySection}>
+        <View style={styles.summaryGrid}>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryValue}>{totalOrders}</Text>
+            <Text style={styles.summaryLabel}>Total Orders</Text>
+          </View>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryValueSuccess}>{completionRate}%</Text>
+            <Text style={styles.summaryLabel}>Completion Rate</Text>
+          </View>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryValueSuccess}>₹{avgOrderValue.toLocaleString()}</Text>
+            <Text style={styles.summaryLabel}>Avg Order Value</Text>
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   const renderFilterSection = () => (
     <View style={styles.filterSection}>

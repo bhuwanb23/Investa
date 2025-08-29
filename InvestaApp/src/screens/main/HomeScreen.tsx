@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,9 @@ import {
   Alert,
   Image,
   StatusBar,
+  Animated,
+  Easing,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MainHeader from '../../components/MainHeader';
@@ -34,6 +37,62 @@ type NavigationProp = {
 const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const { user, logout } = useAuth();
+
+  // Animation refs
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  const cardAnimations = useRef([
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+  ]).current;
+
+  useEffect(() => {
+    // Staggered entrance animations
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 600,
+        easing: Easing.out(Easing.back(1.2)),
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Animate progress bar
+    Animated.timing(progressAnim, {
+      toValue: 1,
+      duration: 1200,
+      delay: 400,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+
+    // Staggered card animations
+    cardAnimations.forEach((anim, index) => {
+      Animated.timing(anim, {
+        toValue: 1,
+        duration: 600,
+        delay: 200 + (index * 100),
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    });
+  }, []);
 
   const handleLogout = () => {
     Alert.alert(
@@ -188,7 +247,18 @@ const HomeScreen = () => {
   ];
 
   const renderWelcomeSection = () => (
-    <View style={styles.welcomeSection}>
+    <Animated.View 
+      style={[
+        styles.welcomeSection,
+        {
+          opacity: fadeAnim,
+          transform: [
+            { translateY: slideAnim },
+            { scale: scaleAnim }
+          ]
+        }
+      ]}
+    >
       <View style={styles.heroAccentCircle} />
       <View style={[styles.heroAccentCircle, { right: -16, top: -8, width: 100, height: 100, opacity: 0.15 }]} />
       <View style={styles.welcomeHeader}>
@@ -234,10 +304,15 @@ const HomeScreen = () => {
           <Text style={styles.progressPercentage}>{Math.round(userProgress.overallProgress * 100)}%</Text>
         </View>
         <View style={styles.progressBarBackground}>
-          <View
+          <Animated.View
             style={[
               styles.progressBarFill,
-              { width: `${userProgress.overallProgress * 100}%` },
+              { 
+                width: progressAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ['0%', `${userProgress.overallProgress * 100}%`]
+                })
+              },
             ]}
           />
         </View>
@@ -247,7 +322,7 @@ const HomeScreen = () => {
           <View style={styles.progressPill}><Text style={styles.progressPillText}>{userProgress.totalPoints} pts</Text></View>
         </View>
       </View>
-    </View>
+    </Animated.View>
   );
 
   const renderQuickAccess = () => (
@@ -259,19 +334,40 @@ const HomeScreen = () => {
         numColumns={2}
         scrollEnabled={false}
         columnWrapperStyle={{ justifyContent: 'space-between' }}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.quickAccessCard}
-            onPress={item.onPress}
-            activeOpacity={0.8}
+        renderItem={({ item, index }) => (
+          <Animated.View
+            style={{
+              opacity: cardAnimations[index],
+              transform: [
+                {
+                  translateY: cardAnimations[index].interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [30, 0]
+                  })
+                },
+                {
+                  scale: cardAnimations[index].interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.8, 1]
+                  })
+                }
+              ]
+            }}
           >
-            <View style={[styles.quickAccessIcon, { backgroundColor: item.bgColor }]}>
-              <Ionicons name={item.icon as any} size={24} color={item.color} />
-            </View>
-            <Text style={styles.quickAccessTitle}>{item.title}</Text>
-            <Text style={styles.quickAccessSubtitle}>{item.subtitle}</Text>
-            <Text style={[styles.quickAccessBadge, { color: item.color }]}>{item.badge}</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickAccessCard}
+              onPress={item.onPress}
+              activeOpacity={0.7}
+              pressRetentionOffset={{ top: 20, left: 20, bottom: 20, right: 20 }}
+            >
+              <View style={[styles.quickAccessIcon, { backgroundColor: item.bgColor }]}>
+                <Ionicons name={item.icon as any} size={24} color={item.color} />
+              </View>
+              <Text style={styles.quickAccessTitle}>{item.title}</Text>
+              <Text style={styles.quickAccessSubtitle}>{item.subtitle}</Text>
+              <Text style={[styles.quickAccessBadge, { color: item.color }]}>{item.badge}</Text>
+            </TouchableOpacity>
+          </Animated.View>
         )}
       />
     </View>
@@ -281,8 +377,24 @@ const HomeScreen = () => {
     <View style={styles.learningPathSection}>
       <Text style={styles.sectionTitle}>Learning Path</Text>
       <View style={styles.learningPathList}>
-        {learningPathItems.map((item) => (
-          <View key={item.id} style={styles.learningPathItem}>
+        {learningPathItems.map((item, index) => (
+          <Animated.View 
+            key={item.id} 
+            style={[
+              styles.learningPathItem,
+              {
+                opacity: cardAnimations[Math.min(index, 3)],
+                transform: [
+                  {
+                    translateX: cardAnimations[Math.min(index, 3)].interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-20, 0]
+                    })
+                  }
+                ]
+              }
+            ]}
+          >
             <View style={[styles.learningPathIcon, { backgroundColor: item.color }]}>
               <Ionicons
                 name={item.icon as any}
@@ -304,7 +416,7 @@ const HomeScreen = () => {
                 {item.description}
               </Text>
             </View>
-          </View>
+          </Animated.View>
         ))}
       </View>
     </View>
@@ -343,13 +455,29 @@ const HomeScreen = () => {
           contentContainerStyle={styles.achievementsScrollContainer}
           nestedScrollEnabled={true}
         >
-          {achievements.map((achievement) => (
-            <View key={achievement.id} style={styles.achievementCard}>
+          {achievements.map((achievement, index) => (
+            <Animated.View 
+              key={achievement.id} 
+              style={[
+                styles.achievementCard,
+                {
+                  opacity: cardAnimations[Math.min(index, 3)],
+                  transform: [
+                    {
+                      scale: cardAnimations[Math.min(index, 3)].interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.5, 1]
+                      })
+                    }
+                  ]
+                }
+              ]}
+            >
               <View style={[styles.achievementIcon, { backgroundColor: achievement.bgColor }]}>
                 <Ionicons name={achievement.icon as any} size={20} color={achievement.iconColor} />
               </View>
               <Text style={styles.achievementTitle}>{achievement.title}</Text>
-            </View>
+            </Animated.View>
           ))}
         </ScrollView>
       </View>
@@ -357,7 +485,22 @@ const HomeScreen = () => {
   );
 
   const renderDailyTip = () => (
-    <View style={styles.tipCard}>
+    <Animated.View 
+      style={[
+        styles.tipCard,
+        {
+          opacity: fadeAnim,
+          transform: [
+            {
+              translateY: slideAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [20, 0]
+              })
+            }
+          ]
+        }
+      ]}
+    >
       <View style={[styles.tipIconWrap, { backgroundColor: '#E0E7FF' }]}>
         <Ionicons name={dailyTip.icon as any} size={16} color="#4F46E5" />
       </View>
@@ -365,7 +508,7 @@ const HomeScreen = () => {
         <Text style={styles.tipTitle}>{dailyTip.title}</Text>
         <Text style={styles.tipText}>{dailyTip.message}</Text>
       </View>
-    </View>
+    </Animated.View>
   );
 
   const renderRecommended = () => (
@@ -377,16 +520,36 @@ const HomeScreen = () => {
         contentContainerStyle={styles.recommendedScrollContainer}
         nestedScrollEnabled={true}
       >
-        {recommendedCourses.map((c) => (
-          <TouchableOpacity key={c.id} style={styles.recoCard} activeOpacity={0.85} onPress={() => navigation.navigate('Courses')}>
-            <View style={[styles.recoBadge, { backgroundColor: c.color }]}>
-              <Ionicons name="play" size={12} color="#fff" />
-            </View>
-            <Text style={styles.recoTitle} numberOfLines={2}>{c.title}</Text>
-            <Text style={styles.recoSub}>{c.level}</Text>
-            <View style={styles.recoTrack}><View style={[styles.recoFill, { width: `${Math.round(c.progress * 100)}%`, backgroundColor: c.color }]} /></View>
-            <Text style={styles.recoHint}>{Math.round(c.progress * 100)}% complete</Text>
-          </TouchableOpacity>
+        {recommendedCourses.map((c, index) => (
+          <Animated.View
+            key={c.id}
+            style={{
+              opacity: cardAnimations[Math.min(index, 3)],
+              transform: [
+                {
+                  translateX: cardAnimations[Math.min(index, 3)].interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [50, 0]
+                  })
+                }
+              ]
+            }}
+          >
+            <TouchableOpacity 
+              style={styles.recoCard} 
+              activeOpacity={0.8} 
+              onPress={() => navigation.navigate('Courses')}
+              pressRetentionOffset={{ top: 20, left: 20, bottom: 20, right: 20 }}
+            >
+              <View style={[styles.recoBadge, { backgroundColor: c.color }]}>
+                <Ionicons name="play" size={12} color="#fff" />
+              </View>
+              <Text style={styles.recoTitle} numberOfLines={2}>{c.title}</Text>
+              <Text style={styles.recoSub}>{c.level}</Text>
+              <View style={styles.recoTrack}><View style={[styles.recoFill, { width: `${Math.round(c.progress * 100)}%`, backgroundColor: c.color }]} /></View>
+              <Text style={styles.recoHint}>{Math.round(c.progress * 100)}% complete</Text>
+            </TouchableOpacity>
+          </Animated.View>
         ))}
       </ScrollView>
     </View>
@@ -396,31 +559,66 @@ const HomeScreen = () => {
     <View style={styles.marketSection}>
       <Text style={styles.sectionTitle}>Market Snapshot</Text>
       <View style={styles.marketList}>
-        {trendingStocks.map((s) => (
-          <View key={s.symbol} style={styles.marketItem}>
+        {trendingStocks.map((s, index) => (
+          <Animated.View 
+            key={s.symbol} 
+            style={[
+              styles.marketItem,
+              {
+                opacity: cardAnimations[Math.min(index, 3)],
+                transform: [
+                  {
+                    translateX: cardAnimations[Math.min(index, 3)].interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-30, 0]
+                    })
+                  }
+                ]
+              }
+            ]}
+          >
             <View style={styles.marketSymbolWrap}><Text style={styles.marketSymbol}>{s.symbol}</Text></View>
             <View style={{ flex: 1 }}>
               <Text style={styles.marketName}>{s.name}</Text>
               <Text style={[styles.marketChange, { color: s.up ? '#059669' : '#DC2626' }]}>{s.change}</Text>
             </View>
             <Ionicons name={s.up ? 'trending-up' : 'trending-down'} size={16} color={s.up ? '#059669' : '#DC2626'} />
-          </View>
+          </Animated.View>
         ))}
       </View>
     </View>
   );
 
   const renderCTA = () => (
-    <TouchableOpacity activeOpacity={0.9} style={styles.bigCTA} onPress={() => navigation.navigate('Courses')}>
-      <View style={styles.ctaLeft}>
-        <Ionicons name="sparkles" size={18} color="#fff" />
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.bigCTATitle}>Continue Learning</Text>
-        <Text style={styles.bigCTASub}>Pick up where you left off in Technical Analysis</Text>
-      </View>
-      <View style={styles.ctaRight}><Ionicons name="arrow-forward" size={16} color="#fff" /></View>
-    </TouchableOpacity>
+    <Animated.View
+      style={{
+        opacity: fadeAnim,
+        transform: [
+          {
+            scale: scaleAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.9, 1]
+            })
+          }
+        ]
+      }}
+    >
+      <TouchableOpacity 
+        activeOpacity={0.8} 
+        style={styles.bigCTA} 
+        onPress={() => navigation.navigate('Courses')}
+        pressRetentionOffset={{ top: 20, left: 20, bottom: 20, right: 20 }}
+      >
+        <View style={styles.ctaLeft}>
+          <Ionicons name="sparkles" size={18} color="#fff" />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.bigCTATitle}>Continue Learning</Text>
+          <Text style={styles.bigCTASub}>Pick up where you left off in Technical Analysis</Text>
+        </View>
+        <View style={styles.ctaRight}><Ionicons name="arrow-forward" size={16} color="#fff" /></View>
+      </TouchableOpacity>
+    </Animated.View>
   );
 
   return (
@@ -432,6 +630,9 @@ const HomeScreen = () => {
         showsVerticalScrollIndicator={false}
         stickyHeaderIndices={[0]}
         nestedScrollEnabled={true}
+        bounces={true}
+        overScrollMode="always"
+        scrollEventThrottle={16}
       >
         <MainHeader title="Home" iconName="home" />
         {renderWelcomeSection()}
@@ -453,9 +654,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
+    ...Platform.select({
+      ios: {
+        // iOS specific optimizations
+      },
+      android: {
+        // Android specific optimizations
+        backgroundColor: '#F9FAFB',
+      },
+    }),
   },
   scrollView: {
     flex: 1,
+    ...Platform.select({
+      ios: {
+        // iOS scroll optimizations
+      },
+      android: {
+        // Android scroll optimizations
+        overScrollMode: 'always',
+      },
+    }),
   },
   scrollContent: {
     paddingBottom: 24,
@@ -463,47 +682,69 @@ const styles = StyleSheet.create({
   welcomeSection: {
     margin: 12,
     backgroundColor: '#0891B2',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.15,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   statRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 16,
     gap: 8,
   },
   statCard: {
     flex: 1,
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
     alignItems: 'center',
-    minHeight: 60,
+    minHeight: 70,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   statIcon: { 
-    width: 24, 
-    height: 24, 
-    borderRadius: 8, 
+    width: 28, 
+    height: 28, 
+    borderRadius: 10, 
     alignItems: 'center', 
     justifyContent: 'center', 
-    marginBottom: 6 
+    marginBottom: 8 
   },
   statValue: { 
     color: '#fff', 
     fontWeight: '800', 
-    fontSize: 16,
-    marginBottom: 2,
+    fontSize: 18,
+    marginBottom: 4,
   },
   statLabel: { 
     color: 'rgba(255,255,255,0.9)', 
-    fontSize: 11,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '600',
   },
   heroAccentCircle: {
     position: 'absolute',
@@ -515,38 +756,38 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.08)'
   },
   welcomeHeader: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   profileImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 2,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 3,
     borderColor: 'rgba(255, 255, 255, 0.3)',
-    marginRight: 12,
+    marginRight: 16,
   },
   welcomeText: {
     flex: 1,
   },
   welcomeTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
     color: 'white',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   welcomeSubtitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#CFFAFE',
     fontWeight: '500',
   },
   progressContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    padding: 18,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
@@ -554,42 +795,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   progressLabel: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#CFFAFE',
     fontWeight: '600',
   },
   progressPercentage: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
     color: 'white',
   },
   progressBarBackground: {
     width: '100%',
-    height: 8,
+    height: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    borderRadius: 4,
+    borderRadius: 5,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
     backgroundColor: 'white',
-    borderRadius: 4,
+    borderRadius: 5,
   },
   progressMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 10,
-    gap: 6,
+    marginTop: 12,
+    gap: 8,
   },
   progressPill: {
     backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
     flex: 1,
@@ -597,115 +838,133 @@ const styles = StyleSheet.create({
   },
   progressPillText: {
     color: '#fff',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
   },
   quickAccessSection: {
     margin: 12,
-    marginTop: 6,
+    marginTop: 8,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
     color: '#1F2937',
-    marginBottom: 16,
+    marginBottom: 18,
   },
   quickAccessCard: {
-    width: (width - 48) / 2,
+    width: Platform.OS === 'ios' ? (width - 48) / 2 : (width - 40) / 2,
     backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    borderRadius: 20,
+    padding: Platform.OS === 'ios' ? 18 : 16,
+    marginBottom: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
   quickAccessIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   quickAccessTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
     color: '#1F2937',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   quickAccessSubtitle: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#6B7280',
-    marginBottom: 12,
-    lineHeight: 16,
+    marginBottom: 14,
+    lineHeight: 18,
   },
   quickAccessBadge: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     backgroundColor: '#F9FAFB',
-    borderRadius: 10,
+    borderRadius: 12,
     alignSelf: 'flex-start',
   },
   learningPathSection: {
     margin: 12,
-    marginTop: 6,
+    marginTop: 8,
     backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    borderRadius: 20,
+    padding: 18,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
   learningPathList: {
-    gap: 12,
+    gap: 16,
   },
   learningPathItem: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   learningPathIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
   learningPathContent: {
     flex: 1,
   },
   learningPathTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   learningPathDescription: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '500',
   },
   portfolioSection: {
     margin: 12,
-    marginTop: 6,
+    marginTop: 8,
     backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    borderRadius: 20,
+    padding: 18,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
@@ -713,55 +972,55 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   portfolioProfit: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
     color: '#059669',
     backgroundColor: '#DCFCE7',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
   },
   portfolioStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 8,
+    gap: 10,
   },
   portfolioStat: {
     alignItems: 'center',
     flex: 1,
     backgroundColor: '#F9FAFB',
-    padding: 10,
-    borderRadius: 10,
+    padding: 12,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
   portfolioValue: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '800',
     color: '#1F2937',
-    marginBottom: 3,
+    marginBottom: 4,
   },
   portfolioProfitValue: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '800',
     color: '#059669',
-    marginBottom: 3,
+    marginBottom: 4,
   },
   portfolioLabel: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#6B7280',
     fontWeight: '500',
   },
   achievementsSection: {
     margin: 12,
-    marginTop: 6,
-    marginBottom: 16,
+    marginTop: 8,
+    marginBottom: 20,
   },
   achievementsContainer: {
-    minHeight: 90,
+    minHeight: 100,
   },
   achievementsScrollContainer: {
     paddingRight: 12,
@@ -769,117 +1028,135 @@ const styles = StyleSheet.create({
   },
   achievementCard: {
     backgroundColor: 'white',
-    borderRadius: 14,
-    padding: 14,
-    marginRight: 10,
+    borderRadius: 18,
+    padding: 16,
+    marginRight: 12,
     alignItems: 'center',
-    minWidth: 110,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 3,
+    minWidth: 120,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
   achievementIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   achievementTitle: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
     color: '#374151',
     textAlign: 'center',
-    lineHeight: 16,
+    lineHeight: 18,
   },
   tipCard: {
     marginHorizontal: 12,
-    marginTop: 6,
+    marginTop: 8,
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 14,
+    borderRadius: 18,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 3,
+    gap: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
   tipIconWrap: { 
-    width: 36, 
-    height: 36, 
-    borderRadius: 8, 
+    width: 40, 
+    height: 40, 
+    borderRadius: 10, 
     alignItems: 'center', 
     justifyContent: 'center' 
   },
   tipTitle: { 
-    fontSize: 11, 
+    fontSize: 12, 
     color: '#6B7280', 
     fontWeight: '700',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   tipText: { 
-    fontSize: 12, 
+    fontSize: 13, 
     color: '#1F2937', 
-    lineHeight: 16,
+    lineHeight: 18,
   },
   recommendedSection: { 
     margin: 12, 
-    marginTop: 6 
+    marginTop: 8 
   },
   recommendedScrollContainer: {
     paddingRight: 12,
     paddingLeft: 4,
   },
   recoCard: {
-    width: 180,
+    width: 200,
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 14,
-    marginRight: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 3,
+    borderRadius: 18,
+    padding: 16,
+    marginRight: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
   recoBadge: { 
-    width: 24, 
-    height: 24, 
-    borderRadius: 5, 
+    width: 28, 
+    height: 28, 
+    borderRadius: 6, 
     alignItems: 'center', 
     justifyContent: 'center', 
-    marginBottom: 8 
+    marginBottom: 10 
   },
   recoTitle: { 
-    fontSize: 14, 
+    fontSize: 15, 
     fontWeight: '700', 
     color: '#111827',
-    marginBottom: 3,
-    lineHeight: 18,
+    marginBottom: 4,
+    lineHeight: 20,
   },
   recoSub: { 
-    fontSize: 11, 
+    fontSize: 12, 
     color: '#6B7280', 
-    marginBottom: 10,
+    marginBottom: 12,
     fontWeight: '500',
   },
   recoTrack: { 
-    height: 5, 
+    height: 6, 
     backgroundColor: '#E5E7EB', 
     borderRadius: 999, 
-    marginBottom: 5,
+    marginBottom: 6,
     overflow: 'hidden',
   },
   recoFill: { 
@@ -887,70 +1164,82 @@ const styles = StyleSheet.create({
     borderRadius: 999 
   },
   recoHint: { 
-    fontSize: 10, 
+    fontSize: 11, 
     color: '#6B7280',
     fontWeight: '500',
   },
   marketSection: { 
     margin: 12, 
-    marginTop: 6, 
+    marginTop: 8, 
     backgroundColor: '#FFFFFF', 
-    borderRadius: 14, 
-    padding: 14, 
-    elevation: 3, 
-    shadowColor: '#000', 
-    shadowOpacity: 0.06, 
-    shadowRadius: 6, 
-    shadowOffset: { width: 0, height: 2 },
+    borderRadius: 18, 
+    padding: 16, 
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
   marketList: { 
-    marginTop: 5 
+    marginTop: 8 
   },
   marketItem: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    paddingVertical: 10, 
+    paddingVertical: 12, 
     borderBottomWidth: StyleSheet.hairlineWidth, 
     borderBottomColor: '#E5E7EB' 
   },
   marketSymbolWrap: { 
-    width: 52 
+    width: 56 
   },
   marketSymbol: { 
     fontWeight: '800', 
     color: '#111827',
-    fontSize: 14,
+    fontSize: 15,
   },
   marketName: { 
-    fontSize: 11, 
+    fontSize: 12, 
     color: '#6B7280',
-    marginBottom: 2,
+    marginBottom: 3,
   },
   marketChange: { 
-    fontSize: 12, 
+    fontSize: 13, 
     fontWeight: '700',
   },
   bigCTA: { 
     marginHorizontal: 12, 
     backgroundColor: '#4F46E5', 
-    borderRadius: 14, 
-    padding: 14, 
+    borderRadius: 18, 
+    padding: 18, 
     flexDirection: 'row', 
     alignItems: 'center', 
-    gap: 10, 
-    marginTop: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    gap: 12, 
+    marginTop: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   ctaLeft: { 
-    width: 36, 
-    height: 36, 
-    borderRadius: 8, 
+    width: 40, 
+    height: 40, 
+    borderRadius: 10, 
     backgroundColor: 'rgba(255,255,255,0.2)', 
     alignItems: 'center', 
     justifyContent: 'center' 
@@ -958,24 +1247,25 @@ const styles = StyleSheet.create({
   bigCTATitle: { 
     color: '#FFFFFF', 
     fontWeight: '800',
-    fontSize: 15,
-    marginBottom: 2,
+    fontSize: 16,
+    marginBottom: 3,
   },
   bigCTASub: { 
     color: 'rgba(255,255,255,0.9)', 
-    fontSize: 12, 
-    lineHeight: 16,
+    fontSize: 13, 
+    lineHeight: 18,
   },
   ctaRight: { 
-    width: 24, 
-    height: 24, 
-    borderRadius: 6, 
+    width: 28, 
+    height: 28, 
+    borderRadius: 8, 
     backgroundColor: 'rgba(255,255,255,0.2)', 
     alignItems: 'center', 
     justifyContent: 'center' 
   },
   bottomSpacing: {
-    height: 60,
+    height: Platform.OS === 'ios' ? 100 : 80,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 16,
   },
 });
 
