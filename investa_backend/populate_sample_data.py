@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Script to populate the Investa backend with sample data
+Script to populate the Investa backend with comprehensive sample data
 Run this script after setting up the Django environment
 """
 
@@ -17,709 +17,291 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'investa_backend.settings')
 django.setup()
 
 from django.contrib.auth.models import User
-from api.models import (
-    Language, UserProfile, Course, Lesson, UserLessonProgress,
-    Quiz, Question, Answer
+from django.db import transaction
+
+# Import sample data modules
+from api.sample.user_sample_data import create_languages, create_users_and_profiles
+from api.sample.security_sample_data import create_security_settings, create_user_sessions
+from api.sample.privacy_sample_data import create_privacy_settings
+from api.sample.learning_sample_data import (
+    create_courses, create_badges, create_learning_progress,
+    create_user_lesson_progress, create_user_quiz_attempts
 )
+from api.sample.trading_sample_data import (
+    create_stocks, create_portfolios, create_achievements,
+    create_stock_prices, create_user_watchlists, create_portfolio_holdings,
+    create_orders_and_trades, create_trading_performance, create_trading_sessions,
+    create_market_data, create_technical_indicators
+)
+from api.sample.notifications_sample_data import create_notifications
 
 def reset_data():
     """Wipe existing app data in a safe order"""
     print("\n🧹 Resetting existing data...")
-    # Delete dependent data first
-    from django.db import transaction
-    from django.contrib.auth.models import User
+    
     with transaction.atomic():
+        # Delete dependent data first
+        from api.models import (
+            Answer, Question, Quiz, UserLessonProgress, Lesson, Course,
+            UserBadge, Badge, UserAchievement, Achievement, Notification,
+            PortfolioHolding, Portfolio, StockPrice, Stock, UserSession,
+            SecuritySettings, PrivacySettings, LearningProgress, UserProfile,
+            Language, UserQuizAttempt, UserQuizAnswer, UserWatchlist,
+            Order, Trade, TradingPerformance, TradingSession, MarketData,
+            TechnicalIndicator
+        )
+        
         # Quiz related
+        UserQuizAnswer.objects.all().delete()
+        UserQuizAttempt.objects.all().delete()
         Answer.objects.all().delete()
         Question.objects.all().delete()
         Quiz.objects.all().delete()
+        
         # Learning progress
         UserLessonProgress.objects.all().delete()
         Lesson.objects.all().delete()
         Course.objects.all().delete()
-        # Keep users and languages to avoid breaking auth; languages will be recreated if missing
-    print("✅ Data reset completed.")
-
+        
+        # Badges and achievements
+        UserBadge.objects.all().delete()
+        Badge.objects.all().delete()
+        UserAchievement.objects.all().delete()
+        Achievement.objects.all().delete()
+        
+        # Notifications
+        Notification.objects.all().delete()
+        
+        # Trading related
+        Trade.objects.all().delete()
+        Order.objects.all().delete()
+        PortfolioHolding.objects.all().delete()
+        Portfolio.objects.all().delete()
+        TechnicalIndicator.objects.all().delete()
+        MarketData.objects.all().delete()
+        TradingSession.objects.all().delete()
+        TradingPerformance.objects.all().delete()
+        UserWatchlist.objects.all().delete()
+        StockPrice.objects.all().delete()
+        Stock.objects.all().delete()
+        
+        # User sessions and settings
+        UserSession.objects.all().delete()
+        SecuritySettings.objects.all().delete()
+        PrivacySettings.objects.all().delete()
+        LearningProgress.objects.all().delete()
+        UserProfile.objects.all().delete()
+        
+        # Keep languages to avoid breaking auth
+        print("✅ Data reset completed.")
 
 def create_sample_data():
-    """Create sample data for the Investa platform"""
-    print("🚀 Creating sample data for Investa...")
+    """Create comprehensive sample data for the Investa platform"""
+    print("🚀 Creating comprehensive sample data for Investa...")
     
-    # Create languages
-    languages = []
-    language_data = [
-        {'code': 'en', 'name': 'English', 'native_name': 'English'},
-        {'code': 'hi', 'name': 'Hindi', 'native_name': 'हिन्दी'},
-        {'code': 'ta', 'name': 'Tamil', 'native_name': 'தமிழ்'},
-        {'code': 'te', 'name': 'Telugu', 'native_name': 'తెలుగు'},
-        {'code': 'bn', 'name': 'Bengali', 'native_name': 'বাংলা'},
-    ]
+    # 1. Create languages
+    print("\n📚 Creating languages...")
+    languages = create_languages()
     
-    for lang_data in language_data:
-        lang, created = Language.objects.get_or_create(
-            code=lang_data['code'],
-            defaults=lang_data
-        )
-        languages.append(lang)
-        if created:
-            print(f"✅ Created language: {lang.name}")
+    # 2. Create users and profiles
+    print("\n👥 Creating users and profiles...")
+    users = create_users_and_profiles(languages)
     
-    # Create sample users
-    users = []
-    user_data = [
-        {'username': 'john_doe', 'email': 'john@example.com', 'first_name': 'John', 'last_name': 'Doe'},
-        {'username': 'jane_smith', 'email': 'jane@example.com', 'first_name': 'Jane', 'last_name': 'Smith'},
-        {'username': 'mike_wilson', 'email': 'mike@example.com', 'first_name': 'Mike', 'last_name': 'Wilson'},
-    ]
+    # 3. Create security settings
+    print("\n🔒 Creating security settings...")
+    security_settings = create_security_settings(users)
     
-    for user_info in user_data:
-        user, created = User.objects.get_or_create(
-            username=user_info['username'],
-            defaults={
-                'email': user_info['email'],
-                'first_name': user_info['first_name'],
-                'last_name': user_info['last_name'],
-                'password': 'testpass123'
-            }
-        )
-        if created:
-            user.set_password('testpass123')
-            user.save()
-            print(f"✅ Created user: {user.username}")
-        
-        # Create user profile
-        profile, created = UserProfile.objects.get_or_create(
-            user=user,
-            defaults={
-                'preferred_language': languages[0],  # English
-                'risk_profile': 'moderate',
-                'investment_experience': 'beginner',
-                'phone_number': '+1234567890',
-                'date_of_birth': date(1990, 1, 1)
-            }
-        )
-        users.append(user)
+    # 4. Create user sessions
+    print("\n💻 Creating user sessions...")
+    user_sessions = create_user_sessions(users)
     
-    # Create sample courses
-    courses = []
-    course_data = [
-        {
-            'title': 'Stock Market Basics',
-            'description': 'Learn the fundamentals of stock market investing, including how stocks work, market analysis, and basic trading strategies.',
-            'language': languages[0],  # English
-            'difficulty_level': 'beginner',
-            'estimated_duration': 120
-        },
-        {
-            'title': 'Portfolio Diversification',
-            'description': 'Master the art of building a balanced portfolio that spreads risk across different asset classes and sectors.',
-            'language': languages[0],  # English
-            'difficulty_level': 'intermediate',
-            'estimated_duration': 180
-        },
-        {
-            'title': 'Risk Management',
-            'description': 'Understand how to identify, assess, and manage investment risks to protect your capital.',
-            'language': languages[0],  # English
-            'difficulty_level': 'advanced',
-            'estimated_duration': 240
-        },
-        {
-            'title': 'Mutual Funds 101',
-            'description': 'Learn about mutual funds, their types, benefits, and how to choose the right ones for your investment goals.',
-            'language': languages[1],  # Hindi
-            'difficulty_level': 'beginner',
-            'estimated_duration': 90
-        }
-    ]
+    # 5. Create privacy settings
+    print("\n🔐 Creating privacy settings...")
+    privacy_settings = create_privacy_settings(users)
     
-    for course_info in course_data:
-        course, created = Course.objects.get_or_create(
-            title=course_info['title'],
-            defaults=course_info
-        )
-        courses.append(course)
-        if created:
-            print(f"✅ Created course: {course.title}")
+    # 6. Create courses
+    print("\n📖 Creating courses...")
+    courses = create_courses(languages)
     
-    # Create sample lessons
-    lessons = []
+    # 7. Create badges
+    print("\n🏆 Creating badges...")
+    badges = create_badges()
     
-    # Stock Market Basics Course (15 lessons)
-    stock_market_lessons = [
-        {
-            'course': courses[0],  # Stock Market Basics
-            'title': 'Introduction to Stock Markets',
-            'content': 'Welcome to the world of stock markets! In this lesson, you\'ll learn what stock markets are, why they exist, and how they function as the backbone of the global economy. We\'ll explore the history of stock markets and their role in modern finance.',
-            'order': 1,
-            'estimated_duration': 20
-        },
-        {
-            'course': courses[0],
-            'title': 'What are Stocks and Shares?',
-            'content': 'Stocks represent ownership in a company. When you buy a stock, you become a shareholder and own a piece of that company. Learn about the different types of stocks, how they work, and what rights shareholders have.',
-            'order': 2,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[0],
-            'title': 'How Stock Markets Work',
-            'content': 'Stock markets are places where buyers and sellers meet to trade stocks. They provide liquidity and price discovery. Understand the mechanics of trading, market makers, and how prices are determined.',
-            'order': 3,
-            'estimated_duration': 30
-        },
-        {
-            'course': courses[0],
-            'title': 'Types of Stocks: Common vs Preferred',
-            'content': 'Learn about common stocks, preferred stocks, and different stock classifications. Understand the differences in voting rights, dividend payments, and risk levels between these stock types.',
-            'order': 4,
-            'estimated_duration': 22
-        },
-        {
-            'course': courses[0],
-            'title': 'Market Indices and Benchmarks',
-            'content': 'Market indices like the S&P 500, Dow Jones, and NASDAQ track the performance of groups of stocks. Learn how indices work, what they represent, and how to use them as benchmarks.',
-            'order': 5,
-            'estimated_duration': 18
-        },
-        {
-            'course': courses[0],
-            'title': 'Bull vs Bear Markets',
-            'content': 'Understand the difference between bull markets (rising) and bear markets (falling). Learn about market cycles, investor psychology, and how to identify market trends.',
-            'order': 6,
-            'estimated_duration': 20
-        },
-        {
-            'course': courses[0],
-            'title': 'Market Hours and Trading Sessions',
-            'content': 'Stock markets have specific trading hours and sessions. Learn about pre-market, regular trading hours, after-hours trading, and how different time zones affect global markets.',
-            'order': 7,
-            'estimated_duration': 15
-        },
-        {
-            'course': courses[0],
-            'title': 'Stock Exchanges Around the World',
-            'content': 'Explore major stock exchanges like NYSE, NASDAQ, London Stock Exchange, Tokyo Stock Exchange, and others. Understand how global markets are interconnected.',
-            'order': 8,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[0],
-            'title': 'Market Participants: Who Trades Stocks?',
-            'content': 'Learn about different types of market participants: individual investors, institutional investors, market makers, brokers, and algorithmic traders. Understand their roles and motivations.',
-            'order': 9,
-            'estimated_duration': 28
-        },
-        {
-            'course': courses[0],
-            'title': 'Order Types: Market, Limit, Stop Orders',
-            'content': 'Master different order types: market orders, limit orders, stop orders, and stop-limit orders. Learn when and how to use each type effectively.',
-            'order': 10,
-            'estimated_duration': 30
-        },
-        {
-            'course': courses[0],
-            'title': 'Bid, Ask, and Spread',
-            'content': 'Understand bid prices, ask prices, and the spread between them. Learn how spreads affect trading costs and what they tell you about market liquidity.',
-            'order': 11,
-            'estimated_duration': 20
-        },
-        {
-            'course': courses[0],
-            'title': 'Volume and Liquidity',
-            'content': 'Trading volume and liquidity are crucial concepts. Learn how volume affects price movements, what high and low liquidity mean, and how to assess market activity.',
-            'order': 12,
-            'estimated_duration': 22
-        },
-        {
-            'course': courses[0],
-            'title': 'Market Volatility and Risk',
-            'content': 'Volatility measures how much stock prices fluctuate. Learn about volatility indices, risk assessment, and how to manage volatility in your investment strategy.',
-            'order': 13,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[0],
-            'title': 'Market News and Information Sources',
-            'content': 'Stay informed with reliable sources of market news and information. Learn about financial news outlets, company filings, earnings reports, and economic indicators.',
-            'order': 14,
-            'estimated_duration': 20
-        },
-        {
-            'course': courses[0],
-            'title': 'Getting Started: Your First Stock Purchase',
-            'content': 'Practical guide to making your first stock purchase. Learn about choosing a broker, opening an account, placing your first order, and what to expect.',
-            'order': 15,
-            'estimated_duration': 35
-        }
-    ]
+    # 8. Create learning progress
+    print("\n📈 Creating learning progress...")
+    learning_progress = create_learning_progress(users)
     
-    # Portfolio Diversification Course (20 lessons)
-    portfolio_lessons = [
-        {
-            'course': courses[1],  # Portfolio Diversification
-            'title': 'Introduction to Portfolio Management',
-            'content': 'Portfolio management is the art and science of making investment decisions. Learn the fundamental principles of building and managing an investment portfolio.',
-            'order': 1,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[1],
-            'title': 'Understanding Asset Classes',
-            'content': 'Explore different asset classes: stocks, bonds, real estate, commodities, and cash. Understand their characteristics, risks, and potential returns.',
-            'order': 2,
-            'estimated_duration': 30
-        },
-        {
-            'course': courses[1],
-            'title': 'Asset Allocation Fundamentals',
-            'content': 'Asset allocation is the process of dividing your investments among different asset classes. Learn how to create a balanced allocation based on your goals and risk tolerance.',
-            'order': 3,
-            'estimated_duration': 35
-        },
-        {
-            'course': courses[1],
-            'title': 'Risk and Return Relationship',
-            'content': 'Understand the fundamental relationship between risk and return. Learn how higher potential returns typically come with higher risk, and how to find your optimal risk-return balance.',
-            'order': 4,
-            'estimated_duration': 28
-        },
-        {
-            'course': courses[1],
-            'title': 'Diversification Strategies',
-            'content': 'Learn how to spread your investments across different sectors, industries, and geographic regions. Understand the benefits of diversification and how to implement it effectively.',
-            'order': 5,
-            'estimated_duration': 32
-        },
-        {
-            'course': courses[1],
-            'title': 'Sector Diversification',
-            'content': 'Explore different market sectors: technology, healthcare, finance, consumer goods, energy, and more. Learn how sector diversification can reduce portfolio risk.',
-            'order': 6,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[1],
-            'title': 'Geographic Diversification',
-            'content': 'Invest globally to reduce country-specific risks. Learn about developed markets, emerging markets, and how to allocate investments across different regions.',
-            'order': 7,
-            'estimated_duration': 30
-        },
-        {
-            'course': courses[1],
-            'title': 'Market Capitalization Diversification',
-            'content': 'Understand large-cap, mid-cap, and small-cap stocks. Learn how market capitalization affects risk and return, and how to balance different cap sizes in your portfolio.',
-            'order': 8,
-            'estimated_duration': 22
-        },
-        {
-            'course': courses[1],
-            'title': 'Growth vs Value Investing',
-            'content': 'Compare growth and value investing strategies. Learn how to identify growth stocks and value stocks, and how to combine both approaches in your portfolio.',
-            'order': 9,
-            'estimated_duration': 28
-        },
-        {
-            'course': courses[1],
-            'title': 'Bond Allocation and Types',
-            'content': 'Bonds provide income and stability to portfolios. Learn about government bonds, corporate bonds, municipal bonds, and how to incorporate them into your allocation.',
-            'order': 10,
-            'estimated_duration': 35
-        },
-        {
-            'course': courses[1],
-            'title': 'Real Estate Investment Trusts (REITs)',
-            'content': 'REITs offer exposure to real estate without buying property directly. Learn about different types of REITs, their benefits, and how to include them in your portfolio.',
-            'order': 11,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[1],
-            'title': 'Commodities and Alternative Investments',
-            'content': 'Explore commodities like gold, oil, and agricultural products. Learn about alternative investments and how they can enhance portfolio diversification.',
-            'order': 12,
-            'estimated_duration': 30
-        },
-        {
-            'course': courses[1],
-            'title': 'International Stocks and ETFs',
-            'content': 'International diversification through stocks and ETFs. Learn about currency risk, political risk, and how to invest in foreign markets effectively.',
-            'order': 13,
-            'estimated_duration': 28
-        },
-        {
-            'course': courses[1],
-            'title': 'Portfolio Rebalancing',
-            'content': 'Regular rebalancing keeps your portfolio aligned with your goals. Learn when and how to rebalance, and strategies for maintaining your target allocation.',
-            'order': 14,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[1],
-            'title': 'Tax-Efficient Investing',
-            'content': 'Minimize taxes on your investments. Learn about tax-advantaged accounts, tax-loss harvesting, and strategies for reducing your tax burden.',
-            'order': 15,
-            'estimated_duration': 30
-        },
-        {
-            'course': courses[1],
-            'title': 'Dollar-Cost Averaging',
-            'content': 'Dollar-cost averaging reduces the impact of market volatility. Learn how to implement this strategy and its benefits for long-term investors.',
-            'order': 16,
-            'estimated_duration': 20
-        },
-        {
-            'course': courses[1],
-            'title': 'Portfolio Monitoring and Review',
-            'content': 'Regular monitoring helps you stay on track. Learn what metrics to track, how often to review your portfolio, and when to make adjustments.',
-            'order': 17,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[1],
-            'title': 'Lifecycle Investing',
-            'content': 'Adjust your portfolio as you age. Learn about target-date funds and how to modify your allocation based on your life stage and changing goals.',
-            'order': 18,
-            'estimated_duration': 28
-        },
-        {
-            'course': courses[1],
-            'title': 'Building a Core-Satellite Portfolio',
-            'content': 'Combine index funds with active management. Learn how to build a core-satellite portfolio that balances low costs with potential outperformance.',
-            'order': 19,
-            'estimated_duration': 30
-        },
-        {
-            'course': courses[1],
-            'title': 'Portfolio Optimization Techniques',
-            'content': 'Advanced techniques for optimizing your portfolio. Learn about modern portfolio theory, efficient frontiers, and mathematical approaches to allocation.',
-            'order': 20,
-            'estimated_duration': 35
-        }
-    ]
+    # 9. Create stocks
+    print("\n📊 Creating stocks...")
+    stocks = create_stocks()
     
-    # Risk Management Course (25 lessons)
-    risk_management_lessons = [
-        {
-            'course': courses[2],  # Risk Management
-            'title': 'Introduction to Investment Risk',
-            'content': 'Risk is inherent in all investments. Learn to identify, understand, and manage different types of investment risks to protect your capital.',
-            'order': 1,
-            'estimated_duration': 30
-        },
-        {
-            'course': courses[2],
-            'title': 'Types of Investment Risk',
-            'content': 'Explore market risk, credit risk, liquidity risk, inflation risk, and other types of investment risks. Understand how each affects your portfolio.',
-            'order': 2,
-            'estimated_duration': 35
-        },
-        {
-            'course': courses[2],
-            'title': 'Risk Tolerance Assessment',
-            'content': 'Assess your personal risk tolerance. Learn about questionnaires, psychological factors, and how to determine the right level of risk for your situation.',
-            'order': 3,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[2],
-            'title': 'Risk Capacity vs Risk Tolerance',
-            'content': 'Distinguish between risk capacity (ability to take risk) and risk tolerance (willingness to take risk). Learn how to balance both in your investment decisions.',
-            'order': 4,
-            'estimated_duration': 28
-        },
-        {
-            'course': courses[2],
-            'title': 'Volatility and Standard Deviation',
-            'content': 'Understand volatility as a measure of risk. Learn about standard deviation, variance, and how to interpret these statistical measures.',
-            'order': 5,
-            'estimated_duration': 30
-        },
-        {
-            'course': courses[2],
-            'title': 'Beta and Systematic Risk',
-            'content': 'Beta measures a stock\'s sensitivity to market movements. Learn how to use beta to assess systematic risk and compare investments.',
-            'order': 6,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[2],
-            'title': 'Value at Risk (VaR)',
-            'content': 'Value at Risk estimates potential losses. Learn how to calculate and interpret VaR, and its limitations as a risk measure.',
-            'order': 7,
-            'estimated_duration': 35
-        },
-        {
-            'course': courses[2],
-            'title': 'Maximum Drawdown',
-            'content': 'Maximum drawdown measures the largest peak-to-trough decline. Learn how to calculate and use this important risk metric.',
-            'order': 8,
-            'estimated_duration': 22
-        },
-        {
-            'course': courses[2],
-            'title': 'Sharpe Ratio and Risk-Adjusted Returns',
-            'content': 'The Sharpe ratio measures risk-adjusted returns. Learn how to calculate and interpret this important performance metric.',
-            'order': 9,
-            'estimated_duration': 30
-        },
-        {
-            'course': courses[2],
-            'title': 'Correlation and Portfolio Risk',
-            'content': 'Correlation affects portfolio diversification. Learn how correlation coefficients work and how to use them in portfolio construction.',
-            'order': 10,
-            'estimated_duration': 28
-        },
-        {
-            'course': courses[2],
-            'title': 'Concentration Risk',
-            'content': 'Concentration risk comes from over-investing in single positions. Learn how to identify and manage concentration risk in your portfolio.',
-            'order': 11,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[2],
-            'title': 'Sector Concentration Risk',
-            'content': 'Sector concentration can increase portfolio risk. Learn how to assess and manage sector exposure across your investments.',
-            'order': 12,
-            'estimated_duration': 20
-        },
-        {
-            'course': courses[2],
-            'title': 'Geographic Concentration Risk',
-            'content': 'Geographic concentration exposes you to country-specific risks. Learn how to diversify across different regions and countries.',
-            'order': 13,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[2],
-            'title': 'Currency Risk Management',
-            'content': 'Currency fluctuations affect international investments. Learn about currency risk and strategies to manage it effectively.',
-            'order': 14,
-            'estimated_duration': 30
-        },
-        {
-            'course': courses[2],
-            'title': 'Interest Rate Risk',
-            'content': 'Interest rate changes affect bond prices and other investments. Learn how to measure and manage interest rate risk.',
-            'order': 15,
-            'estimated_duration': 28
-        },
-        {
-            'course': courses[2],
-            'title': 'Inflation Risk and Protection',
-            'content': 'Inflation erodes purchasing power over time. Learn about inflation risk and strategies to protect your portfolio from inflation.',
-            'order': 16,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[2],
-            'title': 'Liquidity Risk Management',
-            'content': 'Liquidity risk affects your ability to sell investments quickly. Learn how to assess and manage liquidity in your portfolio.',
-            'order': 17,
-            'estimated_duration': 22
-        },
-        {
-            'course': courses[2],
-            'title': 'Credit Risk Assessment',
-            'content': 'Credit risk affects bond investments and other debt securities. Learn how to assess credit quality and manage credit risk.',
-            'order': 18,
-            'estimated_duration': 30
-        },
-        {
-            'course': courses[2],
-            'title': 'Political and Regulatory Risk',
-            'content': 'Political and regulatory changes can affect investments. Learn how to identify and manage these types of risks.',
-            'order': 19,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[2],
-            'title': 'Environmental, Social, and Governance (ESG) Risk',
-            'content': 'ESG factors can affect investment risk and returns. Learn how to incorporate ESG considerations into your risk management.',
-            'order': 20,
-            'estimated_duration': 28
-        },
-        {
-            'course': courses[2],
-            'title': 'Hedging Strategies',
-            'content': 'Hedging can reduce portfolio risk. Learn about options, futures, and other hedging instruments and strategies.',
-            'order': 21,
-            'estimated_duration': 35
-        },
-        {
-            'course': courses[2],
-            'title': 'Stop-Loss Orders and Risk Control',
-            'content': 'Stop-loss orders help limit potential losses. Learn how to use stop-losses effectively and other risk control techniques.',
-            'order': 22,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[2],
-            'title': 'Position Sizing and Risk Management',
-            'content': 'Position sizing is crucial for risk management. Learn how to determine appropriate position sizes based on your risk tolerance.',
-            'order': 23,
-            'estimated_duration': 30
-        },
-        {
-            'course': courses[2],
-            'title': 'Stress Testing Your Portfolio',
-            'content': 'Stress testing helps identify portfolio vulnerabilities. Learn how to conduct scenario analysis and stress tests.',
-            'order': 24,
-            'estimated_duration': 28
-        },
-        {
-            'course': courses[2],
-            'title': 'Building a Risk Management Plan',
-            'content': 'Create a comprehensive risk management plan. Learn how to document your risk management approach and review it regularly.',
-            'order': 25,
-            'estimated_duration': 35
-        }
-    ]
+    # 10. Create portfolios
+    print("\n💼 Creating portfolios...")
+    portfolios = create_portfolios(users)
     
-    # Mutual Funds 101 Course (12 lessons)
-    mutual_funds_lessons = [
-        {
-            'course': courses[3],  # Mutual Funds 101
-            'title': 'Introduction to Mutual Funds',
-            'content': 'Mutual funds pool money from many investors to invest in a diversified portfolio. Learn the basics of how mutual funds work and their benefits.',
-            'order': 1,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[3],
-            'title': 'Types of Mutual Funds',
-            'content': 'Explore different types of mutual funds: equity funds, bond funds, money market funds, and balanced funds. Understand their characteristics and uses.',
-            'order': 2,
-            'estimated_duration': 30
-        },
-        {
-            'course': courses[3],
-            'title': 'Equity Mutual Funds',
-            'content': 'Equity funds invest primarily in stocks. Learn about large-cap, mid-cap, small-cap, growth, value, and sector-specific equity funds.',
-            'order': 3,
-            'estimated_duration': 28
-        },
-        {
-            'course': courses[3],
-            'title': 'Bond Mutual Funds',
-            'content': 'Bond funds invest in debt securities. Learn about government bond funds, corporate bond funds, and municipal bond funds.',
-            'order': 4,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[3],
-            'title': 'Index Funds vs Active Funds',
-            'content': 'Compare index funds that track market benchmarks with actively managed funds. Understand the differences in costs, performance, and strategy.',
-            'order': 5,
-            'estimated_duration': 30
-        },
-        {
-            'course': courses[3],
-            'title': 'Fund Expenses and Fees',
-            'content': 'Understand mutual fund expenses: expense ratios, loads, and other fees. Learn how fees affect your returns and how to minimize them.',
-            'order': 6,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[3],
-            'title': 'Net Asset Value (NAV)',
-            'content': 'NAV represents the per-share value of a mutual fund. Learn how NAV is calculated and what it tells you about fund performance.',
-            'order': 7,
-            'estimated_duration': 20
-        },
-        {
-            'course': courses[3],
-            'title': 'Fund Performance Metrics',
-            'content': 'Learn to evaluate mutual fund performance using metrics like total return, annualized return, and risk-adjusted measures.',
-            'order': 8,
-            'estimated_duration': 28
-        },
-        {
-            'course': courses[3],
-            'title': 'Fund Selection Criteria',
-            'content': 'Develop criteria for selecting mutual funds. Consider factors like performance history, expense ratios, fund size, and manager tenure.',
-            'order': 9,
-            'estimated_duration': 30
-        },
-        {
-            'course': courses[3],
-            'title': 'Tax Considerations for Mutual Funds',
-            'content': 'Understand the tax implications of mutual fund investing. Learn about capital gains distributions, dividend income, and tax-efficient fund selection.',
-            'order': 10,
-            'estimated_duration': 25
-        },
-        {
-            'course': courses[3],
-            'title': 'Building a Mutual Fund Portfolio',
-            'content': 'Learn how to build a diversified portfolio using mutual funds. Consider asset allocation, fund selection, and portfolio rebalancing.',
-            'order': 11,
-            'estimated_duration': 35
-        },
-        {
-            'course': courses[3],
-            'title': 'Getting Started with Mutual Funds',
-            'content': 'Practical guide to investing in mutual funds. Learn about account types, minimum investments, and how to make your first fund purchase.',
-            'order': 12,
-            'estimated_duration': 30
-        }
-    ]
+    # 11. Create achievements
+    print("\n🎯 Creating achievements...")
+    achievements = create_achievements()
     
-    # Combine all lessons
-    all_lesson_data = stock_market_lessons + portfolio_lessons + risk_management_lessons + mutual_funds_lessons
+    # 12. Create notifications
+    print("\n🔔 Creating notifications...")
+    notifications = create_notifications(users)
     
-    for lesson_info in all_lesson_data:
-        lesson, created = Lesson.objects.get_or_create(
-            course=lesson_info['course'],
-            title=lesson_info['title'],
-            defaults=lesson_info
-        )
-        lessons.append(lesson)
-        if created:
-            print(f"✅ Created lesson: {lesson.title}")
+    # 13. Create lessons and quizzes (using existing logic)
+    print("\n📝 Creating lessons and quizzes...")
+    lessons, quizzes = create_lessons_and_quizzes(courses)
     
-    # Create sample learning progress
-    if users and lessons:
-        user = users[0]  # John Doe
-        lesson = lessons[0]  # Introduction to Stock Markets
-        
-        progress, created = UserLessonProgress.objects.get_or_create(
-            user=user,
-            lesson=lesson,
-            defaults={
-                'status': 'completed',
-                'progress': 100,
-                'started_at': date.today() - timedelta(days=2),
-                'completed_at': date.today() - timedelta(days=1)
-            }
-        )
-        if created:
-            print(f"✅ Created user progress for {user.username} on lesson: {lesson.title}")
+    # 14. Create user lesson progress
+    print("\n📚 Creating user lesson progress...")
+    user_lesson_progress = create_user_lesson_progress(users, lessons)
     
-    # Create sample quizzes: at least 2 per lesson
+    # 15. Create user quiz attempts
+    print("\n🧪 Creating user quiz attempts...")
+    quiz_attempts = create_user_quiz_attempts(users, quizzes)
+    
+    # 16. Create stock prices
+    print("\n📈 Creating stock prices...")
+    stock_prices = create_stock_prices(stocks)
+    
+    # 17. Create user watchlists
+    print("\n👀 Creating user watchlists...")
+    watchlist_items = create_user_watchlists(users, stocks)
+    
+    # 18. Create portfolio holdings
+    print("\n💼 Creating portfolio holdings...")
+    portfolio_holdings = create_portfolio_holdings(portfolios, stocks)
+    
+    # 19. Create orders and trades
+    print("\n📋 Creating orders and trades...")
+    orders, trades = create_orders_and_trades(users, stocks)
+    
+    # 20. Create trading performance
+    print("\n📊 Creating trading performance...")
+    trading_performance = create_trading_performance(users)
+    
+    # 21. Create trading sessions
+    print("\n⏰ Creating trading sessions...")
+    trading_sessions = create_trading_sessions(users)
+    
+    # 22. Create market data
+    print("\n📊 Creating market data...")
+    market_data = create_market_data(stocks)
+    
+    # 23. Create technical indicators
+    print("\n📈 Creating technical indicators...")
+    technical_indicators = create_technical_indicators(stocks)
+    
+    # 24. Create user badge assignments
+    print("\n🏅 Assigning badges to users...")
+    create_user_badge_assignments(users, badges)
+    
+    # 25. Create user achievement assignments
+    print("\n🏆 Assigning achievements to users...")
+    create_user_achievement_assignments(users, achievements)
+    
+    # 26. Update portfolio values based on holdings and market data
+    print("\n💰 Updating portfolio values...")
+    update_portfolio_values(portfolios, portfolio_holdings, market_data)
+    
+    # 27. Update trading performance based on actual trades
+    print("\n📊 Updating trading performance...")
+    update_trading_performance(trading_performance, trades, portfolios)
+    
+    # 28. Update learning progress based on lesson progress
+    print("\n📈 Updating learning progress...")
+    update_learning_progress(learning_progress, user_lesson_progress, quiz_attempts)
+    
+    print("\n🎉 Comprehensive sample data creation completed!")
+    print(f"📊 Summary:")
+    print(f"   • {len(languages)} languages")
+    print(f"   • {len(users)} users with profiles")
+    print(f"   • {len(security_settings)} security settings")
+    print(f"   • {len(user_sessions)} user sessions")
+    print(f"   • {len(privacy_settings)} privacy settings")
+    print(f"   • {len(courses)} courses")
+    print(f"   • {len(badges)} badges")
+    print(f"   • {len(learning_progress)} learning progress records")
+    print(f"   • {len(lessons)} lessons")
+    print(f"   • {len(quizzes)} quizzes")
+    print(f"   • {len(user_lesson_progress)} lesson progress records")
+    print(f"   • {len(quiz_attempts)} quiz attempts")
+    print(f"   • {len(stocks)} stocks")
+    print(f"   • {len(stock_prices)} stock price records")
+    print(f"   • {len(watchlist_items)} watchlist items")
+    print(f"   • {len(portfolios)} portfolios")
+    print(f"   • {len(portfolio_holdings)} portfolio holdings")
+    print(f"   • {len(orders)} orders")
+    print(f"   • {len(trades)} trades")
+    print(f"   • {len(trading_performance)} trading performance records")
+    print(f"   • {len(trading_sessions)} trading sessions")
+    print(f"   • {len(market_data)} market data records")
+    print(f"   • {len(technical_indicators)} technical indicators")
+    print(f"   • {len(achievements)} achievements")
+    print(f"   • {len(notifications)} notifications")
+    
+    print(f"\n🔗 You can now:")
+    print(f"   1. Visit http://localhost:8000/api/database/ to see all data")
+    print(f"   2. Test the login with: john@example.com / testpass123")
+    print(f"   3. Explore the database structure and sample records")
+    print(f"   4. Test all functionality with comprehensive sample data")
+
+def create_lessons_and_quizzes(courses):
+    """Create lessons and quizzes for courses"""
+    from api.models import Lesson, Quiz, Question, Answer
+    
+    lessons_created = 0
     quizzes_created = 0
-    for lesson in lessons:  # Every lesson
-        quiz_specs = [
-            {
-                'title': f'Quiz A: {lesson.title}',
-                'description': f'Primary quiz for {lesson.title}',
-                'time_limit': 10,
-                'passing_score': 70,
-            },
-            {
-                'title': f'Quiz B: {lesson.title}',
-                'description': f'Secondary quiz for {lesson.title}',
-                'time_limit': 8,
-                'passing_score': 70,
-            },
-        ]
-
-        for spec in quiz_specs:
-            quiz, created = Quiz.objects.get_or_create(lesson=lesson, title=spec['title'], defaults=spec)
+    lessons = []
+    quizzes = []
+    
+    # Create lessons for each course
+    for i, course in enumerate(courses):
+        num_lessons = 5 + (i * 2)  # 5, 7, 9, 11 lessons per course
+        
+        for j in range(num_lessons):
+            lesson_title = f"Lesson {j+1}: {course.title.split()[0]} Fundamentals"
+            lesson_content = f"This is lesson {j+1} of the {course.title} course. It covers fundamental concepts and provides practical examples."
+            
+            lesson, created = Lesson.objects.get_or_create(
+                course=course,
+                title=lesson_title,
+                defaults={
+                    'content': lesson_content,
+                    'video_url': f'https://example.com/videos/{course.title.lower().replace(" ", "-")}-lesson-{j+1}.mp4',
+                    'order': j + 1,
+                    'estimated_duration': 20 + (j * 5),
+                    'is_active': True
+                }
+            )
+            
             if created:
-                quizzes_created += 1
-                print(f"✅ Created quiz: {quiz.title}")
-
+                lessons_created += 1
+                print(f"   ✅ Created lesson: {lesson.title}")
+            
+            lessons.append(lesson)
+            
+            # Create 2 quizzes per lesson
+            for quiz_num in range(1, 3):
+                quiz_title = f'Quiz {quiz_num}: {lesson.title}'
+                quiz_description = f'Assessment for {lesson.title}'
+                
+                quiz, created = Quiz.objects.get_or_create(
+                    lesson=lesson,
+                    title=quiz_title,
+                    defaults={
+                        'description': quiz_description,
+                        'time_limit': 15,
+                        'passing_score': 70,
+                        'is_active': True
+                    }
+                )
+                
+                if created:
+                    quizzes_created += 1
+                    print(f"      ✅ Created quiz: {quiz.title}")
+                
+                quizzes.append(quiz)
+                
                 # Create questions for this quiz
                 questions_data = [
                     {
@@ -745,21 +327,9 @@ def create_sample_data():
                             {'answer_text': 'True', 'is_correct': True, 'order': 1},
                             {'answer_text': 'False', 'is_correct': False, 'order': 2},
                         ]
-                    },
-                    {
-                        'question_text': f'Complete the sentence: {lesson.title} helps you understand...',
-                        'question_type': 'fill_blank',
-                        'points': 3,
-                        'order': 3,
-                        'explanation': 'This lesson provides comprehensive understanding.',
-                        'answers': [
-                            {'answer_text': 'investment concepts', 'is_correct': True, 'order': 1},
-                            {'answer_text': 'market dynamics', 'is_correct': True, 'order': 2},
-                            {'answer_text': 'financial planning', 'is_correct': True, 'order': 3},
-                        ]
                     }
                 ]
-
+                
                 for q_data in questions_data:
                     answers_data = q_data.pop('answers')
                     question, q_created = Question.objects.get_or_create(
@@ -767,33 +337,176 @@ def create_sample_data():
                         question_text=q_data['question_text'],
                         defaults=q_data
                     )
+                    
                     if q_created:
-                        print(f"   ✅ Created question: {question.question_text[:50]}...")
-
                         # Create answers for this question
                         for a_data in answers_data:
-                            answer, a_created = Answer.objects.get_or_create(
+                            Answer.objects.get_or_create(
                                 question=question,
                                 answer_text=a_data['answer_text'],
                                 defaults=a_data
                             )
-                            if a_created:
-                                print(f"      ✅ Created answer: {answer.answer_text[:30]}...")
     
-    print("\n🎉 Sample data creation completed!")
-    print(f"📊 Created {len(languages)} languages, {len(users)} users, {len(courses)} courses, {len(lessons)} lessons, {quizzes_created} quizzes")
-    print(f"\n📚 Course Breakdown:")
-    print(f"   • Stock Market Basics: 15 lessons")
-    print(f"   • Portfolio Diversification: 20 lessons") 
-    print(f"   • Risk Management: 25 lessons")
-    print(f"   • Mutual Funds 101: 12 lessons")
-    print(f"   • Total: 72 lessons across 4 courses")
-    print(f"   • Quizzes: {quizzes_created} quizzes created")
-    print(f"\n🔗 You can now:")
-    print(f"   1. Visit http://localhost:8000/api/database/ to see all data")
-    print(f"   2. Test the login with: john@example.com / testpass123")
-    print(f"   3. Explore the database structure and sample records")
-    print(f"   4. Test quiz functionality with lesson quizzes")
+    print(f"   📊 Created {lessons_created} lessons and {quizzes_created} quizzes")
+    return lessons, quizzes
+
+def create_user_badge_assignments(users, badges):
+    """Create user badge assignments"""
+    from api.models import UserBadge
+    
+    user_badges_created = 0
+    for i, user in enumerate(users):
+        # Give each user 2-4 badges
+        num_badges = min(2 + (i % 3), len(badges))
+        user_badges_list = badges[:num_badges]
+        
+        for badge in user_badges_list:
+            user_badge, created = UserBadge.objects.get_or_create(
+                user=user,
+                badge=badge
+            )
+            
+            if created:
+                user_badges_created += 1
+                print(f"   ✅ Awarded badge {badge.name} to {user.username}")
+    
+    print(f"   🏅 Awarded {user_badges_created} badges to users")
+
+def create_user_achievement_assignments(users, achievements):
+    """Create user achievement assignments"""
+    from api.models import UserAchievement
+    
+    user_achievements_created = 0
+    for i, user in enumerate(users):
+        # Give each user 1-3 achievements
+        num_achievements = min(1 + (i % 3), len(achievements))
+        user_achievements_list = achievements[:num_achievements]
+        
+        for achievement in user_achievements_list:
+            user_achievement, created = UserAchievement.objects.get_or_create(
+                user=user,
+                achievement=achievement
+            )
+            
+            if created:
+                user_achievements_created += 1
+                print(f"   ✅ Awarded achievement {achievement.name} to {user.username}")
+    
+    print(f"   🏆 Awarded {user_achievements_created} achievements to users")
+
+def update_portfolio_values(portfolios, portfolio_holdings, market_data):
+    """Update portfolio values based on holdings and current market data"""
+    from decimal import Decimal
+    
+    for portfolio in portfolios:
+        total_value = Decimal('0.00')
+        total_invested = Decimal('0.00')
+        total_profit_loss = Decimal('0.00')
+        
+        # Get holdings for this portfolio
+        holdings = portfolio.holdings.all()
+        
+        for holding in holdings:
+            # Get current market price from market data
+            current_price = holding.current_price  # Default to existing price
+            for market_data_obj in market_data:
+                if market_data_obj.stock == holding.stock:
+                    current_price = market_data_obj.current_price
+                    break
+            
+            # Update holding with current price
+            holding.current_price = current_price
+            holding.market_value = current_price * holding.quantity
+            holding.unrealized_pnl = holding.market_value - holding.total_invested
+            holding.save()
+            
+            # Accumulate portfolio totals
+            total_value += holding.market_value
+            total_invested += holding.total_invested
+            total_profit_loss += holding.unrealized_pnl
+        
+        # Update portfolio with cash balance
+        total_value += portfolio.cash_balance
+        
+        # Update portfolio
+        portfolio.total_value = total_value
+        portfolio.total_invested = total_invested
+        portfolio.total_profit_loss = total_profit_loss
+        portfolio.save()
+        
+        print(f"   💰 Updated portfolio for {portfolio.user.username}: ₹{total_value}")
+
+def update_trading_performance(trading_performance, trades, portfolios):
+    """Update trading performance based on actual trades"""
+    from decimal import Decimal
+    
+    for performance in trading_performance:
+        user = performance.user
+        
+        # Get user's trades
+        user_trades = [t for t in trades if t.user == user]
+        
+        if user_trades:
+            total_trades = len(user_trades)
+            successful_trades = len([t for t in user_trades if t.side == 'BUY' or t.side == 'SELL'])
+            total_profit_loss = sum(t.net_amount for t in user_trades)
+            total_commission = sum(t.commission for t in user_trades)
+            
+            # Calculate best and worst trades
+            trade_amounts = [t.net_amount for t in user_trades]
+            best_trade = max(trade_amounts) if trade_amounts else Decimal('0.00')
+            worst_trade = min(trade_amounts) if trade_amounts else Decimal('0.00')
+            
+            # Get portfolio value
+            portfolio_value = Decimal('15000.00')  # Default
+            for portfolio in portfolios:
+                if portfolio.user == user:
+                    portfolio_value = portfolio.total_value
+                    break
+            
+            # Update performance
+            performance.total_trades = total_trades
+            performance.successful_trades = successful_trades
+            performance.total_profit_loss = total_profit_loss
+            performance.total_commission_paid = total_commission
+            performance.best_trade_profit = best_trade
+            performance.worst_trade_loss = worst_trade
+            performance.portfolio_value = portfolio_value
+            performance.average_trade_size = total_profit_loss / total_trades if total_trades > 0 else Decimal('0.00')
+            performance.save()
+            
+            print(f"   📊 Updated trading performance for {user.username}")
+
+def update_learning_progress(learning_progress, user_lesson_progress, quiz_attempts):
+    """Update learning progress based on lesson progress and quiz attempts"""
+    from decimal import Decimal
+    
+    for progress in learning_progress:
+        user = progress.user
+        
+        # Count completed lessons
+        completed_lessons = len([lp for lp in user_lesson_progress if lp.user == user and lp.status == 'completed'])
+        
+        # Count quiz attempts and scores
+        user_quiz_attempts = [qa for qa in quiz_attempts if qa.user == user]
+        quizzes_taken = len(user_quiz_attempts)
+        quizzes_passed = len([qa for qa in user_quiz_attempts if qa.passed])
+        
+        # Calculate average quiz score
+        if user_quiz_attempts:
+            average_score = sum(qa.score for qa in user_quiz_attempts) / len(user_quiz_attempts)
+        else:
+            average_score = Decimal('0.00')
+        
+        # Update progress
+        progress.completed_modules = completed_lessons
+        progress.quizzes_taken = quizzes_taken
+        progress.quizzes_passed = quizzes_passed
+        progress.average_quiz_score = average_score
+        progress.total_hours_learned = completed_lessons * 2  # Estimate 2 hours per lesson
+        progress.save()
+        
+        print(f"   📚 Updated learning progress for {user.username}")
 
 if __name__ == '__main__':
     reset_data()
