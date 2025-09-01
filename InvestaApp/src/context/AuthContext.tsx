@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   // Temporary: offline auth mode to bypass backend
-  const USE_FAKE_AUTH = true; // Set to true for development without backend - Set to false when backend is ready
+  const USE_FAKE_AUTH = false; // Set to true for development without backend - Set to false when backend is ready
 
   const checkAuthStatus = async () => {
     try {
@@ -114,9 +114,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setToken(fakeToken);
           setUser(userData);
           console.log('🔐 AuthContext: Fake authentication successful');
-          return { success: true, message: 'Login successful (development mode).' };
+          return { success: true, message: 'Login successful.' };
         }
-        return { success: false, message: 'Invalid test credentials. Use test@example.com / test123.' };
+        return { success: false, message: 'Invalid credentials. Please check your email and password.' };
       }
 
       // Online path (kept for later re-enable)

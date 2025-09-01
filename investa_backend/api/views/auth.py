@@ -12,13 +12,32 @@ from ..serializers import (
 
 
 class CustomAuthToken(ObtainAuthToken):
-    """Custom authentication token view"""
+    """Custom authentication token view that accepts email or username"""
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
     
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data,
-                                         context={'request': request})
+        # Check if the input looks like an email
+        username_or_email = request.data.get('username', '')
+        if '@' in username_or_email:
+            # Try to find user by email
+            try:
+                from django.contrib.auth.models import User
+                user = User.objects.get(email=username_or_email)
+                # Create a modified request with the actual username
+                modified_data = request.data.copy()
+                modified_data['username'] = user.username
+                serializer = self.serializer_class(data=modified_data,
+                                                 context={'request': request})
+            except User.DoesNotExist:
+                # If email not found, proceed with original logic
+                serializer = self.serializer_class(data=request.data,
+                                                 context={'request': request})
+        else:
+            # Use original logic for username
+            serializer = self.serializer_class(data=request.data,
+                                             context={'request': request})
+        
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)

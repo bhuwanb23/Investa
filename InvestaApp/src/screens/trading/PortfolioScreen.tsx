@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -49,6 +50,70 @@ const PortfolioScreen = () => {
     setSelectedTab(tab);
   };
 
+  // Generate real holdings from trading orders
+  const generateHoldingsFromOrders = (orders: any[], stocks: any[]) => {
+    const holdingsMap = new Map();
+    
+    // Process all filled orders to calculate holdings
+    orders.forEach(order => {
+      if (order.status !== 'FILLED') return;
+      
+      const stockId = order.stock?.id || order.stock_id;
+      const stock = stocks.find(s => s.id === stockId);
+      const symbol = stock?.symbol || order.stock?.symbol || 'N/A';
+      const name = stock?.name || order.stock?.name || 'Unknown Stock';
+      const sector = stock?.sector || 'Other';
+      
+      if (!holdingsMap.has(stockId)) {
+        holdingsMap.set(stockId, {
+          id: stockId,
+          symbol,
+          name,
+          sector,
+          quantity: 0,
+          total_cost: 0,
+          average_price: 0,
+          current_price: stock?.current_price || 0
+        });
+      }
+      
+      const holding = holdingsMap.get(stockId);
+      const orderQuantity = Number(order.quantity) || 0;
+      const orderPrice = Number(order.price) || 0;
+      const orderValue = Number(order.total_amount) || Number(order.calculated_total) || (orderPrice * orderQuantity);
+      
+      if (order.side === 'BUY') {
+        // Add to holdings
+        const newTotalCost = holding.total_cost + orderValue;
+        const newQuantity = holding.quantity + orderQuantity;
+        holding.quantity = newQuantity;
+        holding.total_cost = newTotalCost;
+        holding.average_price = newQuantity > 0 ? newTotalCost / newQuantity : 0;
+      } else if (order.side === 'SELL') {
+        // Reduce holdings (proportional reduction)
+        const reductionRatio = orderQuantity / holding.quantity;
+        const costReduction = holding.total_cost * reductionRatio;
+        holding.quantity = Math.max(0, holding.quantity - orderQuantity);
+        holding.total_cost = Math.max(0, holding.total_cost - costReduction);
+        holding.average_price = holding.quantity > 0 ? holding.total_cost / holding.quantity : 0;
+      }
+    });
+    
+    // Convert to array and filter out zero quantity holdings
+    const finalHoldings = Array.from(holdingsMap.values())
+      .filter(holding => holding.quantity > 0)
+      .map(holding => ({
+        ...holding,
+        current_price: Number(holding.current_price) || 0,
+        quantity: Number(holding.quantity) || 0,
+        average_price: Number(holding.average_price) || 0,
+        total_cost: Number(holding.total_cost) || 0
+      }));
+    
+    console.log('PortfolioScreen: Generated holdings from orders:', finalHoldings);
+    return finalHoldings;
+  };
+
   // Fetch portfolio data on component mount
   useEffect(() => {
     let mounted = true;
@@ -64,6 +129,11 @@ const PortfolioScreen = () => {
         
         if (!mounted) return;
         
+        console.log('PortfolioScreen: Portfolio data:', portfolioRes);
+        console.log('PortfolioScreen: Holdings data:', holdingsRes);
+        console.log('PortfolioScreen: Orders data:', ordersRes);
+        console.log('PortfolioScreen: Stocks data:', stocksRes);
+        
         setPortfolioData(portfolioRes);
         setHoldings(holdingsRes);
         setOrders(ordersRes);
@@ -77,16 +147,65 @@ const PortfolioScreen = () => {
     return () => { mounted = false; };
   }, []);
 
+  // Refresh portfolio data
+  const refreshPortfolio = async () => {
+    try {
+      setLoading(true);
+      const [portfolioRes, holdingsRes, ordersRes, stocksRes] = await Promise.all([
+        fetchMyPortfolio(),
+        fetchPortfolioHoldings(),
+        fetchOrderHistory(),
+        fetchStocks()
+      ]);
+      
+      setPortfolioData(portfolioRes);
+      setHoldings(holdingsRes);
+      setOrders(ordersRes);
+      setStocks(stocksRes);
+    } catch (error) {
+      console.error('PortfolioScreen: Error refreshing data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderHeader = () => {
-    // Calculate portfolio statistics from real data
-    const totalValue = portfolioData?.total_value || 0;
-    const totalInvested = portfolioData?.total_invested || 0;
+    // Calculate portfolio statistics from real trading data
+    const totalInvested = orders
+      .filter(order => order.side === 'BUY' && order.status === 'FILLED')
+      .reduce((sum, order) => {
+        const orderValue = Number(order.total_amount) || Number(order.calculated_total) || 0;
+        return sum + orderValue;
+      }, 0);
+    
+    const totalValue = holdings.reduce((sum, holding) => {
+      const currentPrice = Number(holding.current_price) || 0;
+      const quantity = Number(holding.quantity) || 0;
+      return sum + (currentPrice * quantity);
+    }, 0);
+    
     const totalReturns = totalValue - totalInvested;
     const returnPercentage = totalInvested > 0 ? ((totalReturns / totalInvested) * 100).toFixed(1) : '0.0';
     
+    console.log('PortfolioScreen: Portfolio calculations:', {
+      totalInvested,
+      totalValue,
+      totalReturns,
+      returnPercentage,
+      ordersCount: orders.length,
+      holdingsCount: holdings.length
+    });
+    
     return (
       <View style={styles.header}>
-        <MainHeader title="Portfolio" iconName="wallet" showBackButton onBackPress={() => navigation.navigate('Trading')} />
+        <MainHeader 
+          title="Portfolio" 
+          iconName="wallet" 
+          showBackButton 
+          onBackPress={() => navigation.navigate('Trading')}
+          rightIcon="refresh"
+          onRightPress={refreshPortfolio}
+        />
         
         <View style={styles.portfolioSummary}>
           <View style={styles.summaryHeader}>
@@ -140,10 +259,24 @@ const PortfolioScreen = () => {
   );
 
   const renderAchievementsSection = () => {
-    // Calculate achievements based on real data
-    const hasInvestments = holdings.length > 0;
-    const hasPositiveReturns = portfolioData?.total_value > portfolioData?.total_invested;
-    const isDiversified = holdings.length >= 3;
+    // Calculate achievements based on real trading data
+    const realHoldings = generateHoldingsFromOrders(orders, stocks);
+    const totalInvested = orders
+      .filter(order => order.side === 'BUY' && order.status === 'FILLED')
+      .reduce((sum, order) => {
+        const orderValue = Number(order.total_amount) || Number(order.calculated_total) || 0;
+        return sum + orderValue;
+      }, 0);
+    
+    const totalValue = realHoldings.reduce((sum, holding) => {
+      const currentPrice = Number(holding.current_price) || 0;
+      const quantity = Number(holding.quantity) || 0;
+      return sum + (currentPrice * quantity);
+    }, 0);
+    
+    const hasInvestments = realHoldings.length > 0;
+    const hasPositiveReturns = totalValue > totalInvested;
+    const isDiversified = realHoldings.length >= 3;
     
     const achievements = [
       { unlocked: hasInvestments, icon: "medal", text: "First Investment", color: "#EAB308" },
@@ -191,9 +324,10 @@ const PortfolioScreen = () => {
 
   const renderDiversificationChart = () => {
     // Calculate sector allocation from real holdings
-    const sectorAllocation = holdings.reduce((acc: any, holding: any) => {
+    const realHoldings = generateHoldingsFromOrders(orders, stocks);
+    const sectorAllocation = realHoldings.reduce((acc: any, holding: any) => {
       const sector = holding.sector || 'Other';
-      const value = (holding.current_price || 0) * (holding.quantity || 0);
+      const value = (Number(holding.current_price) || 0) * (Number(holding.quantity) || 0);
       
       if (!acc[sector]) {
         acc[sector] = { value: 0, count: 0 };
@@ -240,7 +374,10 @@ const PortfolioScreen = () => {
   };
 
   const renderHoldingsSection = () => {
-    if (holdings.length === 0) {
+    // Generate real holdings from trading orders
+    const realHoldings = generateHoldingsFromOrders(orders, stocks);
+    
+    if (realHoldings.length === 0) {
       return (
         <View style={styles.holdingsSection}>
           <Text style={styles.sectionTitle}>Holdings (0)</Text>
@@ -255,11 +392,11 @@ const PortfolioScreen = () => {
     
     return (
       <View style={styles.holdingsSection}>
-        <Text style={styles.sectionTitle}>Holdings ({holdings.length})</Text>
-        {holdings.map((holding) => {
-          const currentPrice = holding.current_price || 0;
-          const avgPrice = holding.average_price || 0;
-          const quantity = holding.quantity || 0;
+        <Text style={styles.sectionTitle}>Holdings ({realHoldings.length})</Text>
+        {realHoldings.map((holding) => {
+          const currentPrice = Number(holding.current_price) || 0;
+          const avgPrice = Number(holding.average_price) || 0;
+          const quantity = Number(holding.quantity) || 0;
           const marketValue = currentPrice * quantity;
           const totalCost = avgPrice * quantity;
           const unrealizedPnL = marketValue - totalCost;
@@ -344,7 +481,19 @@ const PortfolioScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       {renderHeader()}
-      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        contentContainerStyle={{ paddingBottom: 24 }} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={refreshPortfolio}
+            colors={['#6366F1']}
+            tintColor="#6366F1"
+          />
+        }
+      >
         {loading ? (
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>Loading portfolio...</Text>

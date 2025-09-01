@@ -16,15 +16,17 @@ cd investa_backend
 python manage.py runserver
 ```
 
-### 2. Create Test User
+### 2. Create Sample Data
 ```bash
 cd investa_backend
-python create_test_user.py
+python populate_sample_data.py
 ```
 
-This will create a test user with:
-- **Username**: test@example.com
+This will create sample users with:
+- **Email**: john@example.com, jane@example.com, etc.
 - **Password**: testpass123
+
+See `SAMPLE_USERS.md` for the complete list of available users.
 
 ### 3. Verify API Endpoints
 The following endpoints should be available:
@@ -57,7 +59,7 @@ expo start
 
 1. **Open the app** - You should see the login screen
 2. **Enter credentials**:
-   - Email: `test@example.com`
+   - Email: `john@example.com` (or any sample user email)
    - Password: `testpass123`
 3. **Tap "Sign In"** - The app should authenticate and navigate to the home screen
 4. **Verify navigation** - You should see the home screen with user information
@@ -94,7 +96,7 @@ Test the login endpoint directly:
 ```bash
 curl -X POST http://localhost:8000/api/auth/login/ \
   -H "Content-Type: application/json" \
-  -d '{"username": "test@example.com", "password": "testpass123"}'
+  -d '{"username": "john@example.com", "password": "testpass123"}'
 ```
 
 Expected response:

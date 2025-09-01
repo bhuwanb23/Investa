@@ -129,8 +129,8 @@ const TradingScreen = () => {
   };
   
   // Calculate portfolio statistics from real data
-  const totalValue = portfolioData?.total_value || 0;
-  const totalInvested = portfolioData?.total_invested || 0;
+  const totalValue = Number(portfolioData?.total_value) || 0;
+  const totalInvested = Number(portfolioData?.total_invested) || 0;
   const totalReturns = totalValue - totalInvested;
   const returnPercentage = totalInvested > 0 ? ((totalReturns / totalInvested) * 100).toFixed(1) : '0.0';
   
@@ -142,8 +142,8 @@ const TradingScreen = () => {
     id: order.id || index + 1,
     type: order.side || order.type || 'Buy',
     s: order.stock_detail?.symbol || order.stock?.symbol || 'N/A',
-    qty: order.quantity || 0,
-    price: order.price || 0,
+    qty: Number(order.quantity) || 0,
+    price: Number(order.price) || 0,
     time: 'Today, 10:24' // This would come from order timestamp
   }));
 
@@ -283,8 +283,8 @@ const TradingScreen = () => {
               const stock = stocks.find(s => s.id === w.stock_id);
               const symbol = stock?.symbol || w.symbol || 'N/A';
               const name = stock?.name || w.name || 'Unknown Stock';
-              const price = stock?.current_price || w.current_price || 0;
-              const changePct = stock?.change_percentage || w.change_percentage || 0;
+              const price = Number(stock?.current_price || w.current_price || 0);
+              const changePct = Number(stock?.change_percentage || w.change_percentage || 0);
               
               return (
                 <Pressable key={idx} style={styles.watchRow} onPress={() => navigation.navigate('StockDetail', { stockSymbol: symbol, stockName: name })} android_ripple={{ color: '#f3f4f6' }}>
@@ -348,9 +348,9 @@ const TradingScreen = () => {
               // Find stock details from stocks array
               const stock = stocks.find(s => s.id === holding.stock_id);
               const symbol = stock?.symbol || holding.symbol || 'N/A';
-              const currentPrice = holding.current_price || 0;
-              const avgPrice = holding.average_price || 0;
-              const quantity = holding.quantity || 0;
+              const currentPrice = Number(holding.current_price) || 0;
+              const avgPrice = Number(holding.average_price) || 0;
+              const quantity = Number(holding.quantity) || 0;
               const marketValue = currentPrice * quantity;
               const totalCost = avgPrice * quantity;
               const pl = totalCost > 0 ? ((marketValue - totalCost) / totalCost) * 100 : 0;
@@ -411,7 +411,7 @@ const TradingScreen = () => {
                   <Ionicons name={a.type === 'Buy' ? 'arrow-up' : 'arrow-down'} size={14} color={a.type === 'Buy' ? SUCCESS : DANGER} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.activityText}>{a.type} {a.qty} {a.s} @ ₹{a.price.toFixed(2)}</Text>
+                  <Text style={styles.activityText}>{a.type} {a.qty} {a.s} @ ₹{(Number(a.price) || 0).toFixed(2)}</Text>
                   <Text style={styles.activityTime}>{a.time}</Text>
                 </View>
               </View>
