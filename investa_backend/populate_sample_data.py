@@ -244,6 +244,8 @@ def create_sample_data():
     print(f"   2. Test the login with: john@example.com / testpass123")
     print(f"   3. Explore the database structure and sample records")
     print(f"   4. Test all functionality with comprehensive sample data")
+    print(f"   5. Run verification: python test/verify_data_connectivity.py")
+    print(f"   6. Test API: python test/test_api.py")
 
 def create_lessons_and_quizzes(courses):
     """Create lessons and quizzes for courses"""
