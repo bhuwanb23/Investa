@@ -178,8 +178,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         if not self.request.user.is_authenticated:
             from django.contrib.auth.models import User
             user, _ = User.objects.get_or_create(username='dev_user', defaults={'email': 'dev@example.com'})
-            return Order.objects.filter(user=user)
-        return Order.objects.filter(user=self.request.user)
+            return Order.objects.filter(user=user).select_related('stock')
+        return Order.objects.filter(user=self.request.user).select_related('stock')
     
     def get_serializer_class(self):
         if self.action == 'list':
@@ -196,7 +196,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def order_history(self, request):
         """Get order history with filters"""
-        queryset = self.get_queryset()
+        queryset = self.get_queryset().select_related('stock')
         
         # Apply filters
         status_filter = request.query_params.get('status')

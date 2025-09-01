@@ -20,31 +20,6 @@
 
 </div>
 
----
-
-## 📋 **Table of Contents**
-- [🎯 Overview](#-overview)
-- [✨ Feature Highlights](#-feature-highlights)
-- [🏗️ Architecture](#️-architecture-overview)
-- [📁 Monorepo Structure](#-monorepo-structure)
-- [🚀 Quickstart](#-quickstart)
-- [⚙️ Setup Guide](#️-setup-guide)
-- [🔧 Environment Variables](#-environment-variables)
-- [🗄️ Data and Migrations](#️-data-and-migrations)
-- [📊 Feature Matrix](#-feature-matrix)
-- [🔌 API Examples](#-api-examples)
-- [🛠️ Developer Scripts](#️-developer-scripts)
-- [🧪 Testing](#-testing)
-- [🔍 Troubleshooting](#-troubleshooting)
-- [📝 Current App Behavior](#-current-app-behavior)
-- [🗺️ Roadmap](#️-roadmap)
-- [🤝 Contributing](#-contributing)
-- [🔒 Security](#-security)
-- [📄 License](#-license)
-- [🙏 Acknowledgments](#-acknowledgments)
-
----
-
 ## 🎯 **Overview**
 
 **Investa** addresses core challenges faced by retail investors in India:

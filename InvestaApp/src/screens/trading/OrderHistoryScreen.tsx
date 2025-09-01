@@ -110,17 +110,21 @@ const OrderHistoryScreen = () => {
     const buyOrders = orders.filter(order => (order.side || order.type) === 'BUY').length;
     const sellOrders = orders.filter(order => (order.side || order.type) === 'SELL').length;
     
-    // Calculate total value of orders
+    // Calculate total value of orders using calculated_total
     const totalValue = orders.reduce((sum, order) => {
-      const orderValue = (order.price || 0) * (order.quantity || 0);
+      let orderValue = 0;
+      if (order.calculated_total != null && Number(order.calculated_total) > 0) {
+        orderValue = Number(order.calculated_total);
+      } else if (order.total_amount != null && Number(order.total_amount) > 0) {
+        orderValue = Number(order.total_amount);
+      } else if (order.price != null && order.quantity != null) {
+        orderValue = Number(order.price) * Number(order.quantity);
+      }
       return sum + orderValue;
     }, 0);
     
-    // Calculate completion rate based on order status
-    const completedOrders = orders.filter(order => 
-      order.status === 'FILLED' || order.status === 'COMPLETED'
-    ).length;
-    const completionRate = totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0;
+    // All orders are automatically filled, so completion rate is 100%
+    const completionRate = 100;
     
     // Calculate average order value
     const avgOrderValue = totalOrders > 0 ? Math.round(totalValue / totalOrders) : 0;
@@ -177,13 +181,23 @@ const OrderHistoryScreen = () => {
 
   const renderTradeItem = (trade: any) => {
     // Map backend data structure to UI format
-    const symbol = trade?.stock_detail?.symbol || trade?.stock?.symbol || '-';
-    const name = trade?.stock_detail?.name || trade?.stock?.name || symbol;
-    const type = trade?.side || trade?.type || 'BUY';
-    const status = trade?.status || 'PENDING';
+    const symbol = trade?.stock?.symbol || '-';
+    const name = trade?.stock?.name || symbol;
+    const type = trade?.side || 'BUY';
+    const status = trade?.status || 'FILLED'; // Default to FILLED since orders are auto-filled
     const qty = trade?.quantity ?? 0;
-    const price = trade?.price != null ? `₹${trade.price}` : '—';
-    const total = trade?.total_amount != null ? `₹${trade.total_amount}` : `₹${(trade.price * trade.quantity).toFixed(2)}`;
+    const price = trade?.price != null ? `₹${Number(trade.price).toFixed(2)}` : '—';
+    
+    // Calculate total amount with proper fallbacks
+    let total = '₹0.00';
+    if (trade?.calculated_total != null && Number(trade.calculated_total) > 0) {
+      total = `₹${Number(trade.calculated_total).toFixed(2)}`;
+    } else if (trade?.total_amount != null && Number(trade.total_amount) > 0) {
+      total = `₹${Number(trade.total_amount).toFixed(2)}`;
+    } else if (trade?.price != null && trade?.quantity != null) {
+      const calculatedTotal = Number(trade.price) * Number(trade.quantity);
+      total = `₹${calculatedTotal.toFixed(2)}`;
+    }
     
     const mapped = {
       id: String(trade.id ?? Math.random()),
@@ -231,7 +245,7 @@ const OrderHistoryScreen = () => {
             <View style={styles.tradeStatus}>
               <View style={[
                 styles.statusBadge,
-                { backgroundColor: mapped.status === 'FILLED' || mapped.status === 'COMPLETED' ? '#10B981' : '#F59E0B' }
+                { backgroundColor: '#10B981' } // Always green since orders are auto-filled
               ]}>
                 <Text style={styles.statusText}>{mapped.type}</Text>
               </View>
@@ -259,29 +273,13 @@ const OrderHistoryScreen = () => {
                 <Text style={styles.detailValue}>{mapped.total}</Text>
               </View>
               <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Status:</Text>
-                <Text style={[
-                  styles.detailValue,
-                  { color: mapped.status === 'FILLED' || mapped.status === 'COMPLETED' ? '#10B981' : '#DC2626' }
-                ]}>
-                  {mapped.status}
-                </Text>
-              </View>
-              <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>Order ID:</Text>
                 <Text style={styles.detailValue}>#{mapped.id}</Text>
               </View>
-              {trade.profit && (
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>P&L:</Text>
-                  <Text style={[
-                    styles.detailValue,
-                    { color: isPositive ? '#10B981' : '#DC2626' }
-                  ]}>
-                    {trade.profit}
-                  </Text>
-                </View>
-              )}
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Commission:</Text>
+                <Text style={styles.detailValue}>₹{Number(trade.commission || 0).toFixed(2)}</Text>
+              </View>
             </View>
           </View>
         )}

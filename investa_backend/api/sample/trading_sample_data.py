@@ -15,7 +15,7 @@ STOCK_DATA = [
         'exchange': 'NSE',
         'sector': 'Oil & Gas',
         'industry': 'Refineries',
-        'market_cap': Decimal('15000000000000')
+        'market_cap': Decimal('15000000000000')  # 15 trillion market cap
     },
     {
         'symbol': 'TCS',
@@ -23,7 +23,7 @@ STOCK_DATA = [
         'exchange': 'NSE',
         'sector': 'Technology',
         'industry': 'IT Services',
-        'market_cap': Decimal('12000000000000')
+        'market_cap': Decimal('12000000000000')  # 12 trillion market cap
     },
     {
         'symbol': 'HDFCBANK',
@@ -31,7 +31,7 @@ STOCK_DATA = [
         'exchange': 'NSE',
         'sector': 'Banking',
         'industry': 'Private Banks',
-        'market_cap': Decimal('10000000000000')
+        'market_cap': Decimal('10000000000000')  # 10 trillion market cap
     },
     {
         'symbol': 'INFY',
@@ -39,7 +39,7 @@ STOCK_DATA = [
         'exchange': 'NSE',
         'sector': 'Technology',
         'industry': 'IT Services',
-        'market_cap': Decimal('8000000000000')
+        'market_cap': Decimal('8000000000000')   # 8 trillion market cap
     },
     {
         'symbol': 'ICICIBANK',
@@ -47,9 +47,18 @@ STOCK_DATA = [
         'exchange': 'NSE',
         'sector': 'Banking',
         'industry': 'Private Banks',
-        'market_cap': Decimal('7000000000000')
+        'market_cap': Decimal('7000000000000')   # 7 trillion market cap
     }
 ]
+
+# Realistic stock prices for each stock (per share)
+STOCK_PRICES = {
+    'RELIANCE': Decimal('2500.00'),    # ₹2,500 per share
+    'TCS': Decimal('3800.00'),         # ₹3,800 per share
+    'HDFCBANK': Decimal('1650.00'),    # ₹1,650 per share
+    'INFY': Decimal('1450.00'),        # ₹1,450 per share
+    'ICICIBANK': Decimal('950.00'),    # ₹950 per share
+}
 
 # Achievement sample data
 ACHIEVEMENT_DATA = [
@@ -141,16 +150,22 @@ def create_stock_prices(stocks):
     prices_created = 0
     created_prices = []
     for stock in stocks:
+        # Get base price for this stock
+        base_price = STOCK_PRICES.get(stock.symbol, Decimal('1000.00'))
+        
         # Create 30 days of historical data
         for i in range(30):
             price_date = date.today() - timedelta(days=i)
-            base_price = Decimal('1000.00') + (Decimal(str(i * 10)))
             
-            # Add some price variation
-            open_price = base_price + Decimal(str((i % 5) * 5))
-            high_price = open_price + Decimal('25.00')
-            low_price = open_price - Decimal('15.00')
-            close_price = open_price + Decimal(str((i % 3 - 1) * 10))
+            # Add some price variation around the base price
+            price_variation = Decimal(str((i % 10 - 5) * 20))  # ±100 variation
+            current_price = base_price + price_variation
+            
+            # Calculate OHLC prices
+            open_price = current_price + Decimal(str((i % 5 - 2) * 10))
+            high_price = max(open_price, current_price) + Decimal('25.00')
+            low_price = min(open_price, current_price) - Decimal('15.00')
+            close_price = current_price
             volume = 1000000 + (i * 50000)
             
             price, created = StockPrice.objects.get_or_create(
@@ -210,9 +225,14 @@ def create_portfolio_holdings(portfolios, stocks):
         
         for j, stock in enumerate(portfolio_stocks):
             quantity = 10 + (i * 5) + (j * 10)
-            average_price = Decimal('1000.00') + (Decimal(str(i * 50)))
+            
+            # Use realistic stock price
+            base_price = STOCK_PRICES.get(stock.symbol, Decimal('1000.00'))
+            average_price = base_price + (Decimal(str((i + j) % 100 - 50)))
             total_invested = average_price * quantity
-            current_price = average_price + (Decimal(str((i + j) % 100 - 50)))
+            
+            # Current price with some variation
+            current_price = base_price + (Decimal(str((i + j) % 50 - 25)))
             market_value = current_price * quantity
             unrealized_pnl = market_value - total_invested
             
@@ -232,7 +252,7 @@ def create_portfolio_holdings(portfolios, stocks):
             if created:
                 holdings_created += 1
                 created_holdings.append(holding)
-                print(f"   ✅ Created holding for {portfolio.user.username}: {stock.symbol} ({quantity} shares)")
+                print(f"   ✅ Created holding for {portfolio.user.username}: {stock.symbol} ({quantity} shares @ ₹{current_price})")
     
     print(f"   📊 Created {holdings_created} portfolio holdings")
     return created_holdings
@@ -256,7 +276,17 @@ def create_orders_and_trades(users, stocks):
             order_type = 'MARKET' if j % 2 == 0 else 'LIMIT'
             side = 'BUY' if j % 2 == 0 else 'SELL'
             quantity = 10 + (j * 5)
-            price = Decimal('1000.00') + (Decimal(str((i + j) * 10)))
+            
+            # Use realistic stock price
+            base_price = STOCK_PRICES.get(stock.symbol, Decimal('1000.00'))
+            price = base_price + (Decimal(str((i + j) * 10)))
+            total_amount = price * quantity
+            commission = Decimal('20.00')
+            net_amount = total_amount - commission
+            
+            # Ensure we have valid values
+            if total_amount <= 0:
+                total_amount = price * quantity
             
             order, order_created = Order.objects.get_or_create(
                 user=user,
@@ -265,20 +295,25 @@ def create_orders_and_trades(users, stocks):
                 side=side,
                 quantity=quantity,
                 defaults={
-                    'price': price if order_type == 'LIMIT' else None,
+                    'price': price,  # Always set price for all order types
                     'filled_quantity': quantity,
                     'average_fill_price': price,
                     'status': 'FILLED',
-                    'total_amount': price * quantity,
-                    'commission': Decimal('20.00'),
+                    'total_amount': total_amount,
+                    'commission': commission,
                     'filled_at': datetime.now() - timedelta(days=j+1)
                 }
             )
             
+            # Ensure total_amount is set correctly
+            if order_created and not order.total_amount:
+                order.total_amount = total_amount
+                order.save()
+            
             if order_created:
                 orders_created += 1
                 created_orders.append(order)
-                print(f"   ✅ Created order for {user.username}: {side} {quantity} {stock.symbol}")
+                print(f"   ✅ Created order for {user.username}: {side} {quantity} {stock.symbol} @ ₹{price} (Total: ₹{total_amount})")
                 
                 # Create corresponding trade
                 trade, trade_created = Trade.objects.get_or_create(
@@ -289,15 +324,16 @@ def create_orders_and_trades(users, stocks):
                     price=price,
                     side=side,
                     defaults={
-                        'total_amount': price * quantity,
-                        'commission': Decimal('20.00'),
-                        'net_amount': (price * quantity) - Decimal('20.00')
+                        'total_amount': total_amount,
+                        'commission': commission,
+                        'net_amount': net_amount
                     }
                 )
                 
                 if trade_created:
                     trades_created += 1
                     created_trades.append(trade)
+                    print(f"      ✅ Created trade: {side} {quantity} {stock.symbol} @ ₹{price} (Net: ₹{net_amount})")
     
     print(f"   📊 Created {orders_created} orders and {trades_created} trades")
     return created_orders, created_trades
@@ -380,7 +416,9 @@ def create_market_data(stocks):
     market_data_created = 0
     created_market_data = []
     for i, stock in enumerate(stocks):
-        current_price = Decimal('1000.00') + (Decimal(str(i * 100)))
+        # Use realistic stock price
+        base_price = STOCK_PRICES.get(stock.symbol, Decimal('1000.00'))
+        current_price = base_price + (Decimal(str(i * 10)))
         change_amount = Decimal('10.00') + (Decimal(str(i * 5)))
         change_percentage = Decimal('1.5') + (Decimal(str(i * 0.5)))
         
@@ -404,7 +442,7 @@ def create_market_data(stocks):
         if created:
             market_data_created += 1
             created_market_data.append(market_data)
-            print(f"   ✅ Created market data for: {stock.symbol}")
+            print(f"   ✅ Created market data for: {stock.symbol} @ ₹{current_price}")
     
     print(f"   📊 Created {market_data_created} market data records")
     return created_market_data

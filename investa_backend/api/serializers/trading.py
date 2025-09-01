@@ -9,18 +9,64 @@ from .auth import UserSerializer
 
 class StockSerializer(serializers.ModelSerializer):
     """Serializer for Stock model"""
+    current_price = serializers.SerializerMethodField()
+    change_percentage = serializers.SerializerMethodField()
+    change_amount = serializers.SerializerMethodField()
+    
     class Meta:
         model = Stock
         fields = '__all__'
         read_only_fields = ['created_at', 'updated_at']
+    
+    def get_current_price(self, obj):
+        """Get current price from market data"""
+        market_data = obj.market_data.first()
+        return float(market_data.current_price) if market_data else 0.0
+    
+    def get_change_percentage(self, obj):
+        """Get change percentage from market data"""
+        market_data = obj.market_data.first()
+        return float(market_data.change_percentage) if market_data else 0.0
+    
+    def get_change_amount(self, obj):
+        """Get change amount from market data"""
+        market_data = obj.market_data.first()
+        return float(market_data.change_amount) if market_data else 0.0
 
 
 class StockDetailSerializer(serializers.ModelSerializer):
     """Detailed serializer for Stock model"""
+    current_price = serializers.SerializerMethodField()
+    change_percentage = serializers.SerializerMethodField()
+    change_amount = serializers.SerializerMethodField()
+    market_data = serializers.SerializerMethodField()
+    
     class Meta:
         model = Stock
         fields = '__all__'
         read_only_fields = ['created_at', 'updated_at']
+    
+    def get_current_price(self, obj):
+        """Get current price from market data"""
+        market_data = obj.market_data.first()
+        return float(market_data.current_price) if market_data else 0.0
+    
+    def get_change_percentage(self, obj):
+        """Get change percentage from market data"""
+        market_data = obj.market_data.first()
+        return float(market_data.change_percentage) if market_data else 0.0
+    
+    def get_change_amount(self, obj):
+        """Get change amount from market data"""
+        market_data = obj.market_data.first()
+        return float(market_data.change_amount) if market_data else 0.0
+    
+    def get_market_data(self, obj):
+        """Get full market data"""
+        market_data = obj.market_data.first()
+        if market_data:
+            return MarketDataSerializer(market_data).data
+        return None
 
 
 class StockPriceSerializer(serializers.ModelSerializer):
@@ -92,22 +138,33 @@ class OrderSerializer(serializers.ModelSerializer):
     stock = serializers.PrimaryKeyRelatedField(queryset=Stock.objects.all(), write_only=True)
     # Also include detailed stock info in responses
     stock_detail = StockSerializer(source='stock', read_only=True)
+    calculated_total = serializers.SerializerMethodField()
     
     class Meta:
         model = Order
         fields = '__all__'
         read_only_fields = ['user', 'created_at', 'updated_at']
+    
+    def get_calculated_total(self, obj):
+        """Get calculated total amount"""
+        return float(obj.calculated_total_amount)
 
 
 class OrderHistorySerializer(serializers.ModelSerializer):
     """Serializer for order history"""
     user = UserSerializer(read_only=True)
     stock = StockSerializer(read_only=True)
+    calculated_total = serializers.SerializerMethodField()
     
     class Meta:
         model = Order
         fields = '__all__'
         read_only_fields = ['user', 'created_at', 'updated_at']
+    
+    def get_calculated_total(self, obj):
+        """Get calculated total amount"""
+        total = obj.calculated_total_amount
+        return float(total) if total else 0.0
 
 
 class TradeSerializer(serializers.ModelSerializer):

@@ -142,6 +142,26 @@ class Order(models.Model):
     def remaining_quantity(self):
         return self.quantity - self.filled_quantity
     
+    @property
+    def calculated_total_amount(self):
+        """Calculate total amount based on price and quantity"""
+        if self.total_amount:
+            return self.total_amount
+        elif self.price and self.quantity:
+            return self.price * self.quantity
+        elif self.average_fill_price and self.filled_quantity:
+            return self.average_fill_price * self.filled_quantity
+        return Decimal('0.00')
+    
+    def save(self, *args, **kwargs):
+        """Override save to calculate total_amount if not set"""
+        if not self.total_amount or self.total_amount == 0:
+            if self.average_fill_price and self.filled_quantity:
+                self.total_amount = self.average_fill_price * self.filled_quantity
+            elif self.price and self.quantity:
+                self.total_amount = self.price * self.quantity
+        super().save(*args, **kwargs)
+    
     def __str__(self):
         return f"{self.user.username} - {self.side} {self.quantity} {self.stock.symbol} @ ₹{self.price or 'MARKET'}"
 

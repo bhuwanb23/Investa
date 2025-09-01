@@ -50,7 +50,7 @@ export const fetchPortfolioHoldings = async () => {
 
 // Orders
 export const fetchOrderHistory = async (params?: { status?: string; side?: string }) => {
-	const res = await api.get('orders/', { params });
+	const res = await api.get('orders/order_history/', { params });
 	return Array.isArray(res.data) ? res.data : (res.data?.results ?? []);
 };
 
