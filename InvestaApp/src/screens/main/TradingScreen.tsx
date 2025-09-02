@@ -291,15 +291,15 @@ const TradingScreen = () => {
                   <View style={styles.symbolBadge}>
                     <Text style={styles.symbolBadgeText}>{symbol}</Text>
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.symbolName}>{name}</Text>
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <Text style={styles.symbolName} numberOfLines={1} ellipsizeMode="tail">{name}</Text>
                     <View style={styles.progressTrack}>
                       <View style={[styles.progressFill, { width: `${Math.min(100, Math.abs(changePct) * 10)}%`, backgroundColor: changePct >= 0 ? SUCCESS : DANGER }]} />
                     </View>
                   </View>
-                  <View style={{ alignItems: 'flex-end' }}>
+                  <View style={{ alignItems: 'flex-end', minWidth: 80 }}>
                     <Text style={styles.priceText}>₹{price.toFixed(2)}</Text>
-                    <Text style={styles.changeText}>
+                    <Text style={[styles.changeText, { color: changePct >= 0 ? SUCCESS : DANGER }]}>
                       {changePct >= 0 ? '+' : ''}{changePct}%
                     </Text>
                   </View>
@@ -657,6 +657,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 12,
     marginTop: 14,
+    overflow: 'hidden', // Prevent content from overflowing the card boundaries
   },
   watchRow: {
     flexDirection: 'row',
@@ -665,27 +666,36 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#f3f4f6',
+    paddingHorizontal: 4, // Add horizontal padding to prevent edge overflow
+    minHeight: 60, // Ensure consistent row height
   },
   symbolBadge: {
-    width: 42,
+    width: 48, // Increase width slightly to accommodate longer symbols
     height: 42,
     borderRadius: 10,
     backgroundColor: '#eef2ff',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
+    overflow: 'hidden', // Prevent text from overflowing outside the badge
   },
   symbolBadgeText: {
     color: PRIMARY,
     fontWeight: '900',
+    fontSize: 9, // Further reduce font size to ensure text fits
+    textAlign: 'center', // Center the text
+    includeFontPadding: false, // Remove extra padding on Android
+    textAlignVertical: 'center', // Center vertically on Android
+    maxWidth: '100%', // Ensure text doesn't exceed badge width
   },
   symbolName: {
     color: TEXT_DARK,
     fontWeight: '800',
     marginBottom: 6,
+    flexShrink: 1, // Allow text to shrink if needed
   },
   progressTrack: {
-    width: 120,
+    width: 100, // Reduce width to ensure it fits within the available space
     height: 6,
     backgroundColor: '#e5e7eb',
     borderRadius: 999,
