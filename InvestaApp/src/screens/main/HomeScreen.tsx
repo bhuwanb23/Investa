@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import MainHeader from '../../components/MainHeader';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
+import LogoLoader from '../../components/LogoLoader';
 
 const { width, height } = Dimensions.get('window');
 
@@ -37,6 +38,7 @@ type NavigationProp = {
 const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const { user, logout } = useAuth();
+  const [showBootLoader, setShowBootLoader] = useState(true);
 
   // Animation refs
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -51,6 +53,8 @@ const HomeScreen = () => {
   ]).current;
 
   useEffect(() => {
+    const timer = setTimeout(() => setShowBootLoader(false), 800);
+
     // Staggered entrance animations
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -622,6 +626,11 @@ const HomeScreen = () => {
   );
 
   return (
+    showBootLoader ? (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <LogoLoader message="Loading Investa..." fullscreen />
+      </View>
+    ) : (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0891B2" />
       <ScrollView
@@ -647,6 +656,7 @@ const HomeScreen = () => {
         <View style={styles.bottomSpacing} />
       </ScrollView>
     </View>
+    )
   );
 };
 

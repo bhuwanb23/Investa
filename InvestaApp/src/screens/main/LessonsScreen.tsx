@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MainHeader from '../../components/MainHeader';
+import LogoLoader from '../../components/LogoLoader';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -25,6 +26,22 @@ const lessons = [
 ];
 
 const LessonsScreen = () => {
+  const [bootLoader, setBootLoader] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setBootLoader(false), 800);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (bootLoader) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <LogoLoader message="Loading Investa..." fullscreen />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>

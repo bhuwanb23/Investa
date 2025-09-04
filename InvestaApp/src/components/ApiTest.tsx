@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
+import LogoLoader from './LogoLoader';
 import { useProfile, useNotifications } from '../hooks';
 import { useAuth } from '../context/AuthContext';
 import { profileApi, authApi } from '../services';
@@ -74,6 +75,10 @@ const ApiTest = () => {
           {isTesting ? 'Testing...' : 'Test Profile API'}
         </Text>
       </Pressable>
+
+      {(isTesting || profileLoading || notificationsLoading) && (
+        <LogoLoader message="Contacting server..." />
+      )}
 
       {profile && (
         <View style={styles.profileInfo}>

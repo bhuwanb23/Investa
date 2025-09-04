@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import MainHeader from '../../components/MainHeader';
+import LogoLoader from '../../components/LogoLoader';
 import { 
   fetchMyPortfolio, 
   fetchPortfolioHoldings, 
@@ -51,6 +52,7 @@ const TradingScreen = () => {
   const [stocks, setStocks] = useState<any[]>([]);
   const [watchlist, setWatchlist] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bootLoader, setBootLoader] = useState(true);
   
   // Mock data for market indices (these would come from a market data API)
   const marketIndices = [
@@ -69,6 +71,7 @@ const TradingScreen = () => {
   
   // Fetch real data on component mount
   useEffect(() => {
+    const t = setTimeout(() => setBootLoader(false), 800);
     let mounted = true;
     (async () => {
       try {
@@ -102,7 +105,7 @@ const TradingScreen = () => {
         if (mounted) setLoading(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => { mounted = false; clearTimeout(t); };
   }, []);
   
   // Refresh function for manual data refresh
@@ -146,6 +149,16 @@ const TradingScreen = () => {
     price: Number(order.price) || 0,
     time: 'Today, 10:24' // This would come from order timestamp
   }));
+
+  if (bootLoader) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <LogoLoader message="Loading Investa..." fullscreen />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>

@@ -7,3 +7,4 @@ export { default as PrivacySettings } from './PrivacySettings';
 export { default as SecuritySettings } from './SecuritySettings';
 export { default as TwoFactorAuth } from './TwoFactorAuth';
 export { default as ApiTest } from './ApiTest';
+export { default as LogoLoader } from './LogoLoader';

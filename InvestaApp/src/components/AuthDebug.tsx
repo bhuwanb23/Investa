@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Alert, ScrollView } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import LogoLoader from './LogoLoader';
 import { authApi } from '../services';
 
 const AuthDebug = () => {
@@ -84,6 +85,8 @@ const AuthDebug = () => {
                 <Text style={styles.buttonText}>Clear Fake Tokens</Text>
               </Pressable>
       </View>
+
+      {isTesting && <LogoLoader message="Authenticating..." />}
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Instructions:</Text>

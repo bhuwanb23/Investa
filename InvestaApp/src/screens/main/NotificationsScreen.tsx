@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SectionList, Platform, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@react-navigation/native';
 import MainHeader from '../../components/MainHeader';
+import LogoLoader from '../../components/LogoLoader';
 
 type NotificationItem = {
   id: string;
@@ -16,6 +17,11 @@ type NotificationItem = {
 };
 
 const NotificationsScreen: React.FC = () => {
+  const [bootLoader, setBootLoader] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setBootLoader(false), 800);
+    return () => clearTimeout(t);
+  }, []);
   const { colors } = useTheme();
 
   const initialToday = useMemo<NotificationItem[]>(
@@ -132,6 +138,14 @@ const NotificationsScreen: React.FC = () => {
   );
 
   const totalCount = today.length + week.length + earlier.length;
+
+  if (bootLoader) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <LogoLoader message="Loading Investa..." fullscreen />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }] }>

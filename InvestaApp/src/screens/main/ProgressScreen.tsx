@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MainHeader from '../../components/MainHeader';
+import LogoLoader from '../../components/LogoLoader';
 import { progressApi, ProgressSummary, WeeklyActivity } from '../../services';
 
 const PRIMARY = '#4f46e5';
@@ -25,10 +26,13 @@ const ProgressScreen = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [weeklyActivity, setWeeklyActivity] = useState<WeeklyActivity[]>([]);
+  const [bootLoader, setBootLoader] = useState(true);
 
   // Fetch progress data on component mount
   useEffect(() => {
+    const t = setTimeout(() => setBootLoader(false), 800);
     fetchProgressData();
+    return () => clearTimeout(t);
   }, []);
 
   const fetchProgressData = async () => {
@@ -126,6 +130,16 @@ const ProgressScreen = () => {
     { icon: 'bar-chart', bgFrom: '#3b82f6', label: 'Trader' },
     { icon: 'flame', bgFrom: '#ef4444', label: 'Streak' },
   ];
+
+  if (bootLoader) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <LogoLoader message="Loading Investa..." fullscreen />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (loading) {
     return (

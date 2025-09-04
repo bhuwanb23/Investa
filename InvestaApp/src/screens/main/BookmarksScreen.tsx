@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native';
 import MainHeader from '../../components/MainHeader';
 import SearchBar from '../../components/SearchBar';
 import EmptyState from '../../components/EmptyState';
+import LogoLoader from '../../components/LogoLoader';
 
 const { width } = Dimensions.get('window');
 
@@ -21,6 +22,12 @@ const BookmarksScreen = () => {
   const navigation = useNavigation();
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [bootLoader, setBootLoader] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setBootLoader(false), 800);
+    return () => clearTimeout(t);
+  }, []);
 
   const filterTabs = [
     { id: 'all', name: 'All' },
@@ -186,6 +193,14 @@ const BookmarksScreen = () => {
     }
     return `No ${selectedFilter.replace('-', ' ')} bookmarks yet.`;
   };
+
+  if (bootLoader) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <LogoLoader message="Loading Investa..." fullscreen />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MainHeader } from '../../components';
+import LogoLoader from '../../components/LogoLoader';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { useProfile } from '../../hooks';
@@ -22,6 +23,7 @@ const TEXT_DARK = '#111827';
 const TEXT_MUTED = '#6b7280';
 
 const ProfileScreen = () => {
+  const [bootLoader, setBootLoader] = useState(true);
   const { logout, user } = useAuth();
   const navigation = useNavigation();
   const { 
@@ -66,12 +68,14 @@ const ProfileScreen = () => {
 
   // Fetch profile data on component mount only if user is authenticated
   useEffect(() => {
+    const t = setTimeout(() => setBootLoader(false), 800);
     if (user) {
       console.log('🔐 ProfileScreen: User is authenticated, fetching profile...');
       fetchProfile();
     } else {
       console.log('🔐 ProfileScreen: User is not authenticated, skipping profile fetch');
     }
+    return () => clearTimeout(t);
   }, [fetchProfile, user]);
   
   // Debug logging for development
@@ -108,6 +112,17 @@ const ProfileScreen = () => {
       [{ text: 'OK' }]
     );
   };
+
+  // Boot splash
+  if (bootLoader) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <LogoLoader message="Loading Investa..." fullscreen />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   // Show loading state
   if (isLoading) {

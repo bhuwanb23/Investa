@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import MainHeader from '../../components/MainHeader';
+import LogoLoader from '../../components/LogoLoader';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import type { MainStackParamList } from '../../navigation/AppNavigator';
@@ -19,6 +20,7 @@ const CoursesScreen = () => {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [selectedFilter, setSelectedFilter] = useState<'all'|'beginner'|'intermediate'|'advanced'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [bootLoader, setBootLoader] = useState(true);
 
   const sampleCourses: ApiCourse[] = useMemo(() => ([
     {
@@ -79,7 +81,9 @@ const CoursesScreen = () => {
   }, []);
 
   useEffect(() => {
+    const t = setTimeout(() => setBootLoader(false), 800);
     load();
+    return () => clearTimeout(t);
   }, [load]);
 
   const dataSource: ApiCourse[] = useMemo(() => {
@@ -99,6 +103,16 @@ const CoursesScreen = () => {
     { key: 'intermediate', label: 'Intermediate' },
     { key: 'advanced', label: 'Advanced' },
   ] as const;
+
+  if (bootLoader) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <LogoLoader message="Loading Investa..." fullscreen />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
