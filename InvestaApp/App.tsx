@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import AppNavigator from './src/navigation/AppNavigator';
@@ -60,7 +60,7 @@ const AppShell = ({ theme }: { theme: any }) => {
 				<View style={[styles.navbarWrapper, { marginBottom: Math.max(8, insets.bottom) }]} pointerEvents="box-none">
 					<View style={styles.navbar}>
 						<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Home')}>
-							<Ionicons name="home" size={20} color={colorFor('Home')} />
+							<Image source={require('./assets/investa_logo.png')} style={{ width: 22, height: 22, borderRadius: 6 }} resizeMode="contain" />
 							<Text style={labelStyle('Home')}>Home</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Courses')}>
