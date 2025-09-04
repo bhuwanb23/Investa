@@ -432,3 +432,133 @@ This project is part of the **Investa hackathon project**. All rights reserved.
 **Made with ❤️ for the Indian investor community**
 
 </div>
+
+---
+
+## 🚀 Quickstart (Updated for Device + API Connectivity)
+
+### 1) Backend — Django (local dev)
+
+```powershell
+cd investa_backend
+./venv/Scripts/activate        # Windows PowerShell
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver 0.0.0.0:8000    # Bind to all interfaces for devices
+```
+
+- Health check (from phone or any client on LAN):
+  - `http://YOUR_PC_LAN_IP:8000/api/ping/` → should return `{ "status": "ok" }`
+
+Notes
+- `ALLOWED_HOSTS` and CORS are permissive in dev (see `investa_backend/investa_backend/settings.py`).
+- Keep it permissive only for development.
+
+### 2) Frontend — Expo (mobile device friendly)
+
+```powershell
+cd InvestaApp
+npm install
+
+# Option A: set full API base URL (recommended)
+$env:EXPO_PUBLIC_API_BASE_URL="http://YOUR_PC_LAN_IP:8000/api/"
+npx expo start --clear
+
+# Option B: set only LAN IP (app builds URL automatically)
+$env:EXPO_PUBLIC_LAN_IP="YOUR_PC_LAN_IP"
+npx expo start --clear
+```
+
+No shell access on phone? Configure in `InvestaApp/app.json` → `expo.extra`:
+
+```json
+{
+  "expo": {
+    "extra": {
+      "apiBaseUrl": "http://YOUR_PC_LAN_IP:8000/api/",
+      "lanIp": "YOUR_PC_LAN_IP"
+    }
+  }
+}
+```
+
+The app automatically picks:
+- `EXPO_PUBLIC_API_BASE_URL` → then `EXPO_PUBLIC_LAN_IP`/`LAN_IP` → then `app.json.extra.apiBaseUrl` → then `app.json.extra.lanIp` → then Expo LAN autodetect → emulator fallbacks.
+
+### 3) Test Login Flow
+
+- Use the login screen with your Django user (e.g., `john@example.com` / `testpass123`).
+- Backend endpoint: `POST /api/auth/login/` accepts email in the `username` field.
+- Successful login stores token and user in AsyncStorage and sets the axios `Authorization` header.
+
+---
+
+## 🔧 Mobile Troubleshooting (Expo Go)
+
+- Device can’t reach `127.0.0.1`: Always use your PC’s LAN IP, not localhost.
+- Firewall: Allow inbound TCP 8000 for `python.exe` on Windows.
+- Same network: Ensure phone and PC are on the same Wi‑Fi/VLAN (no hotspot isolation/VPN blocking).
+- Health check first: `http://YOUR_PC_LAN_IP:8000/api/ping/` from the phone.
+- Expo logs show the exact URL requested. Look for:
+  - `🔗 API base URL: ...`
+  - `🔐 API Request - URL: ...`
+
+Emulators
+- Android emulator: `http://10.0.2.2:8000/`
+- Genymotion: `http://10.0.3.2:8000/`
+
+Axios retry fallbacks
+- The client retries across env URL/IP, Expo LAN IP, emulator hosts, and `127.0.0.1` (dev only).
+
+---
+
+## 🌐 Make It Public (Temporary)
+
+- Ngrok
+  1) `python manage.py runserver 0.0.0.0:8000`
+  2) `ngrok http 8000`
+  3) Set `EXPO_PUBLIC_API_BASE_URL="https://your-id.ngrok-free.app/api/"`
+  4) Ensure Django `ALLOWED_HOSTS` includes the ngrok host or `*` in dev
+
+- Cloudflare Tunnel: similar flow; stable free subdomain.
+
+Production note
+- Re-enable robust auth and restrict CORS/ALLOWED_HOSTS for production.
+
+---
+
+## 🧭 Where Things Live (Auth & Config)
+
+- App base URL resolver: `InvestaApp/src/config/config.ts`
+  - Reads `EXPO_PUBLIC_API_BASE_URL`, `EXPO_PUBLIC_LAN_IP`/`LAN_IP`, then `app.json.extra`.
+- Axios client & retries: `InvestaApp/src/services/api.ts`
+- Auth API: `InvestaApp/src/services/authApi.ts`
+- Auth context and login flow: `InvestaApp/src/context/AuthContext.tsx`
+- Backend auth endpoints: `investa_backend/api/urls/api.py`
+  - `auth/login/`, `auth/register/`, `auth/me/`, `auth/logout/`, `ping/`
+- Backend auth view: `investa_backend/api/views/auth.py`
+
+---
+
+## 🖌️ UI Notes (Home Screen)
+
+- Polished layout to avoid overlaps and heavy shadows:
+  - Two-column card grid with fixed spacing.
+  - Lighter shadows/elevation on cards.
+  - Spacing between Daily Tip and Quick Access, and unclipped Achievements.
+- File: `InvestaApp/src/screens/main/HomeScreen.tsx`
+
+---
+
+## ✅ Smoke Tests
+
+Backend
+```bash
+curl http://YOUR_PC_LAN_IP:8000/api/ping/
+curl -X POST http://YOUR_PC_LAN_IP:8000/api/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{"username":"john@example.com","password":"testpass123"}'
+```
+
+Frontend
+- Start Expo with the proper base URL and try logging in from the device.

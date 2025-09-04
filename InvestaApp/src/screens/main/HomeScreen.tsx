@@ -71,8 +71,8 @@ const HomeScreen = () => {
       }),
       Animated.timing(scaleAnim, {
         toValue: 1,
-        duration: 600,
-        easing: Easing.out(Easing.back(1.2)),
+        duration: 500,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
     ]).start();
@@ -90,8 +90,8 @@ const HomeScreen = () => {
     cardAnimations.forEach((anim, index) => {
       Animated.timing(anim, {
         toValue: 1,
-        duration: 600,
-        delay: 200 + (index * 100),
+        duration: 450,
+        delay: 150 + (index * 80),
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }).start();
@@ -337,7 +337,7 @@ const HomeScreen = () => {
         keyExtractor={(item) => item.id.toString()}
         numColumns={2}
         scrollEnabled={false}
-        columnWrapperStyle={{ justifyContent: 'space-between' }}
+        columnWrapperStyle={{ justifyContent: 'space-between', gap: 12 }}
         renderItem={({ item, index }) => (
           <Animated.View
             style={{
@@ -637,8 +637,7 @@ const HomeScreen = () => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        stickyHeaderIndices={[0]}
-        nestedScrollEnabled={true}
+        nestedScrollEnabled={false}
         bounces={true}
         overScrollMode="always"
         scrollEventThrottle={16}
@@ -687,27 +686,28 @@ const styles = StyleSheet.create({
     }),
   },
   scrollContent: {
-    paddingBottom: 24,
+    paddingBottom: 40,
   },
   welcomeSection: {
-    margin: 12,
+    marginHorizontal: 12,
+    marginTop: 12,
     backgroundColor: '#0891B2',
     borderRadius: 20,
     padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.15,
-        shadowRadius: 16,
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
       },
       android: {
-        elevation: 8,
+        elevation: 4,
       },
     }),
   },
@@ -727,13 +727,13 @@ const styles = StyleSheet.create({
     minHeight: 70,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
+        shadowColor: 'transparent',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0,
+        shadowRadius: 0,
       },
       android: {
-        elevation: 4,
+        elevation: 0,
       },
     }),
   },
@@ -853,8 +853,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   quickAccessSection: {
-    margin: 12,
-    marginTop: 8,
+    marginHorizontal: 12,
+    marginTop: 20,
   },
   sectionTitle: {
     fontSize: 18,
@@ -872,11 +872,11 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 6,
+        elevation: 2,
       },
     }),
     borderWidth: 1,
@@ -912,8 +912,8 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   learningPathSection: {
-    margin: 12,
-    marginTop: 8,
+    marginHorizontal: 12,
+    marginTop: 16,
     backgroundColor: 'white',
     borderRadius: 20,
     padding: 18,
@@ -959,8 +959,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   portfolioSection: {
-    margin: 12,
-    marginTop: 8,
+    marginHorizontal: 12,
+    marginTop: 16,
     backgroundColor: 'white',
     borderRadius: 20,
     padding: 18,
@@ -1025,33 +1025,38 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   achievementsSection: {
-    margin: 12,
-    marginTop: 8,
-    marginBottom: 20,
+    marginHorizontal: 12,
+    marginTop: 16,
+    marginBottom: 28,
+    paddingVertical: 8,
   },
   achievementsContainer: {
     minHeight: 100,
+    paddingVertical: 6,
+    overflow: 'visible',
   },
   achievementsScrollContainer: {
     paddingRight: 12,
     paddingLeft: 4,
+    paddingVertical: 6,
   },
   achievementCard: {
     backgroundColor: 'white',
     borderRadius: 18,
-    padding: 16,
+    padding: 14,
     marginRight: 12,
+    marginVertical: 6,
     alignItems: 'center',
     minWidth: 120,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
+        shadowOpacity: 0.06,
+        shadowRadius: 6,
       },
       android: {
-        elevation: 4,
+        elevation: 2,
       },
     }),
     borderWidth: 1,
@@ -1074,7 +1079,8 @@ const styles = StyleSheet.create({
   },
   tipCard: {
     marginHorizontal: 12,
-    marginTop: 8,
+    marginTop: 16,
+    marginBottom: 16,
     backgroundColor: '#FFFFFF',
     borderRadius: 18,
     padding: 16,
@@ -1085,11 +1091,11 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
+        shadowOpacity: 0.06,
+        shadowRadius: 6,
       },
       android: {
-        elevation: 4,
+        elevation: 2,
       },
     }),
     borderWidth: 1,
@@ -1114,8 +1120,8 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   recommendedSection: { 
-    margin: 12, 
-    marginTop: 8 
+    marginHorizontal: 12, 
+    marginTop: 16 
   },
   recommendedScrollContainer: {
     paddingRight: 12,
@@ -1179,8 +1185,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   marketSection: { 
-    margin: 12, 
-    marginTop: 8, 
+    marginHorizontal: 12, 
+    marginTop: 16, 
     backgroundColor: '#FFFFFF', 
     borderRadius: 18, 
     padding: 16, 
@@ -1233,7 +1239,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     alignItems: 'center', 
     gap: 12, 
-    marginTop: 8,
+    marginTop: 16,
     ...Platform.select({
       ios: {
         shadowColor: '#000',

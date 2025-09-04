@@ -75,6 +75,19 @@ export const fetchQuizForLesson = async (lessonId: number) => {
   }
 };
 
+export const fetchQuizzesForLesson = async (lessonId: number) => {
+  try {
+    const response = await api.get(`quiz/${lessonId}/list_for_lesson/`);
+    const data = response.data;
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.results)) return data.results;
+    return [];
+  } catch (error) {
+    console.error('Error fetching quizzes for lesson:', error);
+    return [];
+  }
+};
+
 export const startQuizAttempt = async (quizId: number) => {
   try {
     const response = await api.post('quiz-attempts/start_quiz/', {

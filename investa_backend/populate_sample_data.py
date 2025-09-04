@@ -34,6 +34,7 @@ from api.sample.trading_sample_data import (
     create_market_data, create_technical_indicators
 )
 from api.sample.notifications_sample_data import create_notifications
+from api.sample.quizzes_sample_data import create_quizzes_for_all_lessons
 
 def reset_data():
     """Wipe existing app data in a safe order"""
@@ -150,6 +151,13 @@ def create_sample_data():
     # 13. Create lessons and quizzes (using existing logic)
     print("\n📝 Creating lessons and quizzes...")
     lessons, quizzes = create_lessons_and_quizzes(courses)
+
+    # 13b. Also ensure sample quizzes exist per lesson using quizzes_sample_data (idempotent)
+    print("\n🎯 Ensuring sample quizzes for all lessons (idempotent)...")
+    quizzes_extra = create_quizzes_for_all_lessons()
+    # Merge extras while avoiding duplicates in our local list
+    quiz_ids = {q.id for q in quizzes}
+    quizzes.extend([q for q in quizzes_extra if q.id not in quiz_ids])
     
     # 14. Create user lesson progress
     print("\n📚 Creating user lesson progress...")

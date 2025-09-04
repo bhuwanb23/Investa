@@ -5,7 +5,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import type { MainStackParamList } from '../../navigation/AppNavigator';
 import MainHeader from '../../components/MainHeader';
 import LessonQuizContent from './components/LessonQuizContent';
-import { fetchQuizForLesson, startQuizAttempt, submitQuizAnswer, completeQuizAttempt } from './utils/coursesApi';
+import { fetchQuizForLesson, fetchQuizzesForLesson, startQuizAttempt, submitQuizAnswer, completeQuizAttempt } from './utils/coursesApi';
 import { getQuizAttempt } from './utils/coursesApi';
 import { markLessonCompleted, fetchCourseDetailWithProgress } from './utils/coursesApi';
 import { Alert } from 'react-native';
@@ -23,6 +23,7 @@ const LessonQuizScreen: React.FC = () => {
   const { lessonId, courseId } = route.params;
 
   const [quiz, setQuiz] = useState<any>(null);
+  const [quizzes, setQuizzes] = useState<any[]>([]);
   const [quizAttempt, setQuizAttempt] = useState<any>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -37,11 +38,20 @@ const LessonQuizScreen: React.FC = () => {
   const loadQuiz = async () => {
     try {
       setLoading(true);
-      const quizData = await fetchQuizForLesson(Number(lessonId));
-      setQuiz(quizData);
-      
-      // Start quiz attempt
-      const attempt = await startQuizAttempt(quizData.id);
+      // Prefer listing all quizzes for the lesson; fall back to single
+      const list = await fetchQuizzesForLesson(Number(lessonId));
+      let selectedQuiz: any = null;
+      if (Array.isArray(list) && list.length > 0) {
+        setQuizzes(list);
+        selectedQuiz = list[0];
+        setQuiz(selectedQuiz);
+      } else {
+        selectedQuiz = await fetchQuizForLesson(Number(lessonId));
+        setQuiz(selectedQuiz);
+      }
+
+      // Start quiz attempt for selected quiz
+      const attempt = await startQuizAttempt(selectedQuiz.id);
       setQuizAttempt(attempt);
     } catch (err) {
       console.error('Error loading quiz:', err);
@@ -214,6 +224,30 @@ const LessonQuizScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <MainHeader title={`Quiz: ${quiz.title}`} iconName="help-circle" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {quizzes.length > 1 && (
+          <View style={{ marginBottom: 12, backgroundColor: '#EEF2FF', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#E0E7FF' }}>
+            <Text style={{ fontWeight: '800', color: '#111827', marginBottom: 6 }}>Available quizzes for this lesson</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {quizzes.map((q, i) => (
+                <TouchableOpacity
+                  key={q.id}
+                  onPress={() => {
+                    setQuiz(q);
+                    setCurrentQuestionIndex(0);
+                    setQuizCompleted(false);
+                    setAttemptResult(null);
+                    // start a fresh attempt for this quiz
+                    startQuizAttempt(q.id).then(setQuizAttempt).catch(() => {});
+                  }}
+                  style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: q.id === quiz?.id ? '#4F46E5' : '#E5E7EB', backgroundColor: q.id === quiz?.id ? '#EEF2FF' : '#FFFFFF' }}
+                  activeOpacity={0.9}
+                >
+                  <Text style={{ color: q.id === quiz?.id ? '#4F46E5' : '#374151', fontWeight: '700' }}>{`Quiz ${i + 1}`}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
         <LessonQuizContent
           questionIndex={currentQuestionIndex}
           totalQuestions={totalQuestions}
