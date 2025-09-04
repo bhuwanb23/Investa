@@ -130,3 +130,15 @@ class LogoutView(APIView):
         except Exception:
             pass
         return Response({'detail': 'Logged out'})
+
+
+class PingView(APIView):
+    """Simple health check endpoint to verify connectivity from clients"""
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+
+    def get(self, request):
+        return Response({
+            'status': 'ok',
+            'message': 'Investa API is reachable',
+        })
