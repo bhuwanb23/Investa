@@ -7,5 +7,6 @@ __all__ = [
     'privacy_sample_data',
     'learning_sample_data',
     'trading_sample_data',
-    'notifications_sample_data'
+    'notifications_sample_data',
+    'progress_sample_data'
 ]

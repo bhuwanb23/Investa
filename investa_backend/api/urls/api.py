@@ -20,6 +20,9 @@ router.register(r'badges', views.BadgeViewSet, basename='badge')
 router.register(r'sessions', views.UserSessionViewSet, basename='session')
 router.register(r'notifications', views.NotificationViewSet, basename='notification')
 
+# Progress endpoints
+router.register(r'progress', views.UserProgressViewSet, basename='progress')
+
 # Quiz endpoints
 router.register(r'quiz', views.QuizViewSet, basename='quiz')
 router.register(r'questions', views.QuestionViewSet, basename='question')

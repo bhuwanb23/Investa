@@ -12,6 +12,7 @@ from .trading import (
     TechnicalIndicator, Achievement, UserAchievement
 )
 from .notifications import Notification
+from .progress import UserProgress
 
 # Export all models
 __all__ = [
@@ -35,4 +36,7 @@ __all__ = [
     
     # Notification models
     'Notification',
+    
+    # Progress models
+    'UserProgress',
 ]

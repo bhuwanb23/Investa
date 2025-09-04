@@ -8,6 +8,7 @@ type Props = {
   title: string;
   iconName: keyof typeof Ionicons.glyphMap | any;
   onNotificationsPress?: () => void;
+  onRefreshPress?: () => void;
   showBadge?: boolean;
   showBackButton?: boolean;
   onBackPress?: () => void;
@@ -19,6 +20,7 @@ const MainHeader: React.FC<Props> = ({
   title,
   iconName,
   onNotificationsPress,
+  onRefreshPress,
   showBadge = true,
   showBackButton = false,
   onBackPress,
@@ -46,6 +48,14 @@ const MainHeader: React.FC<Props> = ({
           </Text>
         </View>
         <View style={styles.actions}>
+          {onRefreshPress && (
+            <TouchableOpacity
+              onPress={onRefreshPress}
+              style={styles.actionIcon}
+            >
+              <Ionicons name="refresh" size={24} color="#374151" />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             onPress={onNotificationsPress || (() => navigation.navigate('Notifications'))}
             style={styles.actionIcon}

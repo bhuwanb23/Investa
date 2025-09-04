@@ -27,6 +27,12 @@ export type {
   UnreadCountResponse 
 } from './notificationsApi';
 
+// Progress API
+export { default as progressApi } from './progressApi';
+export type {
+  UserProgress, ProgressSummary, WeeklyActivity, ProgressStats
+} from './progressApi';
+
 // Trading API
 export { default as tradingApi } from './tradingApi';
 export type {

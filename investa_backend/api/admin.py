@@ -5,7 +5,8 @@ from .models import (
     LearningProgress, Course, Lesson, UserLessonProgress,
     TradingPerformance, UserSession, Notification,
     Badge, UserBadge,
-    Quiz, Question, Answer, UserQuizAttempt, UserQuizAnswer
+    Quiz, Question, Answer, UserQuizAttempt, UserQuizAnswer,
+    UserProgress
 )
 
 
@@ -156,3 +157,23 @@ class UserQuizAnswerAdmin(admin.ModelAdmin):
     list_filter = ['is_correct', 'answered_at']
     search_fields = ['user_attempt__user__username', 'question__question_text']
     readonly_fields = ['answered_at']
+
+
+@admin.register(UserProgress)
+class UserProgressAdmin(admin.ModelAdmin):
+    list_display = [
+        'user', 'current_level', 'experience_points', 'experience_to_next_level',
+        'learning_completion_percentage', 'course_completion_percentage',
+        'quiz_completion_percentage', 'overall_progress_percentage',
+        'current_streak_days', 'total_activity_days'
+    ]
+    list_filter = ['current_level', 'created_at', 'updated_at']
+    search_fields = ['user__username', 'user__email']
+    readonly_fields = [
+        'created_at', 'updated_at', 'learning_completion_percentage',
+        'course_completion_percentage', 'quiz_completion_percentage',
+        'overall_progress_percentage'
+    ]
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user')

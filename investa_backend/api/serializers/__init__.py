@@ -17,6 +17,7 @@ from .trading import (
     AchievementSerializer, UserAchievementSerializer, LeaderboardSerializer
 )
 from .notifications import NotificationSerializer
+from .progress import UserProgressSerializer, UserProgressSummarySerializer, ProgressStatsSerializer
 
 # Export all serializers
 __all__ = [
@@ -47,4 +48,7 @@ __all__ = [
     
     # Notification serializers
     'NotificationSerializer',
+    
+    # Progress serializers
+    'UserProgressSerializer', 'UserProgressSummarySerializer', 'ProgressStatsSerializer',
 ]

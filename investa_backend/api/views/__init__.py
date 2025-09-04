@@ -10,6 +10,7 @@ from .learning import (
 )
 from .trading import TradingPerformanceViewSet
 from .notifications import NotificationViewSet
+from .progress import UserProgressViewSet
 from .auth import CustomAuthToken, UserRegistrationView, MeView, LogoutView
 from .console import index, dashboard, database_view, _build_model_entries
 
@@ -44,6 +45,9 @@ __all__ = [
     
     # Trading views
     'TradingPerformanceViewSet',
+    
+    # Progress views
+    'UserProgressViewSet',
     
     # Notification views
     'NotificationViewSet',

@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
   ScrollView,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MainHeader from '../../components/MainHeader';
+import { progressApi, ProgressSummary, WeeklyActivity } from '../../services';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -19,12 +21,105 @@ const CARD_BG = '#ffffff';
 const CARD_BORDER = '#e5e7eb';
 
 const ProgressScreen = () => {
-  const weeklyHeights = [30, 60, 40, 90, 50, 20, 35];
+  const [progressData, setProgressData] = useState<ProgressSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [weeklyActivity, setWeeklyActivity] = useState<WeeklyActivity[]>([]);
+
+  // Fetch progress data on component mount
+  useEffect(() => {
+    fetchProgressData();
+  }, []);
+
+  const fetchProgressData = async () => {
+    try {
+      setLoading(true);
+      const [progressRes, weeklyRes] = await Promise.all([
+        progressApi.getProgressSummary(),
+        progressApi.getWeeklyActivity()
+      ]);
+      
+      setProgressData(progressRes);
+      setWeeklyActivity(weeklyRes);
+    } catch (error) {
+      console.error('Error fetching progress data:', error);
+      // Set default data on error
+      setProgressData({
+        id: 1,
+        user: 1,
+        current_level: 1,
+        experience_points: 0,
+        experience_to_next_level: 100,
+        learning_completion_percentage: 0,
+        course_completion_percentage: 0,
+        quiz_completion_percentage: 0,
+        overall_progress_percentage: 0,
+        current_streak_days: 0,
+        longest_streak_days: 0,
+        total_activity_days: 0,
+        portfolio_value: 0,
+        portfolio_growth_percentage: 0,
+        win_rate: 0,
+        total_badges: 0,
+        earned_badges: 0,
+        total_achievements: 0,
+        earned_achievements: 0,
+        updated_at: new Date().toISOString()
+      });
+      setWeeklyActivity([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchProgressData();
+    } catch (error) {
+      console.error('Error refreshing progress data:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // Use real data or fallback to defaults - ensure all values are numbers
+  const level = Number(progressData?.current_level) || 1;
+  const experiencePoints = Number(progressData?.experience_points) || 0;
+  const experienceToNext = Number(progressData?.experience_to_next_level) || 100;
+  const currentStreak = Number(progressData?.current_streak_days) || 0;
+  const longestStreak = Number(progressData?.longest_streak_days) || 0;
+  const totalActivityDays = Number(progressData?.total_activity_days) || 0;
+  const avgScore = Number(progressData?.quiz_completion_percentage) || 0;
+  const portfolioValue = Number(progressData?.portfolio_value) || 0;
+  const portfolioGrowth = Number(progressData?.portfolio_growth_percentage) || 0;
+  const winRate = Number(progressData?.win_rate) || 0;
+  const earnedBadges = Number(progressData?.earned_badges) || 0;
+  const totalBadges = Number(progressData?.total_badges) || 0;
+  const earnedAchievements = Number(progressData?.earned_achievements) || 0;
+  const totalAchievements = Number(progressData?.total_achievements) || 0;
+
+  // Calculate progress percentages - ensure all values are numbers
+  const learningProgress = Number(progressData?.learning_completion_percentage) || 0;
+  const courseProgress = Number(progressData?.course_completion_percentage) || 0;
+  const quizProgress = Number(progressData?.quiz_completion_percentage) || 0;
+  const overallProgress = Number(progressData?.overall_progress_percentage) || 0;
+
+  // Generate weekly activity data
+  const weeklyHeights = weeklyActivity.length > 0 
+    ? weeklyActivity.map(w => Math.max(10, w.activity_score / 2))
+    : [30, 60, 40, 90, 50, 20, 35];
+
+  // Generate sparkline data based on portfolio performance
   const sparklineHeights = [8, 12, 9, 14, 10, 16, 18, 15, 20, 24, 20, 26];
+
+  // Mock data for in-progress courses (this would come from backend)
   const inProgressCourses = [
-    { title: 'React Native for Pros', percent: 62 },
-    { title: 'Advanced TypeScript', percent: 35 },
+    { title: 'React Native for Pros', percent: Math.round(courseProgress * 0.8) },
+    { title: 'Advanced TypeScript', percent: Math.round(courseProgress * 0.6) },
   ];
+
+  // Mock badges (this would come from backend)
   const badges = [
     { icon: 'star', bgFrom: '#facc15', label: 'First Quiz' },
     { icon: 'school', bgFrom: '#22c55e', label: 'Course Hero' },
@@ -32,60 +127,92 @@ const ProgressScreen = () => {
     { icon: 'flame', bgFrom: '#ef4444', label: 'Streak' },
   ];
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <MainHeader title="Your Progress" iconName="analytics" />
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>Loading progress data...</Text>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <ScrollView contentContainerStyle={[styles.scrollContent, styles.fullWidth]} showsVerticalScrollIndicator={false} stickyHeaderIndices={[0]}>
-          <MainHeader title="Your Progress" iconName="analytics" />
+        <ScrollView 
+          contentContainerStyle={[styles.scrollContent, styles.fullWidth]} 
+          showsVerticalScrollIndicator={false} 
+          stickyHeaderIndices={[0]}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          <MainHeader 
+            title="Your Progress" 
+            iconName="analytics" 
+            onRefreshPress={onRefresh}
+          />
           <View style={styles.pagePadding}>
 
           {/* XP Level */}
           <View style={styles.xpCard}>
             <View style={{ alignItems: 'center' }}>
-              <Text style={styles.levelText}>Level 12</Text>
-              <Text style={styles.levelSubtitle}>Intermediate Trader</Text>
+              <Text style={styles.levelText}>Level {level}</Text>
+              <Text style={styles.levelSubtitle}>
+                {level < 3 ? 'Beginner Trader' : 
+                 level < 6 ? 'Intermediate Trader' : 
+                 level < 9 ? 'Advanced Trader' : 'Expert Trader'}
+              </Text>
             </View>
             <View style={styles.xpBarWrap}>
               <View style={styles.xpBarTrack}>
-                <View style={[styles.xpBarFill, { width: '84%' }]} />
+                <View style={[styles.xpBarFill, { width: `${Math.min(100, (experiencePoints / (experiencePoints + experienceToNext)) * 100)}%` }]} />
               </View>
               <View style={styles.xpRow}>
-                <Text style={styles.xpText}>8,420 XP</Text>
-                <Text style={styles.xpText}>10,000 XP</Text>
+                <Text style={styles.xpText}>{experiencePoints.toLocaleString()} XP</Text>
+                <Text style={styles.xpText}>{(experiencePoints + experienceToNext).toLocaleString()} XP</Text>
               </View>
-              <Text style={styles.xpToNext}>1,580 XP to next level</Text>
+              <Text style={styles.xpToNext}>{experienceToNext} XP to next level</Text>
             </View>
             <View style={styles.kpiMiniRow}>
               <View style={styles.kpiMini}>
                 <Ionicons name="flame" size={18} color={WARNING} />
-                <Text style={styles.kpiMiniValue}>47</Text>
+                <Text style={styles.kpiMiniValue}>{currentStreak}</Text>
                 <Text style={styles.kpiMiniLabel}>Day Streak</Text>
               </View>
               <View style={styles.kpiMini}>
                 <Ionicons name="trophy" size={18} color="#facc15" />
-                <Text style={styles.kpiMiniValue}>23</Text>
+                <Text style={styles.kpiMiniValue}>{earnedAchievements}</Text>
                 <Text style={styles.kpiMiniLabel}>Achievements</Text>
               </View>
               <View style={styles.kpiMini}>
                 <Ionicons name="star" size={18} color="#93c5fd" />
-                <Text style={styles.kpiMiniValue}>4.8</Text>
+                <Text style={styles.kpiMiniValue}>{avgScore.toFixed(1)}</Text>
                 <Text style={styles.kpiMiniLabel}>Avg Score</Text>
               </View>
             </View>
           </View>
 
           {/* Recent Achievement */}
-          <View style={styles.achievementCard}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={styles.achievementIcon}>
-                <Ionicons name="medal" size={18} color="#fde68a" />
-              </View>
-              <View>
-                <Text style={styles.achievementTitle}>New Achievement!</Text>
-                <Text style={styles.achievementSubtitle}>Quiz Master - 10 Perfect Scores</Text>
+          {earnedAchievements > 0 && (
+            <View style={styles.achievementCard}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={styles.achievementIcon}>
+                  <Ionicons name="medal" size={18} color="#fde68a" />
+                </View>
+                <View>
+                  <Text style={styles.achievementTitle}>New Achievement!</Text>
+                  <Text style={styles.achievementSubtitle}>
+                    {earnedAchievements} of {totalAchievements} Achievements Unlocked
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
+          )}
 
           {/* Learning Progress */}
           <View style={styles.card}>
@@ -94,12 +221,12 @@ const ProgressScreen = () => {
                 <Ionicons name="book" size={16} color={PRIMARY} />
                 <Text style={[styles.sectionTitle, { marginLeft: 8 }]}>Course Completion</Text>
               </View>
-              <Text style={styles.metaText}>7/10 modules</Text>
+              <Text style={styles.metaText}>{Math.round(courseProgress)}% Complete</Text>
             </View>
             <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: '70%', backgroundColor: PRIMARY }]} />
+              <View style={[styles.progressFill, { width: `${courseProgress}%`, backgroundColor: PRIMARY }]} />
             </View>
-            <Text style={styles.smallMuted}>70% Complete</Text>
+            <Text style={styles.smallMuted}>{courseProgress}% Complete</Text>
           </View>
 
           {/* Weekly Activity */}
@@ -108,7 +235,7 @@ const ProgressScreen = () => {
             <View style={styles.weeklyRow}>
               {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, idx) => (
                 <View key={idx} style={styles.weekItem}>
-                  <View style={[styles.weekBar, { height: weeklyHeights[idx] }]} />
+                  <View style={[styles.weekBar, { height: weeklyHeights[idx] || 20 }]} />
                   <Text style={styles.weekLabel}>{d}</Text>
                 </View>
               ))}
@@ -122,10 +249,14 @@ const ProgressScreen = () => {
                 <Ionicons name="fitness" size={16} color="#a855f7" />
                 <Text style={[styles.sectionTitle, { marginLeft: 8 }]}>Quiz Performance</Text>
               </View>
-              <Text style={styles.metaText}>Last 7 days</Text>
+              <Text style={styles.metaText}>Overall</Text>
             </View>
             <View style={styles.kpiGrid3}>
-              {[{ label: 'Accuracy', val: 90, color: SUCCESS }, { label: 'Speed', val: 85, color: PRIMARY }, { label: 'Overall', val: 92, color: '#a855f7' }].map((k, idx) => (
+              {[
+                { label: 'Accuracy', val: Math.round(quizProgress), color: SUCCESS }, 
+                { label: 'Completion', val: Math.round(learningProgress), color: PRIMARY }, 
+                { label: 'Overall', val: Math.round(overallProgress), color: '#a855f7' }
+              ].map((k, idx) => (
                 <View key={idx} style={styles.ringCard}>
                   <View style={styles.ringWrap}>
                     <View style={styles.ringOuter}>
@@ -148,7 +279,9 @@ const ProgressScreen = () => {
                 <Ionicons name="bar-chart" size={16} color={SUCCESS} />
                 <Text style={[styles.sectionTitle, { marginLeft: 8 }]}>Portfolio Growth</Text>
               </View>
-              <Text style={[styles.metaText, { color: SUCCESS }]}>+12.4%</Text>
+              <Text style={[styles.metaText, { color: portfolioGrowth >= 0 ? SUCCESS : '#ef4444' }]}>
+                {portfolioGrowth >= 0 ? '+' : ''}{portfolioGrowth.toFixed(1)}%
+              </Text>
             </View>
             <View style={styles.sparklineRow}>
               {sparklineHeights.map((h, i) => (
@@ -157,11 +290,11 @@ const ProgressScreen = () => {
             </View>
             <View style={styles.kpiRow}>
               <View style={styles.kpiCard}>
-                <Text style={styles.kpiValue}>₹1,12,400</Text>
+                <Text style={styles.kpiValue}>₹{portfolioValue.toLocaleString()}</Text>
                 <Text style={styles.smallMuted}>Portfolio Value</Text>
               </View>
               <View style={styles.kpiCard}>
-                <Text style={[styles.kpiValue, { color: SUCCESS }]}>68%</Text>
+                <Text style={[styles.kpiValue, { color: SUCCESS }]}>{winRate.toFixed(1)}%</Text>
                 <Text style={styles.smallMuted}>Win Rate</Text>
               </View>
             </View>
@@ -213,9 +346,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 24,
-  },
-  pagePadding: {
-    paddingHorizontal: 16,
   },
   pagePadding: {
     paddingHorizontal: 16,
@@ -519,6 +649,16 @@ const styles = StyleSheet.create({
   badgeLabel: {
     color: TEXT_MUTED,
     fontSize: 12,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: TEXT_MUTED,
   },
 });
 
