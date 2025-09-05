@@ -13,34 +13,37 @@
 
 ---
 
-### 🎯 **Quick Navigation**
-[![Quickstart](https://img.shields.io/badge/Jump%20to-Quickstart-22c55e?style=for-the-badge&logo=rocket)](https://github.com/your-username/investa#-quickstart)
-[![Architecture](https://img.shields.io/badge/View-Architecture-3b82f6?style=for-the-badge&logo=diagram-project)](https://github.com/your-username/investa#-architecture-overview)
-[![API Examples](https://img.shields.io/badge/Browse-API%20Examples-f59e0b?style=for-the-badge&logo=code)](https://github.com/your-username/investa#-api-examples)
-
 </div>
 
 ## 🎯 **Overview**
 
-**Investa** addresses core challenges faced by retail investors in India:
+### **Problem Statement**
+Many retail investors in India lack the knowledge and tools to navigate the securities market effectively. Available financial education resources are often complex, fragmented, or limited to English, making it difficult for a large segment of the population to access reliable information. This leads to uninformed decisions, susceptibility to misinformation, and financial losses.
+<div align="center">
+  <img src="assets/images/Major Problems - visual selection.png" alt="Major Problems in Indian Retail Investing" width="800"/>
+</div>
 
-- 🌍 **Multilingual investor education** with structured curricula
-- 🎓 **Trustworthy lessons** aligned to SEBI/NISM-style fundamentals  
-- 🎮 **Safe practice** via simulated trades and portfolio tracking
-- 📈 **Personalized, engaging learning flows** with quizzes and progress
+### **Impact of the Problems**
+
+<div align="center">
+  <img src="assets/images/Impacts of the problems.png" alt="Impacts of Investment Problems" width="800"/>
+</div>
 
 ---
 
-## ✨ **Feature Highlights**
+## 👥 **Target Audience**
 
-| Category | Features | Status |
-|:--------:|:---------|:------:|
-| 🎓 **Learning** | Courses → Lessons → Quizzes with progress, achievements | ✅ |
-| 👤 **Personalization** | Profiles, language preferences, privacy/security settings | ✅ |
-| 💼 **Practice** | Simulated trading, portfolio, watchlist, leaderboards | ✅ |
-| 🔔 **Notifications** | Read/unread, server-driven updates | ✅ |
-| 👨‍💼 **Admin** | Django Admin for full content management | ✅ |
-| 🔐 **Auth** | Token-based authentication and secure endpoints | ✅ |
+<div align="center">
+  <img src="assets/images/target audience.png" alt="Target Audience for Investa" width="800"/>
+</div>
+
+---
+
+## ✨ **Solution Features**
+
+<div align="center">
+  <img src="assets/images/Solution features.png" alt="Investa Solution Features" width="800"/>
+</div>
 
 ---
 
@@ -122,7 +125,8 @@ Investa/
 cd investa_backend
 python -m venv venv && source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-python manage.py migrate && python manage.py runserver
+python manage.py migrate
+python manage.py runserver 0.0.0.0:8000    # Bind to all interfaces for devices
 ```
 
 ### 📱 **Frontend (Expo)**
@@ -131,118 +135,21 @@ cd InvestaApp
 npm install
 npx expo install       # ensures compatible native deps
 npx expo doctor        # verify environment
-npm start              # then run on Android/iOS/Web
+
+# Set API base URL for device connectivity
+$env:EXPO_PUBLIC_API_BASE_URL="http://YOUR_PC_LAN_IP:8000/api/"
+npx expo start --clear
 ```
 
----
-
-## ⚙️ **Setup Guide**
-
-<details>
-<summary><b>🔧 Backend (Django)</b></summary>
-
-1) **Create & activate venv; install deps**
-```bash
-cd investa_backend
-python -m venv venv && source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-2) **Configure `.env` (see Environment Variables) and run DB**
-```bash
-python manage.py makemigrations && python manage.py migrate
-python manage.py runserver  # http://localhost:8000/
-```
-
-3) **Optional: create superuser**
-```bash
-python manage.py createsuperuser
-```
-
-**Admin Panel:** `http://localhost:8000/admin/`
-
-</details>
-
-<details>
-<summary><b>📱 Frontend (React Native / Expo)</b></summary>
-
-1) **Install deps**
-```bash
-cd InvestaApp
-npm install
-npx expo install
-```
-
-2) **Start the dev server**
-```bash
-npm start
-```
-
-3) **Open on device/emulator**
+### 📱 **Open on Device/Emulator**
 - 🤖 **Android:** `npm run android`
 - 🍎 **iOS (macOS):** `npm run ios`
 - 🌐 **Web:** `npm run web`
 
 > 💡 **Tip:** Ensure phone and computer are on the same network when using Expo Go.
 
-</details>
-
 ---
 
-## 🔧 **Environment Variables**
-
-**Backend `investa_backend/.env` (suggested):**
-```bash
-SECRET_KEY=replace-with-a-strong-secret-key
-DEBUG=True
-ALLOWED_HOSTS=127.0.0.1,localhost
-
-# Optional DB (defaults to SQLite)
-# DATABASE_URL=postgresql://user:password@host:port/dbname
-
-# CORS for Expo/Web dev (adjust as needed)
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:19006,http://127.0.0.1:19006
-```
-
-> ⚠️ **For production:** set `DEBUG=False`, configure `ALLOWED_HOSTS`, move to PostgreSQL, and harden CORS/CSRF.
-
----
-
-## 🗄️ **Data and Migrations**
-
-- 📦 **Migrations** in `api/migrations/` are critical and must be committed.
-- 🗃️ **Local DB files** like `db.sqlite3` should be gitignored (already configured).
-- 🌱 **Seed sample content:**
-```bash
-cd investa_backend
-python manage.py shell < populate_sample_data.py
-```
-- 👤 **Convenience users:**
-```bash
-python create_test_user.py
-python reset_test_user.py
-```
-
----
-
-## 📊 **Feature Matrix**
-
-| Area | Capability | Status | Icon |
-|:-----|:-----------|:------:|:----:|
-| 🔐 **Auth** | Register / Login / Token | ✅ | 🟢 |
-| 👤 **Profiles** | View / Update profile | ✅ | 🟢 |
-| 📚 **Learning** | Courses → Lessons → Quizzes | ✅ | 🟢 |
-| 📈 **Progress** | Lesson completion, module progress | ✅ | 🟢 |
-| 🔔 **Notifications** | Mark read, list | ✅ | 🟢 |
-| 💹 **Trading** | Portfolio, watchlist, leaderboards | ✅ | 🟢 |
-| 🔒 **Privacy/Security** | Settings & 2FA scaffolding | ✅ | 🟡 |
-| 🌍 **Localization** | Language selection | ✅ | 🟡 |
-
-> 🟢 **Implemented** | 🟡 **Basic UI, API stubs** | 🔴 **Not Started**
-
-> 💻 **Server-side implementations** live in `investa_backend/api/`; **mobile flows** in `InvestaApp/src/screens`.
-
----
 
 ## 🔌 **API Examples**
 
@@ -312,21 +219,6 @@ curl http://localhost:8000/api/trades/portfolio_summary/ \
 
 ---
 
-## 🛠️ **Developer Scripts**
-
-| Task | Command | Icon |
-|:-----|:--------|:----:|
-| 🚀 **Start Django (dev)** | `cd investa_backend && venv\Scripts\activate` (Win) → `python manage.py runserver` | 🔧 |
-| 🔄 **Run migrations** | `python manage.py makemigrations && python manage.py migrate` | 📦 |
-| 👑 **Create superuser** | `python manage.py createsuperuser` | 👤 |
-| 🌱 **Seed sample data** | `python manage.py shell < populate_sample_data.py` | 🌱 |
-| 📱 **Start Expo** | `cd InvestaApp && npm start` | 🚀 |
-| 🤖 **Android** | `cd InvestaApp && npm run android` | 📱 |
-| 🍎 **iOS (macOS)** | `cd InvestaApp && npm run ios` | 🍎 |
-| 🌐 **Web** | `cd InvestaApp && npm run web` | 🌐 |
-
----
-
 ## 🧪 **Testing**
 
 - 🧪 **Backend tests** can be added under `investa_backend/api/tests.py` or app-specific test modules.
@@ -336,56 +228,6 @@ curl http://localhost:8000/api/trades/portfolio_summary/ \
 cd investa_backend
 pytest  # or: python manage.py test
 ```
-
----
-
-## 🔍 **Troubleshooting**
-
-### 🚫 **Metro cache deserialization error:**
-```powershell
-# From InvestaApp
-Ctrl+C to stop Expo
-rd /s /q node_modules
-del /f /q package-lock.json
-npm cache verify
-del /s /q %TEMP%\metro-cache\*
-rd /s /q .expo
-rd /s /q .cache
-npm install
-npx expo start -c
-```
-
-### 📱 **Expo version alignment:**
-```powershell
-npx expo install
-npx expo install expo@53.0.22 @react-native-async-storage/async-storage@2.1.2 react-native-reanimated@~3.17.4 react-native-svg@15.11.2
-npx expo doctor
-```
-
-### ⚙️ **Reanimated config:**
-- Ensure `babel.config.js` includes `plugins: ['react-native-reanimated']`
-- Import once at the top of the app entry: `import 'react-native-reanimated';`
-
----
-
-## 📝 **Current App Behavior**
-
-- 📚 **Lesson Detail:** quiz section is shown directly (no "mark video complete" requirement). Mark-as-completed navigates back to the lesson list with completion info.
-- 📱 **Downloads/Leaderboard screens:** responsive updates prevent text overflow and maintain layout on smaller devices.
-
----
-
-## 🗺️ **Roadmap**
-
-- [x] 🗄️ Core data models (courses, lessons, quizzes, progress, trades)
-- [x] 🔐 Token auth + profile APIs
-- [x] 👨‍💼 Admin for content management
-- [x] 📱 Expo app scaffold with navigation and screens
-- [ ] 🔗 Connect app to live API + auth flow
-- [ ] 🌍 Multilingual content population
-- [ ] 🤖 AI-powered summaries and recommendations
-- [ ] 📊 Analytics dashboard and achievements
-- [ ] 🚀 Production deployment guides (API & App)
 
 ---
 
@@ -432,133 +274,3 @@ This project is part of the **Investa hackathon project**. All rights reserved.
 **Made with ❤️ for the Indian investor community**
 
 </div>
-
----
-
-## 🚀 Quickstart (Updated for Device + API Connectivity)
-
-### 1) Backend — Django (local dev)
-
-```powershell
-cd investa_backend
-./venv/Scripts/activate        # Windows PowerShell
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver 0.0.0.0:8000    # Bind to all interfaces for devices
-```
-
-- Health check (from phone or any client on LAN):
-  - `http://YOUR_PC_LAN_IP:8000/api/ping/` → should return `{ "status": "ok" }`
-
-Notes
-- `ALLOWED_HOSTS` and CORS are permissive in dev (see `investa_backend/investa_backend/settings.py`).
-- Keep it permissive only for development.
-
-### 2) Frontend — Expo (mobile device friendly)
-
-```powershell
-cd InvestaApp
-npm install
-
-# Option A: set full API base URL (recommended)
-$env:EXPO_PUBLIC_API_BASE_URL="http://YOUR_PC_LAN_IP:8000/api/"
-npx expo start --clear
-
-# Option B: set only LAN IP (app builds URL automatically)
-$env:EXPO_PUBLIC_LAN_IP="YOUR_PC_LAN_IP"
-npx expo start --clear
-```
-
-No shell access on phone? Configure in `InvestaApp/app.json` → `expo.extra`:
-
-```json
-{
-  "expo": {
-    "extra": {
-      "apiBaseUrl": "http://YOUR_PC_LAN_IP:8000/api/",
-      "lanIp": "YOUR_PC_LAN_IP"
-    }
-  }
-}
-```
-
-The app automatically picks:
-- `EXPO_PUBLIC_API_BASE_URL` → then `EXPO_PUBLIC_LAN_IP`/`LAN_IP` → then `app.json.extra.apiBaseUrl` → then `app.json.extra.lanIp` → then Expo LAN autodetect → emulator fallbacks.
-
-### 3) Test Login Flow
-
-- Use the login screen with your Django user (e.g., `john@example.com` / `testpass123`).
-- Backend endpoint: `POST /api/auth/login/` accepts email in the `username` field.
-- Successful login stores token and user in AsyncStorage and sets the axios `Authorization` header.
-
----
-
-## 🔧 Mobile Troubleshooting (Expo Go)
-
-- Device can’t reach `127.0.0.1`: Always use your PC’s LAN IP, not localhost.
-- Firewall: Allow inbound TCP 8000 for `python.exe` on Windows.
-- Same network: Ensure phone and PC are on the same Wi‑Fi/VLAN (no hotspot isolation/VPN blocking).
-- Health check first: `http://YOUR_PC_LAN_IP:8000/api/ping/` from the phone.
-- Expo logs show the exact URL requested. Look for:
-  - `🔗 API base URL: ...`
-  - `🔐 API Request - URL: ...`
-
-Emulators
-- Android emulator: `http://10.0.2.2:8000/`
-- Genymotion: `http://10.0.3.2:8000/`
-
-Axios retry fallbacks
-- The client retries across env URL/IP, Expo LAN IP, emulator hosts, and `127.0.0.1` (dev only).
-
----
-
-## 🌐 Make It Public (Temporary)
-
-- Ngrok
-  1) `python manage.py runserver 0.0.0.0:8000`
-  2) `ngrok http 8000`
-  3) Set `EXPO_PUBLIC_API_BASE_URL="https://your-id.ngrok-free.app/api/"`
-  4) Ensure Django `ALLOWED_HOSTS` includes the ngrok host or `*` in dev
-
-- Cloudflare Tunnel: similar flow; stable free subdomain.
-
-Production note
-- Re-enable robust auth and restrict CORS/ALLOWED_HOSTS for production.
-
----
-
-## 🧭 Where Things Live (Auth & Config)
-
-- App base URL resolver: `InvestaApp/src/config/config.ts`
-  - Reads `EXPO_PUBLIC_API_BASE_URL`, `EXPO_PUBLIC_LAN_IP`/`LAN_IP`, then `app.json.extra`.
-- Axios client & retries: `InvestaApp/src/services/api.ts`
-- Auth API: `InvestaApp/src/services/authApi.ts`
-- Auth context and login flow: `InvestaApp/src/context/AuthContext.tsx`
-- Backend auth endpoints: `investa_backend/api/urls/api.py`
-  - `auth/login/`, `auth/register/`, `auth/me/`, `auth/logout/`, `ping/`
-- Backend auth view: `investa_backend/api/views/auth.py`
-
----
-
-## 🖌️ UI Notes (Home Screen)
-
-- Polished layout to avoid overlaps and heavy shadows:
-  - Two-column card grid with fixed spacing.
-  - Lighter shadows/elevation on cards.
-  - Spacing between Daily Tip and Quick Access, and unclipped Achievements.
-- File: `InvestaApp/src/screens/main/HomeScreen.tsx`
-
----
-
-## ✅ Smoke Tests
-
-Backend
-```bash
-curl http://YOUR_PC_LAN_IP:8000/api/ping/
-curl -X POST http://YOUR_PC_LAN_IP:8000/api/auth/login/ \
-  -H "Content-Type: application/json" \
-  -d '{"username":"john@example.com","password":"testpass123"}'
-```
-
-Frontend
-- Start Expo with the proper base URL and try logging in from the device.
