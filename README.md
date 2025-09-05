@@ -50,41 +50,133 @@ Many retail investors in India lack the knowledge and tools to navigate the secu
 ## 🏗️ **Architecture Overview**
 
 ```mermaid
-flowchart LR
-  %% Client Layer
-  subgraph Client["📱 Client: Expo React Native (Android / iOS / Web)"]
-    UI["🖥️ Screens & Components\n🧭 Navigation (AppNavigator)\n🔗 Context & Hooks"]
-    Services["🔌 Services\n📡 api.ts, authApi, profileApi, tradingApi"]
+flowchart TB
+  %% User Layer
+  subgraph Users["👥 Users"]
+    Mobile["📱 Mobile Users\n(Android/iOS)"]
+    Web["🌐 Web Users"]
+    Admin["👨‍💼 Admin Users"]
   end
 
-  %% API Layer
-  subgraph API["⚙️ Django REST API (investa_backend/api)"]
-    Auth["🔐 Auth & Users"]
-    Learning["📚 Learning\n📖 Courses • 📝 Lessons • ❓ Quizzes • 📊 Progress"]
-    Trading["💹 Trading\n💼 Portfolio • 📋 Orders • 🏆 Leaderboard"]
-    Notify["🔔 Notifications"]
-    Privacy["🔒 Privacy & Security"]
+  %% Client Applications
+  subgraph ClientLayer["📱 Client Applications"]
+    subgraph MobileApp["📱 React Native App (Expo)"]
+      UI["🖥️ UI Components\n• Screens\n• Navigation\n• Context & Hooks"]
+      Services["🔌 API Services\n• authApi\n• profileApi\n• tradingApi\n• progressApi"]
+      Storage["💾 Local Storage\n• AsyncStorage\n• Secure Storage"]
+    end
+    
+    subgraph WebApp["🌐 Web Application"]
+      WebUI["🖥️ Web UI\n• React Components\n• Responsive Design"]
+      WebServices["🔌 Web Services\n• API Integration\n• State Management"]
+    end
   end
 
-  %% Data / Integrations
-  subgraph Data["💾 Persistence & Integrations"]
-    DB[("🗄️ Relational DB")]
-    Media[("📁 Media Storage")]
-    Market[("📈 Market Data Provider")]
-    Cache[("⚡ Caching Layer")] 
+  %% API Gateway & Load Balancer
+  subgraph Gateway["🚪 API Gateway"]
+    LoadBalancer["⚖️ Load Balancer"]
+    RateLimit["🛡️ Rate Limiting"]
+    CORS["🔒 CORS Handler"]
   end
 
-  %% Flows
-  UI -->|"REST via Services"| API
-  Services -->|"Token Auth"| Auth
-  Auth --> DB
-  Learning --> DB
-  Trading --> DB
-  Notify --> DB
-  API -. "uploads" .-> Media
-  Trading -. "ingests" .-> Market
-  API <--> Cache
-  API <-. "CORS" .-> Client
+  %% Backend Services
+  subgraph BackendServices["⚙️ Backend Services (Django)"]
+    subgraph AuthService["🔐 Authentication Service"]
+      AuthAPI["🔑 Auth API\n• Login/Register\n• Token Management\n• 2FA"]
+      UserMgmt["👤 User Management\n• Profiles\n• Preferences\n• Security"]
+    end
+    
+    subgraph LearningService["📚 Learning Service"]
+      CourseAPI["📖 Course API\n• Course Management\n• Content Delivery"]
+      LessonAPI["📝 Lesson API\n• Video/Audio Content\n• Progress Tracking"]
+      QuizAPI["❓ Quiz API\n• Question Management\n• Assessment Engine"]
+      ProgressAPI["📊 Progress API\n• Completion Tracking\n• Analytics"]
+    end
+    
+    subgraph TradingService["💹 Trading Service"]
+      PortfolioAPI["💼 Portfolio API\n• Holdings Management\n• P&L Calculation"]
+      OrderAPI["📋 Order API\n• Order Placement\n• Execution Engine"]
+      MarketAPI["📈 Market API\n• Real-time Data\n• Price Feeds"]
+      LeaderboardAPI["🏆 Leaderboard API\n• Rankings\n• Competition"]
+    end
+    
+    subgraph NotificationService["🔔 Notification Service"]
+      PushAPI["📲 Push Notifications\n• Mobile Push\n• Web Push"]
+      EmailAPI["📧 Email Service\n• Transactional\n• Marketing"]
+      InAppAPI["🔔 In-App Notifications\n• Real-time Updates"]
+    end
+  end
+
+  %% Data Layer
+  subgraph DataLayer["💾 Data Layer"]
+    subgraph PrimaryDB["🗄️ Primary Database (PostgreSQL)"]
+      UserDB[("👤 Users & Auth")]
+      LearningDB[("📚 Learning Data")]
+      TradingDB[("💹 Trading Data")]
+      AnalyticsDB[("📊 Analytics")]
+    end
+    
+    subgraph CacheLayer["⚡ Caching Layer"]
+      Redis[("🔄 Redis Cache\n• Session Storage\n• API Caching")]
+      CDN[("🌐 CDN\n• Static Assets\n• Media Files")]
+    end
+    
+    subgraph FileStorage["📁 File Storage"]
+      MediaStorage[("🎥 Media Storage\n• Videos\n• Images\n• Documents")]
+      BackupStorage[("💾 Backup Storage\n• Data Backup\n• Disaster Recovery")]
+    end
+  end
+
+  %% External Services
+  subgraph ExternalServices["🌐 External Services"]
+    MarketData["📈 Market Data Providers\n• NSE/BSE APIs\n• Real-time Feeds"]
+    PaymentGateway["💳 Payment Gateway\n• Razorpay\n• Stripe"]
+    SMSService["📱 SMS Service\n• OTP Delivery\n• Notifications"]
+    EmailService["📧 Email Service\n• SendGrid\n• AWS SES"]
+  end
+
+  %% Security & Monitoring
+  subgraph SecurityMonitoring["🛡️ Security & Monitoring"]
+    Security["🔒 Security\n• JWT Tokens\n• Rate Limiting\n• Encryption"]
+    Monitoring["📊 Monitoring\n• Application Logs\n• Performance Metrics\n• Error Tracking"]
+    Analytics["📈 Analytics\n• User Behavior\n• Business Metrics"]
+  end
+
+  %% Connections
+  Users --> ClientLayer
+  MobileApp --> Gateway
+  WebApp --> Gateway
+  Gateway --> BackendServices
+  
+  AuthService --> UserDB
+  LearningService --> LearningDB
+  TradingService --> TradingDB
+  NotificationService --> AnalyticsDB
+  
+  BackendServices --> CacheLayer
+  BackendServices --> FileStorage
+  
+  TradingService -.-> MarketData
+  AuthService -.-> SMSService
+  NotificationService -.-> EmailService
+  
+  BackendServices --> SecurityMonitoring
+  ClientLayer --> SecurityMonitoring
+
+  %% Styling
+  classDef userClass fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+  classDef clientClass fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+  classDef backendClass fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+  classDef dataClass fill:#fff3e0,stroke:#e65100,stroke-width:2px
+  classDef externalClass fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+  classDef securityClass fill:#f1f8e9,stroke:#33691e,stroke-width:2px
+
+  class Users userClass
+  class ClientLayer,MobileApp,WebApp clientClass
+  class BackendServices,AuthService,LearningService,TradingService,NotificationService backendClass
+  class DataLayer,PrimaryDB,CacheLayer,FileStorage dataClass
+  class ExternalServices,MarketData,PaymentGateway,SMSService,EmailService externalClass
+  class SecurityMonitoring,Security,Monitoring,Analytics securityClass
 ```
 
 ---
