@@ -243,6 +243,7 @@ cd investa_backend
 python -m venv venv && source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python manage.py migrate
+python pouplate_sample_data.py # add some sample data to make it run and work
 python manage.py runserver 0.0.0.0:8000    # Bind to all interfaces for devices
 ```
 
@@ -263,7 +264,7 @@ npx expo start --clear
 - 🍎 **iOS (macOS):** `npm run ios`
 - 🌐 **Web:** `npm run web`
 
-> 💡 **Tip:** Ensure phone and computer are on the same network when using Expo Go.
+> 💡 **Tip:** Ensure phone and computer are on the same network when using Expo Go. Also make sure that both IP matches and works with each other and add them in env variables, otherwise it will not able to make pai calls and fails.
 
 ---
 
