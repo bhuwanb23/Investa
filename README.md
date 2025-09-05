@@ -1,6 +1,7 @@
 <div align="center">
+  <img src="InvestaApp\assets\investa_logo.png" alt="Major Problems in Indian Retail Investing" width="80"/>
 
-# 🚀 Investa — Multilingual Investor Education + Paper Trading Platform
+# Investa - Multilingual Investor Education + Paper Trading Platform
 
 > *Empowering retail investors in India with financial literacy through structured learning and simulated trading*
 
@@ -31,6 +32,14 @@ Many retail investors in India lack the knowledge and tools to navigate the secu
 
 ---
 
+## ✨ **Solution Features**
+
+<div align="center">
+  <img src="assets/images/Solution features.png" alt="Investa Solution Features" width="800"/>
+</div>
+
+---
+
 ## 👥 **Target Audience**
 
 <div align="center">
@@ -39,11 +48,25 @@ Many retail investors in India lack the knowledge and tools to navigate the secu
 
 ---
 
-## ✨ **Solution Features**
+## ✅ **Feasibility**
 
 <div align="center">
-  <img src="assets/images/Solution features.png" alt="Investa Solution Features" width="800"/>
+  <img src="assets/images/feasibility.png" alt="Project Feasibility Analysis" width="800"/>
 </div>
+
+---
+
+## 📈 **Scalability**
+
+<div align="center">
+  <img src="assets/images/scalibility.png" alt="Platform Scalability Strategy" width="800"/>
+</div>
+
+## **SWOT**
+<div align="center">
+  <img src="assets/images/swot.png" alt="Platform Scalability Strategy" width="800"/>
+</div>
+
 
 ---
 
