@@ -33,11 +33,12 @@ Many retail investors in India lack the knowledge and tools to navigate the secu
 ---
 
 ## ✨ **Solution Features**
+Investa is a multilingual, interactive app that empowers retail investors with financial literacy, simulated trading, and regulatory awareness. It combines engaging tutorials, quizzes, and paper trading with vernacular support, making market knowledge accessible, safe, and practical for first-time and experienced investors alike.
 
 <div align="center">
   <img src="assets/images/Solution features.png" alt="Investa Solution Features" width="800"/>
 </div>
-
+The app offers learning modules on stock market basics, quizzes with progress tracking, simulated trading with delayed data, and a personalized dashboard. Unique features include vernacular translation of SEBI updates, gamified achievements, and AI-powered summaries that simplify complex regulations for everyday investors.
 ---
 
 ## 👥 **Target Audience**
@@ -49,7 +50,7 @@ Many retail investors in India lack the knowledge and tools to navigate the secu
 ---
 
 ## ✅ **Feasibility**
-
+Built with a cross-platform tech stack, Investa ensures cost-effective and reliable deployment. By using delayed market data and simulated trading, it avoids regulatory hurdles. Its lightweight design makes it accessible even on low-end devices, ensuring inclusivity and real-world implementability.
 <div align="center">
   <img src="assets/images/feasibility.png" alt="Project Feasibility Analysis" width="800"/>
 </div>
@@ -57,12 +58,13 @@ Many retail investors in India lack the knowledge and tools to navigate the secu
 ---
 
 ## 📈 **Scalability**
-
+Investa is designed for mass adoption with its mobile-first, multilingual, and modular architecture. It can scale across millions of users, integrate seamlessly with SEBI and exchange platforms, and expand content to cover new asset classes like bonds, ETFs, and mutual funds.
 <div align="center">
   <img src="assets/images/scalibility.png" alt="Platform Scalability Strategy" width="800"/>
 </div>
 
 ## **SWOT**
+Investa’s strengths lie in its multilingual support, safe simulations, and SEBI alignment. While adoption challenges and data dependencies exist, it has vast opportunities in untapped markets and future AI integration. Competing apps and regulatory restrictions pose threats, but its unique value ensures resilience.
 <div align="center">
   <img src="assets/images/swot.png" alt="Platform Scalability Strategy" width="800"/>
 </div>
