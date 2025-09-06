@@ -19,6 +19,7 @@ import MainHeader from '../../components/MainHeader';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import LogoLoader from '../../components/LogoLoader';
+import { useTranslation } from '../../language';
 
 const { width, height } = Dimensions.get('window');
 
@@ -39,6 +40,10 @@ const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const { user, logout } = useAuth();
   const [showBootLoader, setShowBootLoader] = useState(true);
+  const { t } = useTranslation();
+  
+  // Debug log to verify language is working
+  console.log('HomeScreen - Selected Language:', t.language);
 
   // Animation refs
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -100,18 +105,19 @@ const HomeScreen = () => {
 
   const handleLogout = () => {
     Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
+      t.logout,
+      t.logoutMessage,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t.cancel, style: 'cancel' },
         {
-          text: 'Logout',
+          text: t.logout,
           style: 'destructive',
           onPress: () => logout()
         }
       ]
     );
   };
+
 
   // Mock data - replace with actual API data
   const userProgress = {
@@ -125,42 +131,42 @@ const HomeScreen = () => {
   const quickAccessItems = [
     {
       id: 1,
-      title: 'Learn',
-      subtitle: 'Master trading basics',
+      title: t.learn,
+      subtitle: t.masterTradingBasics,
       icon: 'school',
       color: '#3B82F6',
       bgColor: '#DBEAFE',
-      badge: '3 new lessons',
+      badge: t.newLessons,
       onPress: () => navigation.navigate('Courses'),
     },
     {
       id: 2,
-      title: 'Quiz',
-      subtitle: 'Test your knowledge',
+      title: t.quiz,
+      subtitle: t.testYourKnowledge,
       icon: 'help-circle',
       color: '#059669',
       bgColor: '#DCFCE7',
-      badge: '85% accuracy',
+      badge: t.accuracy,
       onPress: () => navigation.navigate('Quiz'),
     },
     {
       id: 3,
-      title: 'Trade',
-      subtitle: 'Practice trading',
+      title: t.trade,
+      subtitle: t.practiceTrading,
       icon: 'trending-up',
       color: '#06B6D4',
       bgColor: '#CFFAFE',
-      badge: '$12,450 profit',
+      badge: t.profit,
       onPress: () => navigation.navigate('Trading'),
     },
     {
       id: 4,
-      title: 'Progress',
-      subtitle: 'Track performance',
+      title: t.progress,
+      subtitle: t.trackPerformance,
       icon: 'analytics',
       color: '#7C3AED',
       bgColor: '#F3E8FF',
-      badge: 'Level 7',
+      badge: t.level,
       onPress: () => navigation.navigate('Progress'),
     },
   ];
@@ -168,25 +174,25 @@ const HomeScreen = () => {
   const learningPathItems = [
     {
       id: 1,
-      title: 'Trading Fundamentals',
+      title: t.tradingFundamentals,
       status: 'completed',
-      description: 'Completed',
+      description: t.completed,
       icon: 'checkmark',
       color: '#059669',
     },
     {
       id: 2,
-      title: 'Technical Analysis',
+      title: t.technicalAnalysis,
       status: 'in-progress',
-      description: 'In Progress (60%)',
+      description: t.inProgress,
       icon: 'play',
       color: '#0891B2',
     },
     {
       id: 3,
-      title: 'Risk Management',
+      title: t.riskManagement,
       status: 'locked',
-      description: 'Locked',
+      description: t.locked,
       icon: 'lock-closed',
       color: '#9CA3AF',
     },
@@ -202,28 +208,28 @@ const HomeScreen = () => {
   const achievements = [
     {
       id: 1,
-      title: 'First Trade',
+      title: t.firstTrade,
       icon: 'trophy',
       bgColor: '#FEF3C7',
       iconColor: '#D97706',
     },
     {
       id: 2,
-      title: 'Quiz Master',
+      title: t.quizMaster,
       icon: 'medal',
       bgColor: '#DBEAFE',
       iconColor: '#2563EB',
     },
     {
       id: 3,
-      title: '7 Day Streak',
+      title: t.dayStreak,
       icon: 'star',
       bgColor: '#DCFCE7',
       iconColor: '#16A34A',
     },
     {
       id: 4,
-      title: 'Expert Level',
+      title: t.expertLevel,
       icon: 'diamond',
       bgColor: '#F3E8FF',
       iconColor: '#7C3AED',
@@ -232,22 +238,22 @@ const HomeScreen = () => {
 
   // New sample content
   const dailyTip = {
-    title: 'Daily Tip',
+    title: t.dailyTip,
     icon: 'bulb',
-    message: 'Diversify across sectors to lower risk. Rebalance quarterly to maintain target allocation.',
+    message: t.tipMessage,
   };
 
   const recommendedCourses = [
-    { id: 'rc1', title: 'Market Basics 101', level: 'Beginner', progress: 0.3, color: '#3B82F6' },
-    { id: 'rc2', title: 'Reading Candlesticks', level: 'Intermediate', progress: 0.55, color: '#10B981' },
-    { id: 'rc3', title: 'Options Essentials', level: 'Advanced', progress: 0.1, color: '#7C3AED' },
+    { id: 'rc1', title: t.marketBasics, level: t.beginner, progress: 0.3, color: '#3B82F6' },
+    { id: 'rc2', title: t.readingCandlesticks, level: t.intermediate, progress: 0.55, color: '#10B981' },
+    { id: 'rc3', title: t.optionsEssentials, level: t.advanced, progress: 0.1, color: '#7C3AED' },
   ];
 
   const trendingStocks = [
-    { symbol: 'AAPL', name: 'Apple', change: '+1.8%', up: true },
-    { symbol: 'TSLA', name: 'Tesla', change: '-0.7%', up: false },
-    { symbol: 'NVDA', name: 'Nvidia', change: '+2.4%', up: true },
-    { symbol: 'AMZN', name: 'Amazon', change: '+0.9%', up: true },
+    { symbol: 'AAPL', name: t.apple, change: '+1.8%', up: true },
+    { symbol: 'TSLA', name: t.tesla, change: '-0.7%', up: false },
+    { symbol: 'NVDA', name: t.nvidia, change: '+2.4%', up: true },
+    { symbol: 'AMZN', name: t.amazon, change: '+0.9%', up: true },
   ];
 
   const renderWelcomeSection = () => (
@@ -272,8 +278,8 @@ const HomeScreen = () => {
             style={styles.profileImage}
           />
           <View style={styles.welcomeText}>
-            <Text style={styles.welcomeTitle}>Welcome back, {user?.username || 'Sarah'}!</Text>
-            <Text style={styles.welcomeSubtitle}>Ready to level up your trading skills?</Text>
+            <Text style={styles.welcomeTitle}>{t.welcomeBack.replace('{username}', user?.username || 'Sarah')}</Text>
+            <Text style={styles.welcomeSubtitle}>{t.readyToLevelUp}</Text>
           </View>
         </View>
       </View>
@@ -284,27 +290,27 @@ const HomeScreen = () => {
             <Ionicons name="book" size={14} color="#fff" />
           </View>
           <Text style={styles.statValue}>{userProgress.completedLessons}</Text>
-          <Text style={styles.statLabel}>Lessons</Text>
+          <Text style={styles.statLabel}>{t.lessons}</Text>
         </View>
         <View style={[styles.statCard, { backgroundColor: 'rgba(255,255,255,0.12)' }]}>
           <View style={[styles.statIcon, { backgroundColor: 'rgba(255,255,255,0.18)' }]}>
             <Ionicons name="flame" size={14} color="#fff" />
           </View>
           <Text style={styles.statValue}>{userProgress.currentStreak}d</Text>
-          <Text style={styles.statLabel}>Streak</Text>
+          <Text style={styles.statLabel}>{t.streak}</Text>
         </View>
         <View style={[styles.statCard, { backgroundColor: 'rgba(255,255,255,0.12)' }]}>
           <View style={[styles.statIcon, { backgroundColor: 'rgba(255,255,255,0.18)' }]}>
             <Ionicons name="trophy" size={14} color="#fff" />
           </View>
           <Text style={styles.statValue}>{userProgress.totalPoints}</Text>
-          <Text style={styles.statLabel}>Points</Text>
+          <Text style={styles.statLabel}>{t.points}</Text>
         </View>
       </View>
 
       <View style={styles.progressContainer}>
         <View style={styles.progressHeader}>
-          <Text style={styles.progressLabel}>Overall Progress</Text>
+          <Text style={styles.progressLabel}>{t.overallProgress}</Text>
           <Text style={styles.progressPercentage}>{Math.round(userProgress.overallProgress * 100)}%</Text>
         </View>
         <View style={styles.progressBarBackground}>
@@ -331,7 +337,7 @@ const HomeScreen = () => {
 
   const renderQuickAccess = () => (
     <View style={styles.quickAccessSection}>
-      <Text style={styles.sectionTitle}>Quick Access</Text>
+      <Text style={styles.sectionTitle}>{t.quickAccess}</Text>
       <FlatList
         data={quickAccessItems}
         keyExtractor={(item) => item.id.toString()}
@@ -379,7 +385,7 @@ const HomeScreen = () => {
 
   const renderLearningPath = () => (
     <View style={styles.learningPathSection}>
-      <Text style={styles.sectionTitle}>Learning Path</Text>
+      <Text style={styles.sectionTitle}>{t.learningPath}</Text>
       <View style={styles.learningPathList}>
         {learningPathItems.map((item, index) => (
           <Animated.View 
@@ -429,21 +435,21 @@ const HomeScreen = () => {
   const renderPortfolioSnapshot = () => (
     <View style={styles.portfolioSection}>
       <View style={styles.portfolioHeader}>
-        <Text style={styles.sectionTitle}>Simulated Portfolio</Text>
+        <Text style={styles.sectionTitle}>{t.simulatedPortfolio}</Text>
         <Text style={styles.portfolioProfit}>{portfolioData.profitPercentage}</Text>
       </View>
       <View style={styles.portfolioStats}>
         <View style={styles.portfolioStat}>
           <Text style={styles.portfolioValue}>{portfolioData.totalValue}</Text>
-          <Text style={styles.portfolioLabel}>Total Value</Text>
+          <Text style={styles.portfolioLabel}>{t.totalValue}</Text>
         </View>
         <View style={styles.portfolioStat}>
           <Text style={styles.portfolioProfitValue}>{portfolioData.profit}</Text>
-          <Text style={styles.portfolioLabel}>Profit</Text>
+          <Text style={styles.portfolioLabel}>{t.profit}</Text>
         </View>
         <View style={styles.portfolioStat}>
           <Text style={styles.portfolioValue}>{portfolioData.totalTrades}</Text>
-          <Text style={styles.portfolioLabel}>Trades</Text>
+          <Text style={styles.portfolioLabel}>{t.trades}</Text>
         </View>
       </View>
     </View>
@@ -451,7 +457,7 @@ const HomeScreen = () => {
 
   const renderAchievements = () => (
     <View style={styles.achievementsSection}>
-      <Text style={styles.sectionTitle}>Your Achievements</Text>
+      <Text style={styles.sectionTitle}>{t.yourAchievements}</Text>
       <View style={styles.achievementsContainer}>
         <ScrollView
           horizontal
@@ -517,7 +523,7 @@ const HomeScreen = () => {
 
   const renderRecommended = () => (
     <View style={styles.recommendedSection}>
-      <Text style={styles.sectionTitle}>Recommended For You</Text>
+      <Text style={styles.sectionTitle}>{t.recommendedForYou}</Text>
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false} 
@@ -551,7 +557,7 @@ const HomeScreen = () => {
               <Text style={styles.recoTitle} numberOfLines={2}>{c.title}</Text>
               <Text style={styles.recoSub}>{c.level}</Text>
               <View style={styles.recoTrack}><View style={[styles.recoFill, { width: `${Math.round(c.progress * 100)}%`, backgroundColor: c.color }]} /></View>
-              <Text style={styles.recoHint}>{Math.round(c.progress * 100)}% complete</Text>
+              <Text style={styles.recoHint}>{Math.round(c.progress * 100)}% {t.complete}</Text>
             </TouchableOpacity>
           </Animated.View>
         ))}
@@ -561,7 +567,7 @@ const HomeScreen = () => {
 
   const renderMarket = () => (
     <View style={styles.marketSection}>
-      <Text style={styles.sectionTitle}>Market Snapshot</Text>
+      <Text style={styles.sectionTitle}>{t.marketSnapshot}</Text>
       <View style={styles.marketList}>
         {trendingStocks.map((s, index) => (
           <Animated.View 
@@ -617,8 +623,8 @@ const HomeScreen = () => {
           <Ionicons name="sparkles" size={18} color="#fff" />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.bigCTATitle}>Continue Learning</Text>
-          <Text style={styles.bigCTASub}>Pick up where you left off in Technical Analysis</Text>
+          <Text style={styles.bigCTATitle}>{t.continueLearning}</Text>
+          <Text style={styles.bigCTASub}>{t.pickUpWhereLeftOff}</Text>
         </View>
         <View style={styles.ctaRight}><Ionicons name="arrow-forward" size={16} color="#fff" /></View>
       </TouchableOpacity>
@@ -642,7 +648,7 @@ const HomeScreen = () => {
         overScrollMode="always"
         scrollEventThrottle={16}
       >
-        <MainHeader title="Home" iconName="home" />
+        <MainHeader title={t.title} iconName="home" />
         {renderWelcomeSection()}
         {renderDailyTip()}
         {renderQuickAccess()}

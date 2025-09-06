@@ -17,6 +17,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { useProfile } from '../../hooks';
 import { useTranslation } from '../../language';
+import { useLanguage } from '../../context/LanguageContext';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -25,10 +26,10 @@ const TEXT_MUTED = '#6b7280';
 
 const ProfileScreen = () => {
   const [bootLoader, setBootLoader] = useState(true);
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const { selectedLanguage, setSelectedLanguage } = useLanguage();
   const { logout, user } = useAuth();
   const navigation = useNavigation();
-  const { t } = useTranslation(selectedLanguage);
+  const { t } = useTranslation();
   const { 
     profile, 
     isLoading, 
@@ -53,27 +54,22 @@ const ProfileScreen = () => {
   const handleSettingPress = (settingType: string) => {
     switch (settingType) {
       case 'notifications':
-        (navigation as any).navigate('Notifications', { selectedLanguage });
+        (navigation as any).navigate('Notifications');
         break;
       case 'privacy':
-        (navigation as any).navigate('PrivacySettings', { selectedLanguage });
+        (navigation as any).navigate('PrivacySettings');
         break;
       case 'security':
-        (navigation as any).navigate('SecuritySettings', { selectedLanguage });
+        (navigation as any).navigate('SecuritySettings');
         break;
       case 'twoFactor':
-        (navigation as any).navigate('TwoFactorAuth', { selectedLanguage });
+        (navigation as any).navigate('TwoFactorAuth');
         break;
       default:
         console.log('Unknown setting type:', settingType);
     }
   };
 
-  const handleLanguageSelect = (languageCode: string) => {
-    setSelectedLanguage(languageCode);
-    // Here you would typically save the language preference to the backend
-    console.log('Language selected:', languageCode);
-  };
 
   // Fetch profile data on component mount only if user is authenticated
   useEffect(() => {
@@ -365,9 +361,6 @@ const ProfileScreen = () => {
               </View>
             </View>
             <LanguageSelector
-              selectedLanguage={selectedLanguage}
-              onLanguageSelect={handleLanguageSelect}
-              currentLanguage={selectedLanguage}
               style={styles.languageSelector}
             />
             

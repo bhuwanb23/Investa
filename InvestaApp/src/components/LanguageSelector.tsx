@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supportedLanguages, translations, TranslationKey } from '../language';
+import { useLanguage } from '../context/LanguageContext';
 
 const PRIMARY = '#4f46e5';
 const TEXT_DARK = '#111827';
@@ -17,25 +18,20 @@ const TEXT_MUTED = '#6b7280';
 const PAGE_BG = '#f9fafb';
 
 interface LanguageSelectorProps {
-  selectedLanguage?: string;
-  onLanguageSelect: (languageCode: string) => void;
   style?: any;
-  currentLanguage?: string;
 }
 
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({
-  selectedLanguage = 'en',
-  onLanguageSelect,
   style,
-  currentLanguage = 'en',
 }) => {
+  const { selectedLanguage, setSelectedLanguage } = useLanguage();
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const selectedLang = supportedLanguages.find(lang => lang.code === selectedLanguage) || supportedLanguages[0];
-  const t = translations[currentLanguage as keyof typeof translations] || translations.en;
+  const t = translations[selectedLanguage as keyof typeof translations] || translations.en;
 
   const handleLanguageSelect = (languageCode: string) => {
-    onLanguageSelect(languageCode);
+    setSelectedLanguage(languageCode);
     setIsModalVisible(false);
   };
 

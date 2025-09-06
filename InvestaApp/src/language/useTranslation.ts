@@ -1,10 +1,12 @@
 import { translations } from './config';
+import { useLanguage } from '../context/LanguageContext';
 
-export const useTranslation = (language: string = 'en') => {
-  const t = translations[language as keyof typeof translations] || translations.en;
+export const useTranslation = () => {
+  const { selectedLanguage } = useLanguage();
+  const t = translations[selectedLanguage as keyof typeof translations] || translations.en;
   
   return {
     t,
-    language,
+    language: selectedLanguage,
   };
 };

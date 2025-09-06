@@ -5,6 +5,8 @@ import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-
 import { Provider as PaperProvider } from 'react-native-paper';
 import AppNavigator from './src/navigation/AppNavigator';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { LanguageProvider, useLanguage } from './src/context/LanguageContext';
+import { useTranslation } from './src/language';
 import { NavigationContainer, DefaultTheme, DarkTheme, createNavigationContainerRef } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
@@ -17,20 +19,23 @@ export default function App() {
 	const theme = scheme === 'dark' ? DarkTheme : DefaultTheme;
 	return (
 		<AuthProvider>
-			<PaperProvider>
-				<SafeAreaProvider>
-					<View style={{ flex: 1 }}>
-						<AppShell theme={theme} />
-					</View>
-					<StatusBar style="auto" />
-				</SafeAreaProvider>
-			</PaperProvider>
+			<LanguageProvider>
+				<PaperProvider>
+					<SafeAreaProvider>
+						<View style={{ flex: 1 }}>
+							<AppShell theme={theme} />
+						</View>
+						<StatusBar style="auto" />
+					</SafeAreaProvider>
+				</PaperProvider>
+			</LanguageProvider>
 		</AuthProvider>
 	);
 }
 
 const AppShell = ({ theme }: { theme: any }) => {
 	const { user } = useAuth();
+	const { t } = useTranslation();
 	const [active, setActive] = useState<string | undefined>(undefined);
 	const insets = useSafeAreaInsets();
 	const PRIMARY = '#4f46e5';
@@ -61,19 +66,19 @@ const AppShell = ({ theme }: { theme: any }) => {
 					<View style={styles.navbar}>
 						<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Home')}>
 							<Image source={require('./assets/investa_logo.png')} style={{ width: 22, height: 22, borderRadius: 6 }} resizeMode="contain" />
-							<Text style={labelStyle('Home')}>Home</Text>
+							<Text style={labelStyle('Home')}>{t.title}</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Courses')}>
 							<Ionicons name="library" size={20} color={colorFor('Courses')} />
-							<Text style={labelStyle('Courses')}>Courses</Text>
+							<Text style={labelStyle('Courses')}>{t.learn}</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Trading')}>
 							<Ionicons name="trending-up" size={20} color={colorFor('Trading')} />
-							<Text style={labelStyle('Trading')}>Trading</Text>
+							<Text style={labelStyle('Trading')}>{t.trade}</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Progress')}>
 							<Ionicons name="analytics" size={20} color={colorFor('Progress')} />
-							<Text style={labelStyle('Progress')}>Progress</Text>
+							<Text style={labelStyle('Progress')}>{t.progress}</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.navItem} onPress={() => navigationRef.isReady() && navigationRef.navigate('Profile')}>
 							<Ionicons name="person" size={20} color={colorFor('Profile')} />

@@ -22,12 +22,10 @@ const SecuritySettings = ({ navigation, route }: any) => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   
-  // Get language from navigation params, fallback to 'en'
-  const selectedLanguage = route?.params?.selectedLanguage || 'en';
-  const { t } = useTranslation(selectedLanguage);
+  const { t } = useTranslation();
   
-  // Debug log to verify language is being passed correctly
-  console.log('SecuritySettings - Selected Language:', selectedLanguage);
+  // Debug log to verify language is working
+  console.log('SecuritySettings - Selected Language:', t.language);
 
   const handleBack = () => {
     navigation.goBack();

@@ -2,6 +2,7 @@ import { profileTranslations } from './pages/profile';
 import { twoFactorAuthTranslations } from './pages/twoFactorAuth';
 import { securitySettingsTranslations } from './pages/securitySettings';
 import { privacySettingsTranslations } from './pages/privacySettings';
+import { homeTranslations } from './pages/home';
 
 export interface Language {
   code: string;
@@ -24,24 +25,28 @@ export const translations = {
     ...twoFactorAuthTranslations.en,
     ...securitySettingsTranslations.en,
     ...privacySettingsTranslations.en,
+    ...homeTranslations.en,
   },
   hi: {
     ...profileTranslations.hi,
     ...twoFactorAuthTranslations.hi,
     ...securitySettingsTranslations.hi,
     ...privacySettingsTranslations.hi,
+    ...homeTranslations.hi,
   },
   ta: {
     ...profileTranslations.ta,
     ...twoFactorAuthTranslations.ta,
     ...securitySettingsTranslations.ta,
     ...privacySettingsTranslations.ta,
+    ...homeTranslations.ta,
   },
   te: {
     ...profileTranslations.te,
     ...twoFactorAuthTranslations.te,
     ...securitySettingsTranslations.te,
     ...privacySettingsTranslations.te,
+    ...homeTranslations.te,
   },
 };
 

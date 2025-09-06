@@ -18,12 +18,10 @@ const PrivacySettings = ({ navigation, route }: any) => {
   const [dataSharing, setDataSharing] = useState(true);
   const [locationSharing, setLocationSharing] = useState(false);
   
-  // Get language from navigation params, fallback to 'en'
-  const selectedLanguage = route?.params?.selectedLanguage || 'en';
-  const { t } = useTranslation(selectedLanguage);
+  const { t } = useTranslation();
   
-  // Debug log to verify language is being passed correctly
-  console.log('PrivacySettings - Selected Language:', selectedLanguage);
+  // Debug log to verify language is working
+  console.log('PrivacySettings - Selected Language:', t.language);
 
   const handleBack = () => {
     navigation.goBack();
