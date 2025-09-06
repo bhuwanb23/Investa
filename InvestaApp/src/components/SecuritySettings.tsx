@@ -11,8 +11,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MainHeader from './MainHeader';
+import { useTranslation } from '../language';
 
-const SecuritySettings = ({ navigation }: any) => {
+const SecuritySettings = ({ navigation, route }: any) => {
   const [biometricEnabled, setBiometricEnabled] = useState(true);
   const [sessionTimeout, setSessionTimeout] = useState('30');
   const [loginNotifications, setLoginNotifications] = useState(true);
@@ -20,6 +21,13 @@ const SecuritySettings = ({ navigation }: any) => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  
+  // Get language from navigation params, fallback to 'en'
+  const selectedLanguage = route?.params?.selectedLanguage || 'en';
+  const { t } = useTranslation(selectedLanguage);
+  
+  // Debug log to verify language is being passed correctly
+  console.log('SecuritySettings - Selected Language:', selectedLanguage);
 
   const handleBack = () => {
     navigation.goBack();
@@ -27,24 +35,24 @@ const SecuritySettings = ({ navigation }: any) => {
 
   const handleChangePassword = () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all password fields');
+      Alert.alert(t.error, t.fillAllFields);
       return;
     }
     
     if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'New passwords do not match');
+      Alert.alert(t.error, t.passwordsDoNotMatch);
       return;
     }
     
     if (newPassword.length < 8) {
-      Alert.alert('Error', 'Password must be at least 8 characters long');
+      Alert.alert(t.error, t.passwordTooShort);
       return;
     }
     
     Alert.alert(
-      'Success',
-      'Password changed successfully',
-      [{ text: 'OK', onPress: () => {
+      t.success,
+      t.passwordChangedSuccessfully,
+      [{ text: t.ok, onPress: () => {
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
@@ -61,11 +69,11 @@ const SecuritySettings = ({ navigation }: any) => {
 
   const handleLogoutAllDevices = () => {
     Alert.alert(
-      'Logout All Devices',
-      'This will log you out from all devices except this one. Continue?',
+      t.logoutAllDevicesTitle,
+      t.logoutAllDevicesMessage,
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout All', style: 'destructive', onPress: () => console.log('Logging out all devices...') }
+        { text: t.cancel, style: 'cancel' },
+        { text: t.logoutAll, style: 'destructive', onPress: () => console.log('Logging out all devices...') }
       ]
     );
   };
@@ -77,21 +85,21 @@ const SecuritySettings = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <MainHeader title="Security Settings" iconName="lock-closed" showBackButton onBackPress={handleBack} />
+      <MainHeader title={t.title} iconName="lock-closed" showBackButton onBackPress={handleBack} />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           
           {/* Authentication */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Authentication</Text>
+            <Text style={styles.sectionTitle}>{t.authentication}</Text>
             <View style={styles.settingItem}>
               <View style={styles.settingLeft}>
                 <View style={[styles.settingIcon, { backgroundColor: '#DCFCE7' }]}>
                   <Ionicons name="finger-print" size={16} color="#10B981" />
                 </View>
                 <View style={styles.settingText}>
-                  <Text style={styles.settingLabel}>Biometric Login</Text>
-                  <Text style={styles.settingDescription}>Use fingerprint or face ID to login</Text>
+                  <Text style={styles.settingLabel}>{t.biometricLogin}</Text>
+                  <Text style={styles.settingDescription}>{t.biometricLoginDescription}</Text>
                 </View>
               </View>
               <Switch
@@ -108,8 +116,8 @@ const SecuritySettings = ({ navigation }: any) => {
                   <Ionicons name="time" size={16} color="#D97706" />
                 </View>
                 <View style={styles.settingText}>
-                  <Text style={styles.settingLabel}>Session Timeout</Text>
-                  <Text style={styles.settingDescription}>Auto-logout after inactivity (minutes)</Text>
+                  <Text style={styles.settingLabel}>{t.sessionTimeout}</Text>
+                  <Text style={styles.settingDescription}>{t.sessionTimeoutDescription}</Text>
                 </View>
               </View>
               <TextInput
@@ -125,15 +133,15 @@ const SecuritySettings = ({ navigation }: any) => {
 
           {/* Notifications */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Security Notifications</Text>
+            <Text style={styles.sectionTitle}>{t.securityNotifications}</Text>
             <View style={styles.settingItem}>
               <View style={styles.settingLeft}>
                 <View style={[styles.settingIcon, { backgroundColor: '#DBEAFE' }]}>
                   <Ionicons name="log-in" size={16} color="#2563EB" />
                 </View>
                 <View style={styles.settingText}>
-                  <Text style={styles.settingLabel}>Login Notifications</Text>
-                  <Text style={styles.settingDescription}>Get notified of new login attempts</Text>
+                  <Text style={styles.settingLabel}>{t.loginNotifications}</Text>
+                  <Text style={styles.settingDescription}>{t.loginNotificationsDescription}</Text>
                 </View>
               </View>
               <Switch
@@ -150,8 +158,8 @@ const SecuritySettings = ({ navigation }: any) => {
                   <Ionicons name="warning" size={16} color="#EF4444" />
                 </View>
                 <View style={styles.settingText}>
-                  <Text style={styles.settingLabel}>Suspicious Activity</Text>
-                  <Text style={styles.settingDescription}>Alert on unusual account activity</Text>
+                  <Text style={styles.settingLabel}>{t.suspiciousActivity}</Text>
+                  <Text style={styles.settingDescription}>{t.suspiciousActivityDescription}</Text>
                 </View>
               </View>
               <Switch
@@ -165,58 +173,58 @@ const SecuritySettings = ({ navigation }: any) => {
 
           {/* Change Password */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Change Password</Text>
+            <Text style={styles.sectionTitle}>{t.changePassword}</Text>
             <View style={styles.passwordInput}>
-              <Text style={styles.inputLabel}>Current Password</Text>
+              <Text style={styles.inputLabel}>{t.currentPassword}</Text>
               <TextInput
                 style={styles.textInput}
                 value={currentPassword}
                 onChangeText={setCurrentPassword}
-                placeholder="Enter current password"
+                placeholder={t.enterCurrentPassword}
                 secureTextEntry
                 placeholderTextColor="#9CA3AF"
               />
             </View>
             
             <View style={styles.passwordInput}>
-              <Text style={styles.inputLabel}>New Password</Text>
+              <Text style={styles.inputLabel}>{t.newPassword}</Text>
               <TextInput
                 style={styles.textInput}
                 value={newPassword}
                 onChangeText={setNewPassword}
-                placeholder="Enter new password"
+                placeholder={t.enterNewPassword}
                 secureTextEntry
                 placeholderTextColor="#9CA3AF"
               />
             </View>
             
             <View style={styles.passwordInput}>
-              <Text style={styles.inputLabel}>Confirm New Password</Text>
+              <Text style={styles.inputLabel}>{t.confirmNewPassword}</Text>
               <TextInput
                 style={styles.textInput}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                placeholder="Confirm new password"
+                placeholder={t.confirmNewPasswordPlaceholder}
                 secureTextEntry
                 placeholderTextColor="#9CA3AF"
               />
             </View>
             
             <TouchableOpacity style={styles.primaryButton} onPress={handleChangePassword}>
-              <Text style={styles.primaryButtonText}>Change Password</Text>
+              <Text style={styles.primaryButtonText}>{t.changePasswordButton}</Text>
             </TouchableOpacity>
           </View>
 
           {/* Device Management */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Device Management</Text>
+            <Text style={styles.sectionTitle}>{t.deviceManagement}</Text>
             <TouchableOpacity style={styles.actionButton} onPress={handleViewActiveSessions}>
               <View style={[styles.actionIcon, { backgroundColor: '#F3E8FF' }]}>
                 <Ionicons name="phone-portrait" size={16} color="#9333EA" />
               </View>
               <View style={styles.actionText}>
-                <Text style={styles.actionLabel}>Active Sessions</Text>
-                <Text style={styles.actionDescription}>View and manage active login sessions</Text>
+                <Text style={styles.actionLabel}>{t.activeSessions}</Text>
+                <Text style={styles.actionDescription}>{t.activeSessionsDescription}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
             </TouchableOpacity>
@@ -226,8 +234,8 @@ const SecuritySettings = ({ navigation }: any) => {
                 <Ionicons name="log-out" size={16} color="#EF4444" />
               </View>
               <View style={styles.actionText}>
-                <Text style={[styles.actionLabel, styles.dangerText]}>Logout All Devices</Text>
-                <Text style={[styles.actionDescription, styles.dangerText]}>Sign out from all other devices</Text>
+                <Text style={[styles.actionLabel, styles.dangerText]}>{t.logoutAllDevices}</Text>
+                <Text style={[styles.actionDescription, styles.dangerText]}>{t.logoutAllDevicesDescription}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color="#EF4444" />
             </TouchableOpacity>

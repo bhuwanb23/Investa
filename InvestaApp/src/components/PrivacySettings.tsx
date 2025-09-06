@@ -10,12 +10,20 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MainHeader from './MainHeader';
+import { useTranslation } from '../language';
 
-const PrivacySettings = ({ navigation }: any) => {
+const PrivacySettings = ({ navigation, route }: any) => {
   const [profileVisibility, setProfileVisibility] = useState(true);
   const [activityVisibility, setActivityVisibility] = useState(false);
   const [dataSharing, setDataSharing] = useState(true);
   const [locationSharing, setLocationSharing] = useState(false);
+  
+  // Get language from navigation params, fallback to 'en'
+  const selectedLanguage = route?.params?.selectedLanguage || 'en';
+  const { t } = useTranslation(selectedLanguage);
+  
+  // Debug log to verify language is being passed correctly
+  console.log('PrivacySettings - Selected Language:', selectedLanguage);
 
   const handleBack = () => {
     navigation.goBack();
@@ -23,23 +31,23 @@ const PrivacySettings = ({ navigation }: any) => {
 
   const handleDataExport = () => {
     Alert.alert(
-      'Export Data',
-      'Your data will be exported and sent to your email address. This may take a few minutes.',
+      t.exportData,
+      t.exportDataMessage,
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Export', onPress: () => console.log('Exporting data...') }
+        { text: t.cancel, style: 'cancel' },
+        { text: t.export, onPress: () => console.log('Exporting data...') }
       ]
     );
   };
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      'Delete Account',
-      'This action cannot be undone. All your data will be permanently deleted.',
+      t.deleteAccountTitle,
+      t.deleteAccountMessage,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t.cancel, style: 'cancel' },
         { 
-          text: 'Delete', 
+          text: t.delete, 
           style: 'destructive',
           onPress: () => console.log('Deleting account...') 
         }
@@ -49,21 +57,21 @@ const PrivacySettings = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <MainHeader title="Privacy Settings" iconName="shield" showBackButton onBackPress={handleBack} />
+      <MainHeader title={t.title} iconName="shield" showBackButton onBackPress={handleBack} />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           
           {/* Profile Privacy */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Profile Privacy</Text>
+            <Text style={styles.sectionTitle}>{t.profilePrivacy}</Text>
             <View style={styles.settingItem}>
               <View style={styles.settingLeft}>
                 <View style={[styles.settingIcon, { backgroundColor: '#DBEAFE' }]}>
                   <Ionicons name="person" size={16} color="#2563EB" />
                 </View>
                 <View style={styles.settingText}>
-                  <Text style={styles.settingLabel}>Profile Visibility</Text>
-                  <Text style={styles.settingDescription}>Allow others to see your profile</Text>
+                  <Text style={styles.settingLabel}>{t.profileVisibility}</Text>
+                  <Text style={styles.settingDescription}>{t.profileVisibilityDescription}</Text>
                 </View>
               </View>
               <Switch
@@ -80,8 +88,8 @@ const PrivacySettings = ({ navigation }: any) => {
                   <Ionicons name="trending-up" size={16} color="#D97706" />
                 </View>
                 <View style={styles.settingText}>
-                  <Text style={styles.settingLabel}>Activity Visibility</Text>
-                  <Text style={styles.settingDescription}>Show your learning progress to others</Text>
+                  <Text style={styles.settingLabel}>{t.activityVisibility}</Text>
+                  <Text style={styles.settingDescription}>{t.activityVisibilityDescription}</Text>
                 </View>
               </View>
               <Switch
@@ -95,15 +103,15 @@ const PrivacySettings = ({ navigation }: any) => {
 
           {/* Data Privacy */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Data Privacy</Text>
+            <Text style={styles.sectionTitle}>{t.dataPrivacy}</Text>
             <View style={styles.settingItem}>
               <View style={styles.settingLeft}>
                 <View style={[styles.settingIcon, { backgroundColor: '#DCFCE7' }]}>
                   <Ionicons name="analytics" size={16} color="#10B981" />
                 </View>
                 <View style={styles.settingText}>
-                  <Text style={styles.settingLabel}>Data Sharing</Text>
-                  <Text style={styles.settingDescription}>Share anonymous data for app improvement</Text>
+                  <Text style={styles.settingLabel}>{t.dataSharing}</Text>
+                  <Text style={styles.settingDescription}>{t.dataSharingDescription}</Text>
                 </View>
               </View>
               <Switch
@@ -120,8 +128,8 @@ const PrivacySettings = ({ navigation }: any) => {
                   <Ionicons name="location" size={16} color="#EF4444" />
                 </View>
                 <View style={styles.settingText}>
-                  <Text style={styles.settingLabel}>Location Sharing</Text>
-                  <Text style={styles.settingDescription}>Allow location-based features</Text>
+                  <Text style={styles.settingLabel}>{t.locationSharing}</Text>
+                  <Text style={styles.settingDescription}>{t.locationSharingDescription}</Text>
                 </View>
               </View>
               <Switch
@@ -135,14 +143,14 @@ const PrivacySettings = ({ navigation }: any) => {
 
           {/* Data Management */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Data Management</Text>
+            <Text style={styles.sectionTitle}>{t.dataManagement}</Text>
             <TouchableOpacity style={styles.actionButton} onPress={handleDataExport}>
               <View style={[styles.actionIcon, { backgroundColor: '#F3E8FF' }]}>
                 <Ionicons name="download" size={16} color="#9333EA" />
               </View>
               <View style={styles.actionText}>
-                <Text style={styles.actionLabel}>Export My Data</Text>
-                <Text style={styles.actionDescription}>Download all your data in JSON format</Text>
+                <Text style={styles.actionLabel}>{t.exportMyData}</Text>
+                <Text style={styles.actionDescription}>{t.exportMyDataDescription}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
             </TouchableOpacity>
@@ -150,14 +158,14 @@ const PrivacySettings = ({ navigation }: any) => {
 
           {/* Account Actions */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Account Actions</Text>
+            <Text style={styles.sectionTitle}>{t.accountActions}</Text>
             <TouchableOpacity style={[styles.actionButton, styles.dangerButton]} onPress={handleDeleteAccount}>
               <View style={[styles.actionIcon, { backgroundColor: '#FEE2E2' }]}>
                 <Ionicons name="trash" size={16} color="#EF4444" />
               </View>
               <View style={styles.actionText}>
-                <Text style={[styles.actionLabel, styles.dangerText]}>Delete Account</Text>
-                <Text style={[styles.actionDescription, styles.dangerText]}>Permanently remove your account and data</Text>
+                <Text style={[styles.actionLabel, styles.dangerText]}>{t.deleteAccount}</Text>
+                <Text style={[styles.actionDescription, styles.dangerText]}>{t.deleteAccountDescription}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color="#EF4444" />
             </TouchableOpacity>

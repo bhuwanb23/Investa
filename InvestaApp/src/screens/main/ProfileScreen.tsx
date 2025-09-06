@@ -53,16 +53,16 @@ const ProfileScreen = () => {
   const handleSettingPress = (settingType: string) => {
     switch (settingType) {
       case 'notifications':
-        navigation.navigate('Notifications' as never);
+        (navigation as any).navigate('Notifications', { selectedLanguage });
         break;
       case 'privacy':
-        navigation.navigate('PrivacySettings' as never);
+        (navigation as any).navigate('PrivacySettings', { selectedLanguage });
         break;
       case 'security':
-        navigation.navigate('SecuritySettings' as never);
+        (navigation as any).navigate('SecuritySettings', { selectedLanguage });
         break;
       case 'twoFactor':
-        navigation.navigate('TwoFactorAuth' as never);
+        (navigation as any).navigate('TwoFactorAuth', { selectedLanguage });
         break;
       default:
         console.log('Unknown setting type:', settingType);
