@@ -3,6 +3,7 @@ import { twoFactorAuthTranslations } from './pages/twoFactorAuth';
 import { securitySettingsTranslations } from './pages/securitySettings';
 import { privacySettingsTranslations } from './pages/privacySettings';
 import { homeTranslations } from './pages/home';
+import { progressTranslations } from './pages/progress';
 
 export interface Language {
   code: string;
@@ -26,6 +27,7 @@ export const translations = {
     ...securitySettingsTranslations.en,
     ...privacySettingsTranslations.en,
     ...homeTranslations.en,
+    ...progressTranslations.en,
   },
   hi: {
     ...profileTranslations.hi,
@@ -33,6 +35,7 @@ export const translations = {
     ...securitySettingsTranslations.hi,
     ...privacySettingsTranslations.hi,
     ...homeTranslations.hi,
+    ...progressTranslations.hi,
   },
   ta: {
     ...profileTranslations.ta,
@@ -40,6 +43,7 @@ export const translations = {
     ...securitySettingsTranslations.ta,
     ...privacySettingsTranslations.ta,
     ...homeTranslations.ta,
+    ...progressTranslations.ta,
   },
   te: {
     ...profileTranslations.te,
@@ -47,6 +51,7 @@ export const translations = {
     ...securitySettingsTranslations.te,
     ...privacySettingsTranslations.te,
     ...homeTranslations.te,
+    ...progressTranslations.te,
   },
 };
 

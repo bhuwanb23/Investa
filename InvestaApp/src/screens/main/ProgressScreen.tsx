@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import MainHeader from '../../components/MainHeader';
 import LogoLoader from '../../components/LogoLoader';
 import { progressApi, ProgressSummary, WeeklyActivity } from '../../services';
+import { useTranslation } from '../../language';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -27,6 +28,10 @@ const ProgressScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [weeklyActivity, setWeeklyActivity] = useState<WeeklyActivity[]>([]);
   const [bootLoader, setBootLoader] = useState(true);
+  const { t } = useTranslation();
+  
+  // Debug log to verify language is working
+  console.log('ProgressScreen - Selected Language:', t.language);
 
   // Fetch progress data on component mount
   useEffect(() => {
@@ -119,16 +124,16 @@ const ProgressScreen = () => {
 
   // Mock data for in-progress courses (this would come from backend)
   const inProgressCourses = [
-    { title: 'React Native for Pros', percent: Math.round(courseProgress * 0.8) },
-    { title: 'Advanced TypeScript', percent: Math.round(courseProgress * 0.6) },
+    { title: t.reactNativeForPros, percent: Math.round(courseProgress * 0.8) },
+    { title: t.advancedTypeScript, percent: Math.round(courseProgress * 0.6) },
   ];
 
   // Mock badges (this would come from backend)
   const badges = [
-    { icon: 'star', bgFrom: '#facc15', label: 'First Quiz' },
-    { icon: 'school', bgFrom: '#22c55e', label: 'Course Hero' },
-    { icon: 'bar-chart', bgFrom: '#3b82f6', label: 'Trader' },
-    { icon: 'flame', bgFrom: '#ef4444', label: 'Streak' },
+    { icon: 'star', bgFrom: '#facc15', label: t.firstQuiz },
+    { icon: 'school', bgFrom: '#22c55e', label: t.courseHero },
+    { icon: 'bar-chart', bgFrom: '#3b82f6', label: t.trader },
+    { icon: 'flame', bgFrom: '#ef4444', label: t.streak },
   ];
 
   if (bootLoader) {
@@ -145,9 +150,9 @@ const ProgressScreen = () => {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          <MainHeader title="Your Progress" iconName="analytics" />
+          <MainHeader title={t.title} iconName="analytics" />
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading progress data...</Text>
+            <Text style={styles.loadingText}>{t.loadingMessage}</Text>
           </View>
         </View>
       </SafeAreaView>
@@ -166,7 +171,7 @@ const ProgressScreen = () => {
           }
         >
           <MainHeader 
-            title="Your Progress" 
+            title={t.title} 
             iconName="analytics" 
             onRefreshPress={onRefresh}
           />
@@ -175,11 +180,11 @@ const ProgressScreen = () => {
           {/* XP Level */}
           <View style={styles.xpCard}>
             <View style={{ alignItems: 'center' }}>
-              <Text style={styles.levelText}>Level {level}</Text>
+              <Text style={styles.levelText}>{t.level} {level}</Text>
               <Text style={styles.levelSubtitle}>
-                {level < 3 ? 'Beginner Trader' : 
-                 level < 6 ? 'Intermediate Trader' : 
-                 level < 9 ? 'Advanced Trader' : 'Expert Trader'}
+                {level < 3 ? t.beginnerTrader : 
+                 level < 6 ? t.intermediateTrader : 
+                 level < 9 ? t.advancedTrader : t.expertTrader}
               </Text>
             </View>
             <View style={styles.xpBarWrap}>
@@ -190,23 +195,23 @@ const ProgressScreen = () => {
                 <Text style={styles.xpText}>{experiencePoints.toLocaleString()} XP</Text>
                 <Text style={styles.xpText}>{(experiencePoints + experienceToNext).toLocaleString()} XP</Text>
               </View>
-              <Text style={styles.xpToNext}>{experienceToNext} XP to next level</Text>
+              <Text style={styles.xpToNext}>{experienceToNext} {t.xpToNext}</Text>
             </View>
             <View style={styles.kpiMiniRow}>
               <View style={styles.kpiMini}>
                 <Ionicons name="flame" size={18} color={WARNING} />
                 <Text style={styles.kpiMiniValue}>{currentStreak}</Text>
-                <Text style={styles.kpiMiniLabel}>Day Streak</Text>
+                <Text style={styles.kpiMiniLabel}>{t.dayStreak}</Text>
               </View>
               <View style={styles.kpiMini}>
                 <Ionicons name="trophy" size={18} color="#facc15" />
                 <Text style={styles.kpiMiniValue}>{earnedAchievements}</Text>
-                <Text style={styles.kpiMiniLabel}>Achievements</Text>
+                <Text style={styles.kpiMiniLabel}>{t.achievements}</Text>
               </View>
               <View style={styles.kpiMini}>
                 <Ionicons name="star" size={18} color="#93c5fd" />
                 <Text style={styles.kpiMiniValue}>{avgScore.toFixed(1)}</Text>
-                <Text style={styles.kpiMiniLabel}>Avg Score</Text>
+                <Text style={styles.kpiMiniLabel}>{t.avgScore}</Text>
               </View>
             </View>
           </View>
@@ -219,9 +224,9 @@ const ProgressScreen = () => {
                   <Ionicons name="medal" size={18} color="#fde68a" />
                 </View>
                 <View>
-                  <Text style={styles.achievementTitle}>New Achievement!</Text>
+                  <Text style={styles.achievementTitle}>{t.newAchievement}</Text>
                   <Text style={styles.achievementSubtitle}>
-                    {earnedAchievements} of {totalAchievements} Achievements Unlocked
+                    {earnedAchievements} of {totalAchievements} {t.achievementsUnlocked}
                   </Text>
                 </View>
               </View>
@@ -233,21 +238,21 @@ const ProgressScreen = () => {
             <View style={styles.sectionHeaderRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Ionicons name="book" size={16} color={PRIMARY} />
-                <Text style={[styles.sectionTitle, { marginLeft: 8 }]}>Course Completion</Text>
+                <Text style={[styles.sectionTitle, { marginLeft: 8 }]}>{t.courseCompletion}</Text>
               </View>
-              <Text style={styles.metaText}>{Math.round(courseProgress)}% Complete</Text>
+              <Text style={styles.metaText}>{Math.round(courseProgress)}{t.percent} {t.complete}</Text>
             </View>
             <View style={styles.progressTrack}>
               <View style={[styles.progressFill, { width: `${courseProgress}%`, backgroundColor: PRIMARY }]} />
             </View>
-            <Text style={styles.smallMuted}>{courseProgress}% Complete</Text>
+            <Text style={styles.smallMuted}>{courseProgress}{t.percent} {t.complete}</Text>
           </View>
 
           {/* Weekly Activity */}
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Weekly Activity</Text>
+            <Text style={styles.sectionTitle}>{t.weeklyActivity}</Text>
             <View style={styles.weeklyRow}>
-              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, idx) => (
+              {[t.monday, t.tuesday, t.wednesday, t.thursday, t.friday, t.saturday, t.sunday].map((d, idx) => (
                 <View key={idx} style={styles.weekItem}>
                   <View style={[styles.weekBar, { height: weeklyHeights[idx] || 20 }]} />
                   <Text style={styles.weekLabel}>{d}</Text>
@@ -261,15 +266,15 @@ const ProgressScreen = () => {
             <View style={styles.sectionHeaderRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Ionicons name="fitness" size={16} color="#a855f7" />
-                <Text style={[styles.sectionTitle, { marginLeft: 8 }]}>Quiz Performance</Text>
+                <Text style={[styles.sectionTitle, { marginLeft: 8 }]}>{t.quizPerformance}</Text>
               </View>
-              <Text style={styles.metaText}>Overall</Text>
+              <Text style={styles.metaText}>{t.overall}</Text>
             </View>
             <View style={styles.kpiGrid3}>
               {[
-                { label: 'Accuracy', val: Math.round(quizProgress), color: SUCCESS }, 
-                { label: 'Completion', val: Math.round(learningProgress), color: PRIMARY }, 
-                { label: 'Overall', val: Math.round(overallProgress), color: '#a855f7' }
+                { label: t.accuracy, val: Math.round(quizProgress), color: SUCCESS }, 
+                { label: t.completion, val: Math.round(learningProgress), color: PRIMARY }, 
+                { label: t.overall, val: Math.round(overallProgress), color: '#a855f7' }
               ].map((k, idx) => (
                 <View key={idx} style={styles.ringCard}>
                   <View style={styles.ringWrap}>
@@ -291,7 +296,7 @@ const ProgressScreen = () => {
             <View style={styles.sectionHeaderRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Ionicons name="bar-chart" size={16} color={SUCCESS} />
-                <Text style={[styles.sectionTitle, { marginLeft: 8 }]}>Portfolio Growth</Text>
+                <Text style={[styles.sectionTitle, { marginLeft: 8 }]}>{t.portfolioGrowth}</Text>
               </View>
               <Text style={[styles.metaText, { color: portfolioGrowth >= 0 ? SUCCESS : '#ef4444' }]}>
                 {portfolioGrowth >= 0 ? '+' : ''}{portfolioGrowth.toFixed(1)}%
@@ -305,32 +310,32 @@ const ProgressScreen = () => {
             <View style={styles.kpiRow}>
               <View style={styles.kpiCard}>
                 <Text style={styles.kpiValue}>₹{portfolioValue.toLocaleString()}</Text>
-                <Text style={styles.smallMuted}>Portfolio Value</Text>
+                <Text style={styles.smallMuted}>{t.portfolioValue}</Text>
               </View>
               <View style={styles.kpiCard}>
-                <Text style={[styles.kpiValue, { color: SUCCESS }]}>{winRate.toFixed(1)}%</Text>
-                <Text style={styles.smallMuted}>Win Rate</Text>
+                <Text style={[styles.kpiValue, { color: SUCCESS }]}>{winRate.toFixed(1)}{t.percent}</Text>
+                <Text style={styles.smallMuted}>{t.winRate}</Text>
               </View>
             </View>
           </View>
 
           {/* In Progress Courses */}
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>In Progress</Text>
+            <Text style={styles.sectionTitle}>{t.inProgress}</Text>
             {inProgressCourses.map((c, idx) => (
               <View key={idx} style={styles.courseCard}>
                 <Text style={styles.courseTitle}>{c.title}</Text>
                 <View style={styles.progressTrack}>
                   <View style={[styles.progressFill, { width: `${c.percent}%` }]} />
                 </View>
-                <Text style={styles.smallMuted}>{c.percent}%</Text>
+                <Text style={styles.smallMuted}>{c.percent}{t.percent}</Text>
               </View>
             ))}
           </View>
 
           {/* Badges */}
           <View style={[styles.card, { marginBottom: 20 }]}>
-            <Text style={styles.sectionTitle}>Achievement Badges</Text>
+            <Text style={styles.sectionTitle}>{t.achievementBadges}</Text>
             <View style={styles.badgeGrid}>
               {badges.map((b, idx) => (
                 <View key={idx} style={styles.badgeCard}>
