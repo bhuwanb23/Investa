@@ -18,6 +18,7 @@ import {
 } from './components';
 import { STOCK_DETAIL_DATA } from './constants/tradingConstants';
 import MainHeader from '../../components/MainHeader';
+import { useTranslation } from '../../language';
 
 const { width } = Dimensions.get('window');
 
@@ -39,6 +40,10 @@ const StockDetailScreen = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'StockDetail'>>();
   const { stockSymbol, stockName } = route.params;
   const { getStockBySymbol } = useTradingData();
+  const { t } = useTranslation();
+  
+  // Debug log to verify language is working
+  console.log('StockDetailScreen - Selected Language:', t.language);
 
   const [selectedTimeframe, setSelectedTimeframe] = useState('1D');
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -65,13 +70,13 @@ const StockDetailScreen = () => {
   const handleToggleBookmark = () => {
     setIsBookmarked(!isBookmarked);
     Alert.alert(
-      isBookmarked ? 'Removed from Bookmarks' : 'Added to Bookmarks',
-      `${stock.symbol} has been ${isBookmarked ? 'removed from' : 'added to'} your bookmarks.`
+      isBookmarked ? t.removedFromBookmarks : t.addedToBookmarks,
+      `${stock.symbol} ${isBookmarked ? t.hasBeenRemovedFrom : t.hasBeenAddedTo} ${t.yourBookmarks}.`
     );
   };
 
   const handleShare = () => {
-    Alert.alert('Share', `Sharing ${stock.symbol} stock details`);
+    Alert.alert(t.share, `${t.sharing} ${stock.symbol} ${t.stockDetails}`);
   };
 
   const handleBuy = () => {
@@ -85,11 +90,11 @@ const StockDetailScreen = () => {
 
   const handleSell = () => {
     Alert.alert(
-      'Sell Stock',
-      `Are you sure you want to sell ${stock.symbol}?`,
+      t.sellStock,
+      `${t.areYouSureYouWantToSell} ${stock.symbol}?`,
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Sell', onPress: () => console.log('Sell stock') }
+        { text: t.cancel, style: 'cancel' },
+        { text: t.sell, onPress: () => console.log('Sell stock') }
       ]
     );
   };
@@ -104,13 +109,13 @@ const StockDetailScreen = () => {
 
   // Filter options for chart
   const filterOptions = [
-    'All',
-    'Bullish',
-    'Bearish', 
-    'Volatile',
-    'This Week',
-    'This Month',
-    'This Year'
+    t.all,
+    t.bullish,
+    t.bearish, 
+    t.volatile,
+    t.thisWeek,
+    t.thisMonth,
+    t.thisYear
   ];
 
   // Mock data for enhanced trading information
@@ -144,38 +149,38 @@ const StockDetailScreen = () => {
 
   const renderTradingMetrics = () => (
     <View style={styles.metricsContainer}>
-      <Text style={styles.sectionTitle}>Trading Metrics</Text>
+      <Text style={styles.sectionTitle}>{t.tradingMetrics}</Text>
       <View style={styles.metricsGrid}>
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Open</Text>
+          <Text style={styles.metricLabel}>{t.open}</Text>
           <Text style={styles.metricValue}>{tradingMetrics.open}</Text>
         </View>
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>High</Text>
+          <Text style={styles.metricLabel}>{t.high}</Text>
           <Text style={[styles.metricValue, { color: '#10B981' }]}>{tradingMetrics.high}</Text>
         </View>
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Low</Text>
+          <Text style={styles.metricLabel}>{t.low}</Text>
           <Text style={[styles.metricValue, { color: '#EF4444' }]}>{tradingMetrics.low}</Text>
         </View>
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Prev Close</Text>
+          <Text style={styles.metricLabel}>{t.prevClose}</Text>
           <Text style={styles.metricValue}>{tradingMetrics.prevClose}</Text>
         </View>
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Volume</Text>
+          <Text style={styles.metricLabel}>{t.volume}</Text>
           <Text style={styles.metricValue}>{tradingMetrics.volume}</Text>
         </View>
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Avg Volume</Text>
+          <Text style={styles.metricLabel}>{t.avgVolume}</Text>
           <Text style={styles.metricValue}>{tradingMetrics.avgVolume}</Text>
         </View>
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Market Cap</Text>
+          <Text style={styles.metricLabel}>{t.marketCap}</Text>
           <Text style={styles.metricValue}>{tradingMetrics.marketCap}</Text>
         </View>
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>P/E Ratio</Text>
+          <Text style={styles.metricLabel}>{t.peRatio}</Text>
           <Text style={styles.metricValue}>{tradingMetrics.peRatio}</Text>
         </View>
       </View>
@@ -184,7 +189,7 @@ const StockDetailScreen = () => {
 
   const renderTechnicalIndicators = () => (
     <View style={styles.indicatorsContainer}>
-      <Text style={styles.sectionTitle}>Technical Indicators</Text>
+      <Text style={styles.sectionTitle}>{t.technicalIndicators}</Text>
       <View style={styles.indicatorsGrid}>
         {technicalIndicators.map((indicator, index) => (
           <View key={index} style={styles.indicatorItem}>
@@ -203,13 +208,13 @@ const StockDetailScreen = () => {
 
   const renderRecentTrades = () => (
     <View style={styles.tradesContainer}>
-      <Text style={styles.sectionTitle}>Recent Trades</Text>
+      <Text style={styles.sectionTitle}>{t.recentTrades}</Text>
       <View style={styles.tradesList}>
         {recentTrades.map((trade, index) => (
           <View key={index} style={styles.tradeItem}>
             <View style={styles.tradeLeft}>
               <Text style={styles.tradeTime}>{trade.time}</Text>
-              <Text style={styles.tradeQuantity}>{trade.quantity} shares</Text>
+              <Text style={styles.tradeQuantity}>{trade.quantity} {t.shares}</Text>
             </View>
             <View style={styles.tradeRight}>
               <Text style={styles.tradePrice}>{trade.price}</Text>
@@ -235,7 +240,7 @@ const StockDetailScreen = () => {
     <View style={styles.sectionContainer}>
       <View style={styles.sectionHeader}>
         <Ionicons name="business" size={20} color="#3B82F6" />
-        <Text style={styles.sectionTitle}>Company Profile</Text>
+        <Text style={styles.sectionTitle}>{t.companyProfile}</Text>
       </View>
       <Text style={styles.description}>
         {STOCK_DETAIL_DATA.companyProfile.description}
@@ -246,7 +251,7 @@ const StockDetailScreen = () => {
             <Ionicons name="calendar" size={16} color="#6B7280" />
           </View>
           <View style={styles.infoContent}>
-            <Text style={styles.infoLabel}>Founded</Text>
+            <Text style={styles.infoLabel}>{t.founded}</Text>
             <Text style={styles.infoValue}>{STOCK_DETAIL_DATA.companyProfile.founded}</Text>
           </View>
         </View>
@@ -255,7 +260,7 @@ const StockDetailScreen = () => {
             <Ionicons name="people" size={16} color="#6B7280" />
           </View>
           <View style={styles.infoContent}>
-            <Text style={styles.infoLabel}>Employees</Text>
+            <Text style={styles.infoLabel}>{t.employees}</Text>
             <Text style={styles.infoValue}>{STOCK_DETAIL_DATA.companyProfile.employees}</Text>
           </View>
         </View>
@@ -267,7 +272,7 @@ const StockDetailScreen = () => {
     <View style={styles.sectionContainer}>
       <View style={styles.sectionHeader}>
         <Ionicons name="newspaper" size={20} color="#10B981" />
-        <Text style={styles.sectionTitle}>News Highlights</Text>
+        <Text style={styles.sectionTitle}>{t.newsHighlights}</Text>
       </View>
       <View style={styles.newsList}>
         {STOCK_DETAIL_DATA.news.map((newsItem) => (
@@ -297,7 +302,7 @@ const StockDetailScreen = () => {
     <View style={styles.sectionContainer}>
       <View style={styles.sectionHeader}>
         <Ionicons name="analytics" size={20} color="#F59E0B" />
-        <Text style={styles.sectionTitle}>Key Fundamentals</Text>
+        <Text style={styles.sectionTitle}>{t.keyFundamentals}</Text>
       </View>
       <View style={styles.fundamentalsGrid}>
         {STOCK_DETAIL_DATA.fundamentals.map((fundamental, index) => (

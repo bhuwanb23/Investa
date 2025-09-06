@@ -19,6 +19,7 @@ import {
   SuccessModal,
 } from './components';
 import MainHeader from '../../components/MainHeader';
+import { useTranslation } from '../../language';
 
 // Define navigation types
 type RootStackParamList = {
@@ -38,6 +39,10 @@ const PlaceOrderScreen = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'PlaceOrder'>>();
   const { stockSymbol, stockName, currentPrice } = route.params;
   const { getStockBySymbol, addToPortfolio, removeFromPortfolio } = useTradingData();
+  const { t } = useTranslation();
+  
+  // Debug log to verify language is working
+  console.log('PlaceOrderScreen - Selected Language:', t.language);
 
   const [isBuyMode, setIsBuyMode] = useState(true);
   const [orderType, setOrderType] = useState<'MARKET' | 'LIMIT'>('MARKET');
@@ -73,7 +78,7 @@ const PlaceOrderScreen = () => {
   };
 
   const handleHelp = () => {
-    Alert.alert('Help', 'This is a simulated trading environment. All orders are for educational purposes only.');
+    Alert.alert(t.help, t.simulatedTradingEnvironment);
   };
 
   const handleOrderTypeChange = (type: 'MARKET' | 'LIMIT') => {
@@ -93,12 +98,12 @@ const PlaceOrderScreen = () => {
 
   const handlePlaceOrder = async () => {
     if (quantityNum <= 0) {
-      Alert.alert('Invalid Quantity', 'Please enter a valid quantity.');
+      Alert.alert(t.invalidQuantity, t.pleaseEnterValidQuantity);
       return;
     }
 
     if (orderType === 'LIMIT' && parseFloat(price) <= 0) {
-      Alert.alert('Invalid Price', 'Please enter a valid limit price.');
+      Alert.alert(t.invalidPrice, t.pleaseEnterValidLimitPrice);
       return;
     }
 
@@ -123,7 +128,7 @@ const PlaceOrderScreen = () => {
       }
       setShowSuccessModal(true);
     } catch (e: any) {
-      Alert.alert('Order Failed', e?.response?.data?.detail || 'Unable to place order now.');
+      Alert.alert(t.orderFailed, e?.response?.data?.detail || t.unableToPlaceOrderNow);
     }
   };
 
@@ -136,7 +141,7 @@ const PlaceOrderScreen = () => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <MainHeader title="Place Order" iconName="swap-vertical" showBackButton onBackPress={handleBack} />
+        <MainHeader title={t.placeOrder} iconName="swap-vertical" showBackButton onBackPress={handleBack} />
       </View>
 
       {/* Stock Price Reference */}
@@ -163,7 +168,7 @@ const PlaceOrderScreen = () => {
             </View>
           </View>
         </View>
-        <Text style={styles.lastUpdated}>Last updated: 15 min delay</Text>
+        <Text style={styles.lastUpdated}>{t.lastUpdated}: 15 {t.minDelay}</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -207,7 +212,7 @@ const PlaceOrderScreen = () => {
           activeOpacity={0.8}
         >
           <Text style={styles.placeOrderText}>
-            {isBuyMode ? 'Buy' : 'Sell'} {quantityNum} Share{quantityNum > 1 ? 's' : ''}
+            {isBuyMode ? t.buy : t.sell} {quantityNum} {quantityNum > 1 ? t.shares : t.share}
           </Text>
         </TouchableOpacity>
       </View>

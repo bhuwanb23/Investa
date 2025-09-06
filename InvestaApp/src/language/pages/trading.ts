@@ -1,0 +1,778 @@
+export const tradingTranslations = {
+  en: {
+    // Main Trading Screen
+    title: 'Trading',
+    loadingMessage: 'Loading trading data...',
+    
+    // Navigation Sections
+    market: 'Market',
+    portfolio: 'Portfolio',
+    history: 'History',
+    leaders: 'Leaders',
+    
+    // Portfolio Overview
+    portfolioValue: 'Portfolio Value',
+    cash: 'Cash',
+    invested: 'Invested',
+    positions: 'Positions',
+    
+    // Quick Actions
+    buy: 'Buy',
+    sell: 'Sell',
+    
+    // Market Overview
+    marketOverview: 'Market Overview',
+    seeAll: 'See all',
+    
+    // Watchlist
+    watchlist: 'Watchlist',
+    edit: 'Edit',
+    noStocksInWatchlist: 'No stocks in watchlist',
+    addStocksToTrack: 'Add stocks to track their performance',
+    
+    // Top Movers
+    topMovers: 'Top Movers',
+    
+    // Open Positions
+    openPositions: 'Open Positions',
+    manage: 'Manage',
+    noOpenPositions: 'No open positions',
+    startTradingToBuild: 'Start trading to build your portfolio',
+    shares: 'shares',
+    
+    // Leaderboard Preview
+    leaderboardPreview: 'Leaderboard Preview',
+    viewAll: 'View all',
+    
+    // Recent Activity
+    recentActivity: 'Recent Activity',
+    noRecentActivity: 'No recent activity',
+    startTradingToSee: 'Start trading to see your activity',
+    
+    // Leaderboard Screen
+    leaderboard: 'Leaderboard',
+    weekly: 'Weekly',
+    monthly: 'Monthly',
+    allTime: 'All-time',
+    thisMonth: 'This month',
+    totalTraders: 'Total Traders',
+    avgReturn: 'Avg Return',
+    topPerformer: 'Top Performer',
+    
+    // Market Watchlist Screen
+    watchlistTitle: 'Watchlist',
+    noStocksFound: 'No stocks found',
+    tryAdjustingSearch: 'Try adjusting your search or category filter',
+    favoriteStocks: 'Favorite Stocks',
+    topStocks: 'Top Stocks',
+    stocks: 'stocks',
+    
+    // Order History Screen
+    orderHistory: 'Order History',
+    totalOrders: 'Total Orders',
+    completionRate: 'Completion Rate',
+    avgOrderValue: 'Avg Order Value',
+    all: 'All',
+    buy: 'Buy',
+    sell: 'Sell',
+    thisWeek: 'This Week',
+    thisMonth: 'This Month',
+    quantity: 'Quantity',
+    total: 'Total',
+    orderId: 'Order ID',
+    commission: 'Commission',
+    loading: 'Loading…',
+    
+    // Portfolio Screen
+    portfolioTitle: 'Portfolio',
+    totalPortfolioValue: 'Total Portfolio Value',
+    returns: 'Returns',
+    holdings: 'Holdings',
+    orderHistory: 'Order History',
+    leaderboard: 'Leaderboard',
+    achievements: 'Achievements',
+    unlocked: 'unlocked',
+    firstInvestment: 'First Investment',
+    positiveReturns: 'Positive Returns',
+    diversified: 'Diversified',
+    portfolioBreakdown: 'Portfolio Breakdown',
+    chart: 'Chart',
+    noHoldingsYet: 'No holdings yet',
+    startTradingToBuild: 'Start trading to build your portfolio',
+    marketValue: 'Market Value',
+    avgPrice: 'Avg Price',
+    weight: 'Weight',
+    unrealizedPnL: 'Unrealized P&L',
+    loadingPortfolio: 'Loading portfolio...',
+    
+    // Place Order Screen
+    placeOrder: 'Place Order',
+    lastUpdated: 'Last updated: 15 min delay',
+    market: 'Market',
+    limit: 'Limit',
+    quantity: 'Quantity',
+    price: 'Price',
+    estimatedCost: 'Estimated Cost',
+    commission: 'Commission',
+    totalCost: 'Total Cost',
+    currentCash: 'Current Cash',
+    newCash: 'New Cash',
+    buyShares: 'Buy {quantity} Share{plural}',
+    sellShares: 'Sell {quantity} Share{plural}',
+    invalidQuantity: 'Invalid Quantity',
+    pleaseEnterValidQuantity: 'Please enter a valid quantity.',
+    invalidPrice: 'Invalid Price',
+    pleaseEnterValidPrice: 'Please enter a valid limit price.',
+    orderFailed: 'Order Failed',
+    unableToPlaceOrder: 'Unable to place order now.',
+    
+    // Stock Detail Screen
+    tradingMetrics: 'Trading Metrics',
+    open: 'Open',
+    high: 'High',
+    low: 'Low',
+    prevClose: 'Prev Close',
+    volume: 'Volume',
+    avgVolume: 'Avg Volume',
+    marketCap: 'Market Cap',
+    peRatio: 'P/E Ratio',
+    dividendYield: 'Dividend Yield',
+    beta: 'Beta',
+    technicalIndicators: 'Technical Indicators',
+    rsi: 'RSI',
+    macd: 'MACD',
+    movingAvg: 'Moving Avg',
+    support: 'Support',
+    resistance: 'Resistance',
+    above50MA: 'Above 50MA',
+    bullish: 'Bullish',
+    bearish: 'Bearish',
+    neutral: 'Neutral',
+    recentTrades: 'Recent Trades',
+    companyProfile: 'Company Profile',
+    founded: 'Founded',
+    employees: 'Employees',
+    newsHighlights: 'News Highlights',
+    keyFundamentals: 'Key Fundamentals',
+    removedFromBookmarks: 'Removed from Bookmarks',
+    addedToBookmarks: 'Added to Bookmarks',
+    hasBeenRemoved: 'has been removed from',
+    hasBeenAdded: 'has been added to',
+    yourBookmarks: 'your bookmarks.',
+    share: 'Share',
+    sharingStockDetails: 'Sharing {symbol} stock details',
+    sellStock: 'Sell Stock',
+    areYouSureSell: 'Are you sure you want to sell {symbol}?',
+    cancel: 'Cancel',
+    sell: 'Sell',
+    
+    // Chart Filters
+    all: 'All',
+    bullish: 'Bullish',
+    bearish: 'Bearish',
+    volatile: 'Volatile',
+    thisWeek: 'This Week',
+    thisMonth: 'This Month',
+    thisYear: 'This Year',
+    
+    // Timeframes
+    oneDay: '1D',
+    oneWeek: '1W',
+    oneMonth: '1M',
+    threeMonths: '3M',
+    oneYear: '1Y',
+    fiveYears: '5Y',
+    
+    // Common
+    percent: '%',
+    rupee: '₹',
+    dollar: '$',
+    today: 'Today',
+    yesterday: 'Yesterday',
+    week: 'Week',
+    month: 'Month',
+    year: 'Year',
+  },
+  hi: {
+    // Main Trading Screen
+    title: 'ट्रेडिंग',
+    loadingMessage: 'ट्रेडिंग डेटा लोड हो रहा है...',
+    
+    // Navigation Sections
+    market: 'बाजार',
+    portfolio: 'पोर्टफोलियो',
+    history: 'इतिहास',
+    leaders: 'लीडर',
+    
+    // Portfolio Overview
+    portfolioValue: 'पोर्टफोलियो मूल्य',
+    cash: 'नकद',
+    invested: 'निवेशित',
+    positions: 'पोजीशन',
+    
+    // Quick Actions
+    buy: 'खरीदें',
+    sell: 'बेचें',
+    
+    // Market Overview
+    marketOverview: 'बाजार अवलोकन',
+    seeAll: 'सभी देखें',
+    
+    // Watchlist
+    watchlist: 'वॉचलिस्ट',
+    edit: 'संपादित करें',
+    noStocksInWatchlist: 'वॉचलिस्ट में कोई स्टॉक नहीं',
+    addStocksToTrack: 'उनके प्रदर्शन को ट्रैक करने के लिए स्टॉक जोड़ें',
+    
+    // Top Movers
+    topMovers: 'टॉप मूवर्स',
+    
+    // Open Positions
+    openPositions: 'खुले पोजीशन',
+    manage: 'प्रबंधित करें',
+    noOpenPositions: 'कोई खुला पोजीशन नहीं',
+    startTradingToBuild: 'अपना पोर्टफोलियो बनाने के लिए ट्रेडिंग शुरू करें',
+    shares: 'शेयर',
+    
+    // Leaderboard Preview
+    leaderboardPreview: 'लीडरबोर्ड पूर्वावलोकन',
+    viewAll: 'सभी देखें',
+    
+    // Recent Activity
+    recentActivity: 'हाल की गतिविधि',
+    noRecentActivity: 'कोई हाल की गतिविधि नहीं',
+    startTradingToSee: 'अपनी गतिविधि देखने के लिए ट्रेडिंग शुरू करें',
+    
+    // Leaderboard Screen
+    leaderboard: 'लीडरबोर्ड',
+    weekly: 'साप्ताहिक',
+    monthly: 'मासिक',
+    allTime: 'सभी समय',
+    thisMonth: 'इस महीने',
+    totalTraders: 'कुल व्यापारी',
+    avgReturn: 'औसत रिटर्न',
+    topPerformer: 'टॉप परफॉर्मर',
+    
+    // Market Watchlist Screen
+    watchlistTitle: 'वॉचलिस्ट',
+    noStocksFound: 'कोई स्टॉक नहीं मिला',
+    tryAdjustingSearch: 'अपनी खोज या श्रेणी फिल्टर को समायोजित करने का प्रयास करें',
+    favoriteStocks: 'पसंदीदा स्टॉक',
+    topStocks: 'टॉप स्टॉक',
+    stocks: 'स्टॉक',
+    
+    // Order History Screen
+    orderHistory: 'ऑर्डर इतिहास',
+    totalOrders: 'कुल ऑर्डर',
+    completionRate: 'पूर्णता दर',
+    avgOrderValue: 'औसत ऑर्डर मूल्य',
+    all: 'सभी',
+    buy: 'खरीदें',
+    sell: 'बेचें',
+    thisWeek: 'इस सप्ताह',
+    thisMonth: 'इस महीने',
+    quantity: 'मात्रा',
+    total: 'कुल',
+    orderId: 'ऑर्डर आईडी',
+    commission: 'कमीशन',
+    loading: 'लोड हो रहा है…',
+    
+    // Portfolio Screen
+    portfolioTitle: 'पोर्टफोलियो',
+    totalPortfolioValue: 'कुल पोर्टफोलियो मूल्य',
+    returns: 'रिटर्न',
+    holdings: 'होल्डिंग्स',
+    orderHistory: 'ऑर्डर इतिहास',
+    leaderboard: 'लीडरबोर्ड',
+    achievements: 'उपलब्धियां',
+    unlocked: 'अनलॉक',
+    firstInvestment: 'पहला निवेश',
+    positiveReturns: 'सकारात्मक रिटर्न',
+    diversified: 'विविधीकृत',
+    portfolioBreakdown: 'पोर्टफोलियो ब्रेकडाउन',
+    chart: 'चार्ट',
+    noHoldingsYet: 'अभी तक कोई होल्डिंग्स नहीं',
+    startTradingToBuild: 'अपना पोर्टफोलियो बनाने के लिए ट्रेडिंग शुरू करें',
+    marketValue: 'बाजार मूल्य',
+    avgPrice: 'औसत मूल्य',
+    weight: 'वजन',
+    unrealizedPnL: 'अवास्तविक P&L',
+    loadingPortfolio: 'पोर्टफोलियो लोड हो रहा है...',
+    
+    // Place Order Screen
+    placeOrder: 'ऑर्डर दें',
+    lastUpdated: 'अंतिम अपडेट: 15 मिनट देरी',
+    market: 'बाजार',
+    limit: 'लिमिट',
+    quantity: 'मात्रा',
+    price: 'मूल्य',
+    estimatedCost: 'अनुमानित लागत',
+    commission: 'कमीशन',
+    totalCost: 'कुल लागत',
+    currentCash: 'वर्तमान नकद',
+    newCash: 'नया नकद',
+    buyShares: '{quantity} शेयर खरीदें',
+    sellShares: '{quantity} शेयर बेचें',
+    invalidQuantity: 'अमान्य मात्रा',
+    pleaseEnterValidQuantity: 'कृपया एक वैध मात्रा दर्ज करें।',
+    invalidPrice: 'अमान्य मूल्य',
+    pleaseEnterValidPrice: 'कृपया एक वैध लिमिट मूल्य दर्ज करें।',
+    orderFailed: 'ऑर्डर असफल',
+    unableToPlaceOrder: 'अभी ऑर्डर देने में असमर्थ।',
+    
+    // Stock Detail Screen
+    tradingMetrics: 'ट्रेडिंग मेट्रिक्स',
+    open: 'खुला',
+    high: 'उच्च',
+    low: 'निम्न',
+    prevClose: 'पिछला बंद',
+    volume: 'वॉल्यूम',
+    avgVolume: 'औसत वॉल्यूम',
+    marketCap: 'बाजार पूंजी',
+    peRatio: 'P/E अनुपात',
+    dividendYield: 'लाभांश उपज',
+    beta: 'बीटा',
+    technicalIndicators: 'तकनीकी संकेतक',
+    rsi: 'RSI',
+    macd: 'MACD',
+    movingAvg: 'मूविंग एवरेज',
+    support: 'सपोर्ट',
+    resistance: 'रेजिस्टेंस',
+    above50MA: '50MA से ऊपर',
+    bullish: 'बुलिश',
+    bearish: 'बेयरिश',
+    neutral: 'तटस्थ',
+    recentTrades: 'हाल के ट्रेड',
+    companyProfile: 'कंपनी प्रोफाइल',
+    founded: 'स्थापित',
+    employees: 'कर्मचारी',
+    newsHighlights: 'समाचार हाइलाइट्स',
+    keyFundamentals: 'मुख्य मूलभूत',
+    removedFromBookmarks: 'बुकमार्क से हटाया गया',
+    addedToBookmarks: 'बुकमार्क में जोड़ा गया',
+    hasBeenRemoved: 'से हटाया गया है',
+    hasBeenAdded: 'में जोड़ा गया है',
+    yourBookmarks: 'आपके बुकमार्क।',
+    share: 'साझा करें',
+    sharingStockDetails: '{symbol} स्टॉक विवरण साझा कर रहे हैं',
+    sellStock: 'स्टॉक बेचें',
+    areYouSureSell: 'क्या आप वाकई {symbol} बेचना चाहते हैं?',
+    cancel: 'रद्द करें',
+    sell: 'बेचें',
+    
+    // Chart Filters
+    all: 'सभी',
+    bullish: 'बुलिश',
+    bearish: 'बेयरिश',
+    volatile: 'अस्थिर',
+    thisWeek: 'इस सप्ताह',
+    thisMonth: 'इस महीने',
+    thisYear: 'इस साल',
+    
+    // Timeframes
+    oneDay: '1दिन',
+    oneWeek: '1सप्ताह',
+    oneMonth: '1महीना',
+    threeMonths: '3महीने',
+    oneYear: '1साल',
+    fiveYears: '5साल',
+    
+    // Common
+    percent: '%',
+    rupee: '₹',
+    dollar: '$',
+    today: 'आज',
+    yesterday: 'कल',
+    week: 'सप्ताह',
+    month: 'महीना',
+    year: 'साल',
+  },
+  ta: {
+    // Main Trading Screen
+    title: 'வர்த்தகம்',
+    loadingMessage: 'வர்த்தக தரவு ஏற்றப்படுகிறது...',
+    
+    // Navigation Sections
+    market: 'சந்தை',
+    portfolio: 'போர்ட்ஃபோலியோ',
+    history: 'வரலாறு',
+    leaders: 'தலைவர்கள்',
+    
+    // Portfolio Overview
+    portfolioValue: 'போர்ட்ஃபோலியோ மதிப்பு',
+    cash: 'பணம்',
+    invested: 'முதலீடு செய்யப்பட்டது',
+    positions: 'நிலைகள்',
+    
+    // Quick Actions
+    buy: 'வாங்க',
+    sell: 'விற்க',
+    
+    // Market Overview
+    marketOverview: 'சந்தை கண்ணோட்டம்',
+    seeAll: 'அனைத்தையும் பார்',
+    
+    // Watchlist
+    watchlist: 'வாட்ச்லிஸ்ட்',
+    edit: 'திருத்து',
+    noStocksInWatchlist: 'வாட்ச்லிஸ்டில் பங்குகள் இல்லை',
+    addStocksToTrack: 'அவற்றின் செயல்திறனை கண்காணிக்க பங்குகளை சேர்க்கவும்',
+    
+    // Top Movers
+    topMovers: 'முதன்மை நகர்வுகள்',
+    
+    // Open Positions
+    openPositions: 'திறந்த நிலைகள்',
+    manage: 'நிர்வகி',
+    noOpenPositions: 'திறந்த நிலைகள் இல்லை',
+    startTradingToBuild: 'உங்கள் போர்ட்ஃபோலியோவை உருவாக்க வர்த்தகத்தைத் தொடங்குங்கள்',
+    shares: 'பங்குகள்',
+    
+    // Leaderboard Preview
+    leaderboardPreview: 'லீடர்போர்டு முன்னோட்டம்',
+    viewAll: 'அனைத்தையும் பார்',
+    
+    // Recent Activity
+    recentActivity: 'சமீபத்திய செயல்பாடு',
+    noRecentActivity: 'சமீபத்திய செயல்பாடு இல்லை',
+    startTradingToSee: 'உங்கள் செயல்பாட்டைப் பார்க்க வர்த்தகத்தைத் தொடங்குங்கள்',
+    
+    // Leaderboard Screen
+    leaderboard: 'லீடர்போர்டு',
+    weekly: 'வாராந்திர',
+    monthly: 'மாதாந்திர',
+    allTime: 'அனைத்து நேரம்',
+    thisMonth: 'இந்த மாதம்',
+    totalTraders: 'மொத்த வர்த்தகர்கள்',
+    avgReturn: 'சராசரி வருவாய்',
+    topPerformer: 'முதன்மை செயல்திறன்',
+    
+    // Market Watchlist Screen
+    watchlistTitle: 'வாட்ச்லிஸ்ட்',
+    noStocksFound: 'பங்குகள் கிடைக்கவில்லை',
+    tryAdjustingSearch: 'உங்கள் தேடல் அல்லது வகை வடிகட்டியை சரிசெய்ய முயற்சிக்கவும்',
+    favoriteStocks: 'பிடித்த பங்குகள்',
+    topStocks: 'முதன்மை பங்குகள்',
+    stocks: 'பங்குகள்',
+    
+    // Order History Screen
+    orderHistory: 'ஆர்டர் வரலாறு',
+    totalOrders: 'மொத்த ஆர்டர்கள்',
+    completionRate: 'முடிவு விகிதம்',
+    avgOrderValue: 'சராசரி ஆர்டர் மதிப்பு',
+    all: 'அனைத்தும்',
+    buy: 'வாங்க',
+    sell: 'விற்க',
+    thisWeek: 'இந்த வாரம்',
+    thisMonth: 'இந்த மாதம்',
+    quantity: 'அளவு',
+    total: 'மொத்தம்',
+    orderId: 'ஆர்டர் ஐடி',
+    commission: 'கமிஷன்',
+    loading: 'ஏற்றப்படுகிறது…',
+    
+    // Portfolio Screen
+    portfolioTitle: 'போர்ட்ஃபோலியோ',
+    totalPortfolioValue: 'மொத்த போர்ட்ஃபோலியோ மதிப்பு',
+    returns: 'வருவாய்',
+    holdings: 'ஹோல்டிங்ஸ்',
+    orderHistory: 'ஆர்டர் வரலாறு',
+    leaderboard: 'லீடர்போர்டு',
+    achievements: 'சாதனைகள்',
+    unlocked: 'திறக்கப்பட்டது',
+    firstInvestment: 'முதல் முதலீடு',
+    positiveReturns: 'நேர்மறை வருவாய்',
+    diversified: 'பல்வகைப்படுத்தப்பட்ட',
+    portfolioBreakdown: 'போர்ட்ஃபோலியோ பிரேக்டவுன்',
+    chart: 'விளக்கப்படம்',
+    noHoldingsYet: 'இன்னும் ஹோல்டிங்ஸ் இல்லை',
+    startTradingToBuild: 'உங்கள் போர்ட்ஃபோலியோவை உருவாக்க வர்த்தகத்தைத் தொடங்குங்கள்',
+    marketValue: 'சந்தை மதிப்பு',
+    avgPrice: 'சராசரி விலை',
+    weight: 'எடை',
+    unrealizedPnL: 'உணரப்படாத P&L',
+    loadingPortfolio: 'போர்ட்ஃபோலியோ ஏற்றப்படுகிறது...',
+    
+    // Place Order Screen
+    placeOrder: 'ஆர்டர் வைக்கவும்',
+    lastUpdated: 'கடைசி புதுப்பிப்பு: 15 நிமிடம் தாமதம்',
+    market: 'சந்தை',
+    limit: 'வரம்பு',
+    quantity: 'அளவு',
+    price: 'விலை',
+    estimatedCost: 'மதிப்பிடப்பட்ட செலவு',
+    commission: 'கமிஷன்',
+    totalCost: 'மொத்த செலவு',
+    currentCash: 'தற்போதைய பணம்',
+    newCash: 'புதிய பணம்',
+    buyShares: '{quantity} பங்குகள் வாங்க',
+    sellShares: '{quantity} பங்குகள் விற்க',
+    invalidQuantity: 'தவறான அளவு',
+    pleaseEnterValidQuantity: 'தயவுசெய்து சரியான அளவை உள்ளிடவும்.',
+    invalidPrice: 'தவறான விலை',
+    pleaseEnterValidPrice: 'தயவுசெய்து சரியான வரம்பு விலையை உள்ளிடவும்.',
+    orderFailed: 'ஆர்டர் தோல்வி',
+    unableToPlaceOrder: 'இப்போது ஆர்டர் வைக்க முடியவில்லை.',
+    
+    // Stock Detail Screen
+    tradingMetrics: 'வர்த்தக அளவீடுகள்',
+    open: 'திறந்த',
+    high: 'உயர்ந்த',
+    low: 'குறைந்த',
+    prevClose: 'முந்தைய மூடுதல்',
+    volume: 'வால்யூம்',
+    avgVolume: 'சராசரி வால்யூம்',
+    marketCap: 'சந்தை மூலதனம்',
+    peRatio: 'P/E விகிதம்',
+    dividendYield: 'ஈவுத்தொகை விளைச்சல்',
+    beta: 'பீட்டா',
+    technicalIndicators: 'தொழில்நுட்ப குறிகாட்டிகள்',
+    rsi: 'RSI',
+    macd: 'MACD',
+    movingAvg: 'நகரும் சராசரி',
+    support: 'ஆதரவு',
+    resistance: 'எதிர்ப்பு',
+    above50MA: '50MA க்கு மேல்',
+    bullish: 'காளை',
+    bearish: 'கரடி',
+    neutral: 'நடுநிலை',
+    recentTrades: 'சமீபத்திய வர்த்தகங்கள்',
+    companyProfile: 'நிறுவன சுயவிவரம்',
+    founded: 'நிறுவப்பட்டது',
+    employees: 'ஊழியர்கள்',
+    newsHighlights: 'செய்தி முன்னணிகள்',
+    keyFundamentals: 'முக்கிய அடிப்படைகள்',
+    removedFromBookmarks: 'புத்தகக்குறிகளிலிருந்து நீக்கப்பட்டது',
+    addedToBookmarks: 'புத்தகக்குறிகளில் சேர்க்கப்பட்டது',
+    hasBeenRemoved: 'நீக்கப்பட்டது',
+    hasBeenAdded: 'சேர்க்கப்பட்டது',
+    yourBookmarks: 'உங்கள் புத்தகக்குறிகள்.',
+    share: 'பகிர்',
+    sharingStockDetails: '{symbol} பங்கு விவரங்களை பகிர்ந்து கொள்ளுதல்',
+    sellStock: 'பங்கு விற்க',
+    areYouSureSell: 'நீங்கள் உண்மையில் {symbol} விற்க விரும்புகிறீர்களா?',
+    cancel: 'ரத்து செய்',
+    sell: 'விற்க',
+    
+    // Chart Filters
+    all: 'அனைத்தும்',
+    bullish: 'காளை',
+    bearish: 'கரடி',
+    volatile: 'ஏற்ற இறக்கம்',
+    thisWeek: 'இந்த வாரம்',
+    thisMonth: 'இந்த மாதம்',
+    thisYear: 'இந்த ஆண்டு',
+    
+    // Timeframes
+    oneDay: '1நாள்',
+    oneWeek: '1வாரம்',
+    oneMonth: '1மாதம்',
+    threeMonths: '3மாதங்கள்',
+    oneYear: '1ஆண்டு',
+    fiveYears: '5ஆண்டுகள்',
+    
+    // Common
+    percent: '%',
+    rupee: '₹',
+    dollar: '$',
+    today: 'இன்று',
+    yesterday: 'நேற்று',
+    week: 'வாரம்',
+    month: 'மாதம்',
+    year: 'ஆண்டு',
+  },
+  te: {
+    // Main Trading Screen
+    title: 'వర్తకం',
+    loadingMessage: 'వర్తక డేటా లోడ్ అవుతోంది...',
+    
+    // Navigation Sections
+    market: 'మార్కెట్',
+    portfolio: 'పోర్ట్‌ఫోలియో',
+    history: 'చరిత్ర',
+    leaders: 'లీడర్లు',
+    
+    // Portfolio Overview
+    portfolioValue: 'పోర్ట్‌ఫోలియో విలువ',
+    cash: 'నగదు',
+    invested: 'పెట్టుబడి',
+    positions: 'స్థానాలు',
+    
+    // Quick Actions
+    buy: 'కొనుగోలు',
+    sell: 'విక్రయం',
+    
+    // Market Overview
+    marketOverview: 'మార్కెట్ అవలోకనం',
+    seeAll: 'అన్నీ చూడండి',
+    
+    // Watchlist
+    watchlist: 'వాచ్‌లిస్ట్',
+    edit: 'సవరించు',
+    noStocksInWatchlist: 'వాచ్‌లిస్ట్‌లో స్టాక్‌లు లేవు',
+    addStocksToTrack: 'వాటి పనితీరును ట్రాక్ చేయడానికి స్టాక్‌లను జోడించండి',
+    
+    // Top Movers
+    topMovers: 'టాప్ మూవర్స్',
+    
+    // Open Positions
+    openPositions: 'తెరిచిన స్థానాలు',
+    manage: 'నిర్వహించు',
+    noOpenPositions: 'తెరిచిన స్థానాలు లేవు',
+    startTradingToBuild: 'మీ పోర్ట్‌ఫోలియోను నిర్మించడానికి వర్తకాన్ని ప్రారంభించండి',
+    shares: 'షేర్లు',
+    
+    // Leaderboard Preview
+    leaderboardPreview: 'లీడర్‌బోర్డ్ మునుజూపు',
+    viewAll: 'అన్నీ చూడండి',
+    
+    // Recent Activity
+    recentActivity: 'ఇటీవలి కార్యకలాపం',
+    noRecentActivity: 'ఇటీవలి కార్యకలాపం లేదు',
+    startTradingToSee: 'మీ కార్యకలాపాన్ని చూడడానికి వర్తకాన్ని ప్రారంభించండి',
+    
+    // Leaderboard Screen
+    leaderboard: 'లీడర్‌బోర్డ్',
+    weekly: 'వారపు',
+    monthly: 'నెలవారీ',
+    allTime: 'అన్ని సమయం',
+    thisMonth: 'ఈ నెల',
+    totalTraders: 'మొత్తం వర్తకులు',
+    avgReturn: 'సగటు రాబడి',
+    topPerformer: 'టాప్ పెర్ఫార్మర్',
+    
+    // Market Watchlist Screen
+    watchlistTitle: 'వాచ్‌లిస్ట్',
+    noStocksFound: 'స్టాక్‌లు కనుగొనబడలేదు',
+    tryAdjustingSearch: 'మీ శోధన లేదా వర్గ ఫిల్టర్‌ను సర్దుబాటు చేయడానికి ప్రయత్నించండి',
+    favoriteStocks: 'ఇష్టమైన స్టాక్‌లు',
+    topStocks: 'టాప్ స్టాక్‌లు',
+    stocks: 'స్టాక్‌లు',
+    
+    // Order History Screen
+    orderHistory: 'ఆర్డర్ చరిత్ర',
+    totalOrders: 'మొత్తం ఆర్డర్‌లు',
+    completionRate: 'పూర్తి రేటు',
+    avgOrderValue: 'సగటు ఆర్డర్ విలువ',
+    all: 'అన్నీ',
+    buy: 'కొనుగోలు',
+    sell: 'విక్రయం',
+    thisWeek: 'ఈ వారం',
+    thisMonth: 'ఈ నెల',
+    quantity: 'పరిమాణం',
+    total: 'మొత్తం',
+    orderId: 'ఆర్డర్ ఐడి',
+    commission: 'కమీషన్',
+    loading: 'లోడ్ అవుతోంది…',
+    
+    // Portfolio Screen
+    portfolioTitle: 'పోర్ట్‌ఫోలియో',
+    totalPortfolioValue: 'మొత్తం పోర్ట్‌ఫోలియో విలువ',
+    returns: 'రాబడి',
+    holdings: 'హోల్డింగ్‌లు',
+    orderHistory: 'ఆర్డర్ చరిత్ర',
+    leaderboard: 'లీడర్‌బోర్డ్',
+    achievements: 'సాధనలు',
+    unlocked: 'అన్‌లాక్ చేయబడింది',
+    firstInvestment: 'మొదటి పెట్టుబడి',
+    positiveReturns: 'సానుకూల రాబడి',
+    diversified: 'వైవిధ్యం',
+    portfolioBreakdown: 'పోర్ట్‌ఫోలియో బ్రేక్‌డౌన్',
+    chart: 'చార్ట్',
+    noHoldingsYet: 'ఇంకా హోల్డింగ్‌లు లేవు',
+    startTradingToBuild: 'మీ పోర్ట్‌ఫోలియోను నిర్మించడానికి వర్తకాన్ని ప్రారంభించండి',
+    marketValue: 'మార్కెట్ విలువ',
+    avgPrice: 'సగటు ధర',
+    weight: 'బరువు',
+    unrealizedPnL: 'అవాస్తవ P&L',
+    loadingPortfolio: 'పోర్ట్‌ఫోలియో లోడ్ అవుతోంది...',
+    
+    // Place Order Screen
+    placeOrder: 'ఆర్డర్ ఇవ్వండి',
+    lastUpdated: 'చివరి నవీకరణ: 15 నిమిషం ఆలస్యం',
+    market: 'మార్కెట్',
+    limit: 'పరిమితి',
+    quantity: 'పరిమాణం',
+    price: 'ధర',
+    estimatedCost: 'అంచనా ఖర్చు',
+    commission: 'కమీషన్',
+    totalCost: 'మొత్తం ఖర్చు',
+    currentCash: 'ప్రస్తుత నగదు',
+    newCash: 'కొత్త నగదు',
+    buyShares: '{quantity} షేర్లు కొనుగోలు',
+    sellShares: '{quantity} షేర్లు విక్రయం',
+    invalidQuantity: 'చెల్లని పరిమాణం',
+    pleaseEnterValidQuantity: 'దయచేసి చెల్లుబాటు అయ్యే పరిమాణాన్ని నమోదు చేయండి.',
+    invalidPrice: 'చెల్లని ధర',
+    pleaseEnterValidPrice: 'దయచేసి చెల్లుబాటు అయ్యే పరిమితి ధరను నమోదు చేయండి.',
+    orderFailed: 'ఆర్డర్ విఫలం',
+    unableToPlaceOrder: 'ఇప్పుడు ఆర్డర్ ఇవ్వలేకపోయాము.',
+    
+    // Stock Detail Screen
+    tradingMetrics: 'వర్తక మెట్రిక్‌లు',
+    open: 'తెరిచిన',
+    high: 'ఎత్తైన',
+    low: 'తక్కువ',
+    prevClose: 'మునుపటి మూసివేత',
+    volume: 'వాల్యూమ్',
+    avgVolume: 'సగటు వాల్యూమ్',
+    marketCap: 'మార్కెట్ క్యాప్',
+    peRatio: 'P/E నిష్పత్తి',
+    dividendYield: 'డివిడెండ్ దిగుబడి',
+    beta: 'బీటా',
+    technicalIndicators: 'సాంకేతిక సూచికలు',
+    rsi: 'RSI',
+    macd: 'MACD',
+    movingAvg: 'మూవింగ్ అవరేజ్',
+    support: 'సపోర్ట్',
+    resistance: 'రెసిస్టెన్స్',
+    above50MA: '50MA పైన',
+    bullish: 'బుల్',
+    bearish: 'బేర్',
+    neutral: 'తటస్థ',
+    recentTrades: 'ఇటీవలి వర్తకాలు',
+    companyProfile: 'కంపెనీ ప్రొఫైల్',
+    founded: 'స్థాపించబడింది',
+    employees: 'ఉద్యోగులు',
+    newsHighlights: 'వార్తల ముఖ్యాంశాలు',
+    keyFundamentals: 'కీ ఫండమెంటల్స్',
+    removedFromBookmarks: 'బుక్‌మార్క్‌ల నుండి తొలగించబడింది',
+    addedToBookmarks: 'బుక్‌మార్క్‌లకు జోడించబడింది',
+    hasBeenRemoved: 'తొలగించబడింది',
+    hasBeenAdded: 'జోడించబడింది',
+    yourBookmarks: 'మీ బుక్‌మార్క్‌లు.',
+    share: 'షేర్ చేయండి',
+    sharingStockDetails: '{symbol} స్టాక్ వివరాలను షేర్ చేస్తున్నారు',
+    sellStock: 'స్టాక్ విక్రయించండి',
+    areYouSureSell: 'మీరు నిజంగా {symbol} విక్రయించాలనుకుంటున్నారా?',
+    cancel: 'రద్దు చేయండి',
+    sell: 'విక్రయించండి',
+    
+    // Chart Filters
+    all: 'అన్నీ',
+    bullish: 'బుల్',
+    bearish: 'బేర్',
+    volatile: 'అస్థిర',
+    thisWeek: 'ఈ వారం',
+    thisMonth: 'ఈ నెల',
+    thisYear: 'ఈ సంవత్సరం',
+    
+    // Timeframes
+    oneDay: '1రోజు',
+    oneWeek: '1వారం',
+    oneMonth: '1నెల',
+    threeMonths: '3నెలలు',
+    oneYear: '1సంవత్సరం',
+    fiveYears: '5సంవత్సరాలు',
+    
+    // Common
+    percent: '%',
+    rupee: '₹',
+    dollar: '$',
+    today: 'ఈరోజు',
+    yesterday: 'నిన్న',
+    week: 'వారం',
+    month: 'నెల',
+    year: 'సంవత్సరం',
+  },
+};

@@ -18,6 +18,7 @@ import {
   fetchStocks 
 } from './utils/tradingApi';
 import MainHeader from '../../components/MainHeader';
+import { useTranslation } from '../../language';
 
 // Define navigation types
 type RootStackParamList = {
@@ -33,6 +34,7 @@ type NavigationProp = {
 
 const PortfolioScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { t } = useTranslation();
   const [selectedTab, setSelectedTab] = useState('Holdings');
   const [portfolioData, setPortfolioData] = useState<any>(null);
   const [holdings, setHoldings] = useState<any[]>([]);
@@ -40,7 +42,10 @@ const PortfolioScreen = () => {
   const [stocks, setStocks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const tabs = ['Holdings', 'Order History', 'Leaderboard'];
+  const tabs = [t.holdings, t.orderHistory, t.leaderboard];
+  
+  // Debug log to verify language is working
+  console.log('PortfolioScreen - Selected Language:', t.language);
 
   const handleBack = () => {
     navigation.goBack();
@@ -199,7 +204,7 @@ const PortfolioScreen = () => {
     return (
       <View style={styles.header}>
         <MainHeader 
-          title="Portfolio" 
+          title={t.portfolio} 
           iconName="wallet" 
           showBackButton 
           onBackPress={() => navigation.navigate('Trading')}
@@ -210,7 +215,7 @@ const PortfolioScreen = () => {
         <View style={styles.portfolioSummary}>
           <View style={styles.summaryHeader}>
             <View>
-              <Text style={styles.summaryLabel}>Total Portfolio Value</Text>
+              <Text style={styles.summaryLabel}>{t.totalPortfolioValue}</Text>
               <Text style={styles.summaryValue}>₹{totalValue.toLocaleString()}</Text>
             </View>
             <View style={styles.returnBadge}>
@@ -219,11 +224,11 @@ const PortfolioScreen = () => {
           </View>
           <View style={styles.summaryDetails}>
             <View>
-              <Text style={styles.summaryDetailLabel}>Invested</Text>
+              <Text style={styles.summaryDetailLabel}>{t.invested}</Text>
               <Text style={styles.summaryDetailValue}>₹{totalValue.toLocaleString()}</Text>
             </View>
             <View>
-              <Text style={styles.summaryDetailLabel}>Returns</Text>
+              <Text style={styles.summaryDetailLabel}>{t.returns}</Text>
               <Text style={[styles.returnsValue, { color: totalReturns >= 0 ? '#86EFAC' : '#FCA5A5' }]}>
                 {totalReturns >= 0 ? '+' : ''}₹{totalReturns.toLocaleString()}
               </Text>
@@ -279,9 +284,9 @@ const PortfolioScreen = () => {
     const isDiversified = realHoldings.length >= 3;
     
     const achievements = [
-      { unlocked: hasInvestments, icon: "medal", text: "First Investment", color: "#EAB308" },
-      { unlocked: hasPositiveReturns, icon: "trending-up", text: "Positive Returns", color: "#22C55E" },
-      { unlocked: isDiversified, icon: "pie-chart", text: "Diversified", color: "#3B82F6" },
+      { unlocked: hasInvestments, icon: "medal", text: t.firstInvestment, color: "#EAB308" },
+      { unlocked: hasPositiveReturns, icon: "trending-up", text: t.positiveReturns, color: "#22C55E" },
+      { unlocked: isDiversified, icon: "pie-chart", text: t.diversified, color: "#3B82F6" },
     ];
     
     const unlockedCount = achievements.filter(a => a.unlocked).length;
@@ -289,8 +294,8 @@ const PortfolioScreen = () => {
     return (
       <View style={styles.achievementsSection}>
         <View style={styles.achievementsHeader}>
-          <Text style={styles.sectionTitle}>Achievements</Text>
-          <Text style={styles.achievementsCount}>{unlockedCount}/{achievements.length} unlocked</Text>
+          <Text style={styles.sectionTitle}>{t.achievements}</Text>
+          <Text style={styles.achievementsCount}>{unlockedCount}/{achievements.length} {t.unlocked}</Text>
         </View>
         <View style={styles.achievementsGrid}>
           {achievements.map((achievement, index) => (
@@ -349,13 +354,13 @@ const PortfolioScreen = () => {
     return (
       <View style={styles.diversificationChart}>
         <View style={styles.chartHeader}>
-          <Text style={styles.sectionTitle}>Portfolio Breakdown</Text>
+          <Text style={styles.sectionTitle}>{t.portfolioBreakdown}</Text>
           <Ionicons name="pie-chart" size={20} color="#9CA3AF" />
         </View>
         <View style={styles.chartContent}>
           <View style={styles.pieChart}>
             <Ionicons name="pie-chart-outline" size={48} color="#6B7280" />
-            <Text style={styles.pieChartText}>Chart</Text>
+            <Text style={styles.pieChartText}>{t.chart}</Text>
           </View>
           <View style={styles.sectorList}>
             {sectors.length > 0 ? sectors.map((sector, index) => (
@@ -365,7 +370,7 @@ const PortfolioScreen = () => {
                 <Text style={styles.sectorWeight}>{sector.percentage}%</Text>
               </View>
             )) : (
-              <Text style={styles.sectorName}>No holdings yet</Text>
+              <Text style={styles.sectorName}>{t.noHoldingsYet}</Text>
             )}
           </View>
         </View>
@@ -380,11 +385,11 @@ const PortfolioScreen = () => {
     if (realHoldings.length === 0) {
       return (
         <View style={styles.holdingsSection}>
-          <Text style={styles.sectionTitle}>Holdings (0)</Text>
+          <Text style={styles.sectionTitle}>{t.holdings} (0)</Text>
           <View style={styles.emptyHoldings}>
             <Ionicons name="wallet-outline" size={48} color="#9CA3AF" />
-            <Text style={styles.emptyText}>No holdings yet</Text>
-            <Text style={styles.emptySubtext}>Start trading to build your portfolio</Text>
+            <Text style={styles.emptyText}>{t.noHoldingsYet}</Text>
+            <Text style={styles.emptySubtext}>{t.startTradingToBuild}</Text>
           </View>
         </View>
       );
@@ -392,7 +397,7 @@ const PortfolioScreen = () => {
     
     return (
       <View style={styles.holdingsSection}>
-        <Text style={styles.sectionTitle}>Holdings ({realHoldings.length})</Text>
+        <Text style={styles.sectionTitle}>{t.holdings} ({realHoldings.length})</Text>
         {realHoldings.map((holding) => {
           const currentPrice = Number(holding.current_price) || 0;
           const avgPrice = Number(holding.average_price) || 0;
@@ -426,21 +431,21 @@ const PortfolioScreen = () => {
                 </View>
                 <View style={styles.stockPrice}>
                   <Text style={styles.currentPrice}>₹{currentPrice.toFixed(2)}</Text>
-                  <Text style={styles.quantity}>{quantity} shares</Text>
+                  <Text style={styles.quantity}>{quantity} {t.shares}</Text>
                 </View>
               </View>
 
               <View style={styles.holdingDetails}>
                 <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Market Value:</Text>
+                  <Text style={styles.detailLabel}>{t.marketValue}:</Text>
                   <Text style={styles.detailValue}>₹{marketValue.toFixed(2)}</Text>
                 </View>
                 <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Avg Price:</Text>
+                  <Text style={styles.detailLabel}>{t.avgPrice}:</Text>
                   <Text style={styles.detailValue}>₹{avgPrice.toFixed(2)}</Text>
                 </View>
                 <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Weight:</Text>
+                  <Text style={styles.detailLabel}>{t.weight}:</Text>
                   <Text style={styles.detailValue}>
                     {portfolioData?.total_value > 0 ? ((marketValue / portfolioData.total_value) * 100).toFixed(1) : '0.0'}%
                   </Text>
@@ -449,7 +454,7 @@ const PortfolioScreen = () => {
 
               <View style={styles.pnlSection}>
                 <View style={styles.pnlInfo}>
-                  <Text style={styles.pnlLabel}>Unrealized P&L</Text>
+                  <Text style={styles.pnlLabel}>{t.unrealizedPnL}</Text>
                   <View style={styles.pnlValueRow}>
                     <Ionicons 
                       name={isPositive ? "trending-up" : "trending-down"} 
@@ -496,7 +501,7 @@ const PortfolioScreen = () => {
       >
         {loading ? (
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading portfolio...</Text>
+            <Text style={styles.loadingText}>{t.loadingPortfolio}</Text>
           </View>
         ) : (
           <>

@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { fetchOrderHistory } from './utils/tradingApi';
 import MainHeader from '../../components/MainHeader';
+import { useTranslation } from '../../language';
 
 // Define navigation types
 type RootStackParamList = {
@@ -27,12 +28,16 @@ type NavigationProp = {
 
 const OrderHistoryScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { t } = useTranslation();
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const filters = ['All', 'Buy', 'Sell', 'This Week', 'This Month'];
+  const filters = [t.all, t.buy, t.sell, t.thisWeek, t.thisMonth];
+  
+  // Debug log to verify language is working
+  console.log('OrderHistoryScreen - Selected Language:', t.language);
 
   const handleBack = () => {
     navigation.navigate('Trading');
@@ -100,7 +105,7 @@ const OrderHistoryScreen = () => {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <MainHeader title="Order History" iconName="time" showBackButton onBackPress={handleBack} />
+      <MainHeader title={t.orderHistory} iconName="time" showBackButton onBackPress={handleBack} />
     </View>
   );
 
@@ -134,15 +139,15 @@ const OrderHistoryScreen = () => {
         <View style={styles.summaryGrid}>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryValue}>{totalOrders}</Text>
-            <Text style={styles.summaryLabel}>Total Orders</Text>
+            <Text style={styles.summaryLabel}>{t.totalOrders}</Text>
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryValueSuccess}>{completionRate}%</Text>
-            <Text style={styles.summaryLabel}>Completion Rate</Text>
+            <Text style={styles.summaryLabel}>{t.completionRate}</Text>
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryValueSuccess}>₹{avgOrderValue.toLocaleString()}</Text>
-            <Text style={styles.summaryLabel}>Avg Order Value</Text>
+            <Text style={styles.summaryLabel}>{t.avgOrderValue}</Text>
           </View>
         </View>
       </View>
@@ -265,19 +270,19 @@ const OrderHistoryScreen = () => {
           <View style={styles.tradeDetails}>
             <View style={styles.detailsGrid}>
               <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Quantity:</Text>
-                <Text style={styles.detailValue}>{mapped.quantity} shares</Text>
+                <Text style={styles.detailLabel}>{t.quantity}:</Text>
+                <Text style={styles.detailValue}>{mapped.quantity} {t.shares}</Text>
               </View>
               <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Total:</Text>
+                <Text style={styles.detailLabel}>{t.total}:</Text>
                 <Text style={styles.detailValue}>{mapped.total}</Text>
               </View>
               <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Order ID:</Text>
+                <Text style={styles.detailLabel}>{t.orderId}:</Text>
                 <Text style={styles.detailValue}>#{mapped.id}</Text>
               </View>
               <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Commission:</Text>
+                <Text style={styles.detailLabel}>{t.commission}:</Text>
                 <Text style={styles.detailValue}>₹{Number(trade.commission || 0).toFixed(2)}</Text>
               </View>
             </View>
@@ -300,7 +305,7 @@ const OrderHistoryScreen = () => {
       {renderFilterSection()}
       <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
         {loading ? (
-          <View style={{ padding: 16 }}><Text>Loading…</Text></View>
+          <View style={{ padding: 16 }}><Text>{t.loading}</Text></View>
         ) : (
           renderTradesList()
         )}

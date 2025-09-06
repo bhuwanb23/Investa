@@ -15,6 +15,7 @@ import { LEADERBOARD_DATA } from './constants/tradingConstants';
 import useLeaderboardData from '../trading/hooks/useLeaderboardData';
 import MainHeader from '../../components/MainHeader';
 import LeaderboardUserCard from './components/LeaderboardUserCard';
+import { useTranslation } from '../../language';
 
 // Define navigation types
 type RootStackParamList = {
@@ -29,12 +30,16 @@ type NavigationProp = {
 
 const LeaderboardScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { t } = useTranslation();
   const [selectedTimeframe, setSelectedTimeframe] = useState('Weekly');
   const { currentUser, topUsers, highlights } = useLeaderboardData(LEADERBOARD_DATA);
   const podiumAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(0)).current;
 
-  const timeframes = ['Weekly', 'Monthly', 'All-time'];
+  const timeframes = [t.weekly, t.monthly, t.allTime];
+  
+  // Debug log to verify language is working
+  console.log('LeaderboardScreen - Selected Language:', t.language);
 
   // Data now comes from hook
 
@@ -66,7 +71,7 @@ const LeaderboardScreen = () => {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <MainHeader title="Leaderboard" iconName="trophy" showBackButton onBackPress={handleBack} />
+      <MainHeader title={t.leaderboard} iconName="trophy" showBackButton onBackPress={handleBack} />
     </View>
   );
 
@@ -76,7 +81,7 @@ const LeaderboardScreen = () => {
       username={currentUser?.username || '@traderpro_alex'}
       totalValue={currentUser?.totalValue || '125,840'}
       totalReturn={currentUser?.totalReturn || '24.8%'}
-      returnLabel="This month"
+      returnLabel={t.thisMonth}
     />
   );
 

@@ -18,6 +18,7 @@ import {
   fetchStocks,
   fetchMyWatchlist
 } from '../trading/utils/tradingApi';
+import { useTranslation } from '../../language';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -44,6 +45,7 @@ type NavigationProp = {
 
 const TradingScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { t } = useTranslation();
   
   // State for real data
   const [portfolioData, setPortfolioData] = useState<any>(null);
@@ -53,6 +55,9 @@ const TradingScreen = () => {
   const [watchlist, setWatchlist] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [bootLoader, setBootLoader] = useState(true);
+  
+  // Debug log to verify language is working
+  console.log('TradingScreen - Selected Language:', t.language);
   
   // Mock data for market indices (these would come from a market data API)
   const marketIndices = [
@@ -164,11 +169,11 @@ const TradingScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={[styles.scrollContent, styles.fullWidth]} showsVerticalScrollIndicator={false} stickyHeaderIndices={[0]}>
-          <MainHeader title="Trading" iconName="trending-up" onNotificationsPress={() => navigation.navigate('OrderHistory')} />
+          <MainHeader title={t.title} iconName="trending-up" onNotificationsPress={() => navigation.navigate('OrderHistory')} />
           <View style={styles.pagePadding}>
             {loading ? (
               <View style={styles.loadingContainer}>
-                <Text style={styles.loadingText}>Loading trading data...</Text>
+                <Text style={styles.loadingText}>{t.loadingMessage}</Text>
               </View>
             ) : (
               <>
@@ -178,25 +183,25 @@ const TradingScreen = () => {
               <View style={styles.sectionIconWrap}>
                 <Ionicons name="trending-up" size={18} color={PRIMARY} />
               </View>
-              <Text style={styles.sectionLabel}>Market</Text>
+              <Text style={styles.sectionLabel}>{t.market}</Text>
             </Pressable>
             <Pressable style={styles.sectionCard} onPress={() => navigation.navigate('Portfolio')} android_ripple={{ color: '#e5e7eb' }}>
               <View style={styles.sectionIconWrap}>
                 <Ionicons name="pie-chart" size={18} color={PRIMARY} />
               </View>
-              <Text style={styles.sectionLabel}>Portfolio</Text>
+              <Text style={styles.sectionLabel}>{t.portfolio}</Text>
             </Pressable>
             <Pressable style={styles.sectionCard} onPress={() => navigation.navigate('OrderHistory')} android_ripple={{ color: '#e5e7eb' }}>
               <View style={styles.sectionIconWrap}>
                 <Ionicons name="time" size={18} color={PRIMARY} />
               </View>
-              <Text style={styles.sectionLabel}>History</Text>
+              <Text style={styles.sectionLabel}>{t.history}</Text>
             </Pressable>
             <Pressable style={styles.sectionCard} onPress={() => navigation.navigate('Leaderboard')} android_ripple={{ color: '#e5e7eb' }}>
               <View style={styles.sectionIconWrap}>
                 <Ionicons name="trophy" size={18} color={PRIMARY} />
               </View>
-              <Text style={styles.sectionLabel}>Leaders</Text>
+              <Text style={styles.sectionLabel}>{t.leaders}</Text>
             </Pressable>
           </View>
 
@@ -204,7 +209,7 @@ const TradingScreen = () => {
           <View style={styles.overviewCard}>
             <View style={styles.overviewRow}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.kpiLabel}>Portfolio Value</Text>
+                <Text style={styles.kpiLabel}>{t.portfolioValue}</Text>
                 <Text style={styles.overviewValue}>₹{totalValue.toLocaleString()}</Text>
               </View>
               <View style={[
@@ -228,15 +233,15 @@ const TradingScreen = () => {
             </View>
             <View style={styles.overviewStatsRow}>
               <View style={styles.overviewStat}>
-                <Text style={styles.kpiLabel}>Cash</Text>
+                <Text style={styles.kpiLabel}>{t.cash}</Text>
                 <Text style={styles.kpiValue}>₹{(totalValue - totalInvested).toLocaleString()}</Text>
               </View>
               <View style={styles.overviewStat}>
-                <Text style={styles.kpiLabel}>Invested</Text>
+                <Text style={styles.kpiLabel}>{t.invested}</Text>
                 <Text style={styles.kpiValue}>₹{totalInvested.toLocaleString()}</Text>
               </View>
               <View style={styles.overviewStat}>
-                <Text style={styles.kpiLabel}>Positions</Text>
+                <Text style={styles.kpiLabel}>{t.positions}</Text>
                 <Text style={styles.kpiValue}>{holdings.length}</Text>
               </View>
             </View>
@@ -250,7 +255,7 @@ const TradingScreen = () => {
               onPress={() => navigation.navigate('PlaceOrder', { stockSymbol: 'AAPL', stockName: 'Apple', currentPrice: 189.23 })}
             >
               <Ionicons name="arrow-up" size={18} color="#fff" />
-              <Text style={styles.quickActionText}>Buy</Text>
+              <Text style={styles.quickActionText}>{t.buy}</Text>
             </Pressable>
             <Pressable
               style={[styles.quickActionCard, { backgroundColor: '#ef4444' }]}
@@ -258,16 +263,16 @@ const TradingScreen = () => {
               onPress={() => navigation.navigate('PlaceOrder', { stockSymbol: 'TSLA', stockName: 'Tesla', currentPrice: 244.18 })}
             >
               <Ionicons name="arrow-down" size={18} color="#fff" />
-              <Text style={styles.quickActionText}>Sell</Text>
+              <Text style={styles.quickActionText}>{t.sell}</Text>
             </Pressable>
           </View>
 
           {/* Market Overview */}
           <View style={styles.marketSection}>
             <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionTitle}>Market Overview</Text>
+              <Text style={styles.sectionTitle}>{t.marketOverview}</Text>
               <Pressable onPress={() => navigation.navigate('MarketWatchlist')} android_ripple={{ color: '#e5e7eb' }}>
-                <Text style={styles.linkText}>See all</Text>
+                <Text style={styles.linkText}>{t.seeAll}</Text>
               </Pressable>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.marketChipsRow}>
@@ -286,9 +291,9 @@ const TradingScreen = () => {
           {/* Watchlist */}
           <View style={styles.card}>
             <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionTitle}>Watchlist</Text>
+              <Text style={styles.sectionTitle}>{t.watchlist}</Text>
               <Pressable onPress={() => navigation.navigate('MarketWatchlist')} android_ripple={{ color: '#e5e7eb' }}>
-                <Text style={styles.linkText}>Edit</Text>
+                <Text style={styles.linkText}>{t.edit}</Text>
               </Pressable>
             </View>
             {watchlist.length > 0 ? watchlist.map((w, idx) => {
@@ -320,15 +325,15 @@ const TradingScreen = () => {
               );
             }) : (
               <View style={styles.emptyWatchlist}>
-                <Text style={styles.emptyText}>No stocks in watchlist</Text>
-                <Text style={styles.emptySubtext}>Add stocks to track their performance</Text>
+                <Text style={styles.emptyText}>{t.noStocksInWatchlist}</Text>
+                <Text style={styles.emptySubtext}>{t.addStocksToTrack}</Text>
               </View>
             )}
           </View>
 
           {/* Top Movers */}
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Top Movers</Text>
+            <Text style={styles.sectionTitle}>{t.topMovers}</Text>
             <View style={styles.moversGrid}>
               {topMovers.map((m, idx) => (
                 <Pressable key={idx} style={styles.moverCard} onPress={() => navigation.navigate('StockDetail', { stockSymbol: m.s, stockName: m.s })} android_ripple={{ color: '#e5e7eb' }}>
@@ -352,9 +357,9 @@ const TradingScreen = () => {
           {/* Open Positions */}
           <View style={styles.card}>
             <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionTitle}>Open Positions</Text>
+              <Text style={styles.sectionTitle}>{t.openPositions}</Text>
               <Pressable onPress={() => navigation.navigate('Portfolio')} android_ripple={{ color: '#e5e7eb' }}>
-                <Text style={styles.linkText}>Manage</Text>
+                <Text style={styles.linkText}>{t.manage}</Text>
               </Pressable>
             </View>
             {holdings.length > 0 ? holdings.slice(0, 3).map((holding, idx) => {
@@ -376,7 +381,7 @@ const TradingScreen = () => {
                     </View>
                     <View>
                       <Text style={styles.positionSymbol}>{symbol}</Text>
-                      <Text style={styles.positionMeta}>{quantity} shares • ₹{currentPrice.toFixed(2)}</Text>
+                      <Text style={styles.positionMeta}>{quantity} {t.shares} • ₹{currentPrice.toFixed(2)}</Text>
                     </View>
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
@@ -388,8 +393,8 @@ const TradingScreen = () => {
               );
             }) : (
               <View style={styles.emptyPositions}>
-                <Text style={styles.emptyText}>No open positions</Text>
-                <Text style={styles.emptySubtext}>Start trading to build your portfolio</Text>
+                <Text style={styles.emptyText}>{t.noOpenPositions}</Text>
+                <Text style={styles.emptySubtext}>{t.startTradingToBuild}</Text>
               </View>
             )}
           </View>
@@ -397,9 +402,9 @@ const TradingScreen = () => {
           {/* Leaderboard Preview */}
           <View style={styles.card}>
             <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionTitle}>Leaderboard Preview</Text>
+              <Text style={styles.sectionTitle}>{t.leaderboardPreview}</Text>
               <Pressable onPress={() => navigation.navigate('Leaderboard')} android_ripple={{ color: '#e5e7eb' }}>
-                <Text style={styles.linkText}>View all</Text>
+                <Text style={styles.linkText}>{t.viewAll}</Text>
               </Pressable>
             </View>
             {[
@@ -417,7 +422,7 @@ const TradingScreen = () => {
 
           {/* Recent Activity */}
           <View style={[styles.card, { marginBottom: 20 }]}>
-            <Text style={styles.sectionTitle}>Recent Activity</Text>
+            <Text style={styles.sectionTitle}>{t.recentActivity}</Text>
             {recentActivity.length > 0 ? recentActivity.map((a) => (
               <View key={a.id} style={styles.activityRow}>
                 <View style={styles.activityIcon}>
@@ -430,8 +435,8 @@ const TradingScreen = () => {
               </View>
             )) : (
               <View style={styles.emptyActivity}>
-                <Text style={styles.emptyText}>No recent activity</Text>
-                <Text style={styles.emptySubtext}>Start trading to see your activity</Text>
+                <Text style={styles.emptyText}>{t.noRecentActivity}</Text>
+                <Text style={styles.emptySubtext}>{t.startTradingToSee}</Text>
               </View>
             )}
           </View>

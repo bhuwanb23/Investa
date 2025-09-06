@@ -18,6 +18,7 @@ import {
   SearchBar,
 } from './components';
 import MainHeader from '../../components/MainHeader';
+import { useTranslation } from '../../language';
 
 // Define navigation types
 type RootStackParamList = {
@@ -33,6 +34,7 @@ type NavigationProp = {
 
 const MarketWatchlistScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const {
@@ -42,6 +44,9 @@ const MarketWatchlistScreen = () => {
     getStocksByCategory,
     setSelectedCategory: setCategoryFromHook,
   } = useTradingData();
+  
+  // Debug log to verify language is working
+  console.log('MarketWatchlistScreen - Selected Language:', t.language);
 
   const handleStockPress = (stock: any) => {
     navigation.navigate('StockDetail', {
@@ -91,9 +96,9 @@ const MarketWatchlistScreen = () => {
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <Ionicons name="search" size={48} color="#9CA3AF" />
-      <Text style={styles.emptyStateTitle}>No stocks found</Text>
+      <Text style={styles.emptyStateTitle}>{t.noStocksFound}</Text>
       <Text style={styles.emptyStateSubtitle}>
-        Try adjusting your search or category filter
+        {t.tryAdjustingSearch}
       </Text>
     </View>
   );
@@ -102,7 +107,7 @@ const MarketWatchlistScreen = () => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <MainHeader title="Watchlist" iconName="trending-up" showBackButton onBackPress={() => navigation.navigate('Trading')} />
+        <MainHeader title={t.watchlistTitle} iconName="trending-up" showBackButton onBackPress={() => navigation.navigate('Trading')} />
         <SearchBar
           value={searchQuery}
           onChangeText={handleSearchChange}
@@ -127,9 +132,9 @@ const MarketWatchlistScreen = () => {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
-              {selectedCategory === 'Favorites' ? 'Favorite Stocks' : 'Top Stocks'}
+              {selectedCategory === 'Favorites' ? t.favoriteStocks : t.topStocks}
             </Text>
-            <Text style={styles.stockCount}>{filteredStocks.length} stocks</Text>
+            <Text style={styles.stockCount}>{filteredStocks.length} {t.stocks}</Text>
           </View>
 
           {filteredStocks.length > 0 ? (

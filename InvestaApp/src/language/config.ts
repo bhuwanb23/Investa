@@ -4,6 +4,7 @@ import { securitySettingsTranslations } from './pages/securitySettings';
 import { privacySettingsTranslations } from './pages/privacySettings';
 import { homeTranslations } from './pages/home';
 import { progressTranslations } from './pages/progress';
+import { tradingTranslations } from './pages/trading';
 
 export interface Language {
   code: string;
@@ -28,6 +29,7 @@ export const translations = {
     ...privacySettingsTranslations.en,
     ...homeTranslations.en,
     ...progressTranslations.en,
+    ...tradingTranslations.en,
   },
   hi: {
     ...profileTranslations.hi,
@@ -36,6 +38,7 @@ export const translations = {
     ...privacySettingsTranslations.hi,
     ...homeTranslations.hi,
     ...progressTranslations.hi,
+    ...tradingTranslations.hi,
   },
   ta: {
     ...profileTranslations.ta,
@@ -44,6 +47,7 @@ export const translations = {
     ...privacySettingsTranslations.ta,
     ...homeTranslations.ta,
     ...progressTranslations.ta,
+    ...tradingTranslations.ta,
   },
   te: {
     ...profileTranslations.te,
@@ -52,6 +56,7 @@ export const translations = {
     ...privacySettingsTranslations.te,
     ...homeTranslations.te,
     ...progressTranslations.te,
+    ...tradingTranslations.te,
   },
 };
 
