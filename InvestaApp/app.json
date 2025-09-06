@@ -21,14 +21,18 @@
         "foregroundImage": "./assets/investa_logo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.expouser_1.InvestaApp"
     },
     "web": {
       "favicon": "./assets/investa_logo.png"
     },
     "extra": {
       "apiBaseUrl": "",
-      "lanIp": ""
+      "lanIp": "",
+      "eas": {
+        "projectId": "d0a7eae7-924a-4067-8fdd-3161d088ae22"
+      }
     }
   }
 }
