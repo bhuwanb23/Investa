@@ -6,9 +6,14 @@ import { PAGE_BG, TEXT_DARK, TEXT_MUTED, PRIMARY, CARD_BG } from './constants/co
 import CertificateCard from './components/CertificateCard';
 import SocialShareBar from './components/SocialShareBar';
 import CertificateConfetti from './components/CertificateConfetti';
+import { useTranslation } from '../../language';
 
 const CertificateScreen: React.FC = () => {
 	const navigation = useNavigation();
+	const { t } = useTranslation();
+	
+	// Debug log to verify language is working
+	console.log('CertificateScreen - Selected Language:', t.language);
 
 	return (
 		<SafeAreaView style={styles.safe}>
@@ -31,8 +36,8 @@ const CertificateScreen: React.FC = () => {
 							<Ionicons name="checkmark" size={16} color="#fff" />
 						</View>
 					</View>
-					<Text style={styles.congrats}>Congratulations!</Text>
-					<Text style={styles.subtitle}>You've successfully completed</Text>
+					<Text style={styles.congrats}>{t.congratulations}</Text>
+					<Text style={styles.subtitle}>{t.youHaveCompleted}</Text>
 				</View>
 
 				<View style={{ marginHorizontal: 12, marginBottom: 20 }}>
@@ -46,11 +51,11 @@ const CertificateScreen: React.FC = () => {
 				<View style={[styles.actions, { marginHorizontal: 12 }]}>
 					<TouchableOpacity style={styles.primaryBtn} onPress={() => navigation.navigate('Downloads' as never)}>
 						<Ionicons name="download" size={18} color="#fff" />
-						<Text style={styles.primaryBtnText}>Download Certificate</Text>
+						<Text style={styles.primaryBtnText}>{t.downloadCertificate}</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation.navigate('Share' as never)}>
 						<Ionicons name="share" size={18} color="#7C3AED" />
-						<Text style={styles.secondaryBtnText}>Share Achievement</Text>
+						<Text style={styles.secondaryBtnText}>{t.shareAchievement || 'Share Achievement'}</Text>
 					</TouchableOpacity>
 				</View>
 
@@ -63,11 +68,11 @@ const CertificateScreen: React.FC = () => {
 						<Ionicons name="rocket" size={18} color="#fff" />
 					</View>
 					<View style={{ flex: 1 }}>
-						<Text style={styles.nextTitle}>Keep Learning!</Text>
-						<Text style={styles.nextMuted}>Next Recommended Module:</Text>
+						<Text style={styles.nextTitle}>{t.keepLearning || 'Keep Learning!'}</Text>
+						<Text style={styles.nextMuted}>{t.nextRecommendedModule || 'Next Recommended Module:'}</Text>
 						<Text style={styles.nextCourse}>Node.js Backend Development</Text>
 						<TouchableOpacity style={styles.nextCta}>
-							<Text style={styles.nextCtaText}>Start Next Module</Text>
+							<Text style={styles.nextCtaText}>{t.startNextModule || 'Start Next Module'}</Text>
 							<Ionicons name="arrow-forward" size={14} color="#fff" />
 						</TouchableOpacity>
 					</View>

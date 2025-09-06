@@ -107,7 +107,10 @@ export const tradingTranslations = {
     
     // Place Order Screen
     placeOrder: 'Place Order',
-    lastUpdated: 'Last updated: 15 min delay',
+    lastUpdated: 'Last updated',
+    minDelay: 'min delay',
+    help: 'Help',
+    simulatedTradingEnvironment: 'This is a simulated trading environment for educational purposes.',
     market: 'Market',
     limit: 'Limit',
     quantity: 'Quantity',
@@ -119,12 +122,16 @@ export const tradingTranslations = {
     newCash: 'New Cash',
     buyShares: 'Buy {quantity} Share{plural}',
     sellShares: 'Sell {quantity} Share{plural}',
+    share: 'share',
+    shares: 'shares',
     invalidQuantity: 'Invalid Quantity',
     pleaseEnterValidQuantity: 'Please enter a valid quantity.',
     invalidPrice: 'Invalid Price',
     pleaseEnterValidPrice: 'Please enter a valid limit price.',
+    pleaseEnterValidLimitPrice: 'Please enter a valid limit price.',
     orderFailed: 'Order Failed',
     unableToPlaceOrder: 'Unable to place order now.',
+    unableToPlaceOrderNow: 'Unable to place order now.',
     
     // Stock Detail Screen
     tradingMetrics: 'Trading Metrics',
@@ -301,7 +308,10 @@ export const tradingTranslations = {
     
     // Place Order Screen
     placeOrder: 'ऑर्डर दें',
-    lastUpdated: 'अंतिम अपडेट: 15 मिनट देरी',
+    lastUpdated: 'अंतिम अपडेट',
+    minDelay: 'मिनट देरी',
+    help: 'सहायता',
+    simulatedTradingEnvironment: 'यह शैक्षिक उद्देश्यों के लिए एक सिम्युलेटेड ट्रेडिंग वातावरण है।',
     market: 'बाजार',
     limit: 'लिमिट',
     quantity: 'मात्रा',
@@ -313,12 +323,16 @@ export const tradingTranslations = {
     newCash: 'नया नकद',
     buyShares: '{quantity} शेयर खरीदें',
     sellShares: '{quantity} शेयर बेचें',
+    share: 'शेयर',
+    shares: 'शेयर',
     invalidQuantity: 'अमान्य मात्रा',
     pleaseEnterValidQuantity: 'कृपया एक वैध मात्रा दर्ज करें।',
     invalidPrice: 'अमान्य मूल्य',
     pleaseEnterValidPrice: 'कृपया एक वैध लिमिट मूल्य दर्ज करें।',
+    pleaseEnterValidLimitPrice: 'कृपया एक वैध लिमिट मूल्य दर्ज करें।',
     orderFailed: 'ऑर्डर असफल',
     unableToPlaceOrder: 'अभी ऑर्डर देने में असमर्थ।',
+    unableToPlaceOrderNow: 'अभी ऑर्डर देने में असमर्थ।',
     
     // Stock Detail Screen
     tradingMetrics: 'ट्रेडिंग मेट्रिक्स',
@@ -495,7 +509,10 @@ export const tradingTranslations = {
     
     // Place Order Screen
     placeOrder: 'ஆர்டர் வைக்கவும்',
-    lastUpdated: 'கடைசி புதுப்பிப்பு: 15 நிமிடம் தாமதம்',
+    lastUpdated: 'கடைசி புதுப்பிப்பு',
+    minDelay: 'நிமிடம் தாமதம்',
+    help: 'உதவி',
+    simulatedTradingEnvironment: 'இது கல்வி நோக்கங்களுக்காக ஒரு சிமுலேடட் வர்த்தக சூழல்.',
     market: 'சந்தை',
     limit: 'வரம்பு',
     quantity: 'அளவு',
@@ -507,12 +524,16 @@ export const tradingTranslations = {
     newCash: 'புதிய பணம்',
     buyShares: '{quantity} பங்குகள் வாங்க',
     sellShares: '{quantity} பங்குகள் விற்க',
+    share: 'பங்கு',
+    shares: 'பங்குகள்',
     invalidQuantity: 'தவறான அளவு',
     pleaseEnterValidQuantity: 'தயவுசெய்து சரியான அளவை உள்ளிடவும்.',
     invalidPrice: 'தவறான விலை',
     pleaseEnterValidPrice: 'தயவுசெய்து சரியான வரம்பு விலையை உள்ளிடவும்.',
+    pleaseEnterValidLimitPrice: 'தயவுசெய்து சரியான வரம்பு விலையை உள்ளிடவும்.',
     orderFailed: 'ஆர்டர் தோல்வி',
     unableToPlaceOrder: 'இப்போது ஆர்டர் வைக்க முடியவில்லை.',
+    unableToPlaceOrderNow: 'இப்போது ஆர்டர் வைக்க முடியவில்லை.',
     
     // Stock Detail Screen
     tradingMetrics: 'வர்த்தக அளவீடுகள்',
@@ -689,7 +710,10 @@ export const tradingTranslations = {
     
     // Place Order Screen
     placeOrder: 'ఆర్డర్ ఇవ్వండి',
-    lastUpdated: 'చివరి నవీకరణ: 15 నిమిషం ఆలస్యం',
+    lastUpdated: 'చివరి నవీకరణ',
+    minDelay: 'నిమిషం ఆలస్యం',
+    help: 'సహాయం',
+    simulatedTradingEnvironment: 'ఇది విద్యా ప్రయోజనాల కోసం సిమ్యులేటెడ్ ట్రేడింగ్ వాతావరణం.',
     market: 'మార్కెట్',
     limit: 'పరిమితి',
     quantity: 'పరిమాణం',
@@ -701,12 +725,16 @@ export const tradingTranslations = {
     newCash: 'కొత్త నగదు',
     buyShares: '{quantity} షేర్లు కొనుగోలు',
     sellShares: '{quantity} షేర్లు విక్రయం',
+    share: 'షేర్',
+    shares: 'షేర్లు',
     invalidQuantity: 'చెల్లని పరిమాణం',
     pleaseEnterValidQuantity: 'దయచేసి చెల్లుబాటు అయ్యే పరిమాణాన్ని నమోదు చేయండి.',
     invalidPrice: 'చెల్లని ధర',
     pleaseEnterValidPrice: 'దయచేసి చెల్లుబాటు అయ్యే పరిమితి ధరను నమోదు చేయండి.',
+    pleaseEnterValidLimitPrice: 'దయచేసి చెల్లుబాటు అయ్యే పరిమితి ధరను నమోదు చేయండి.',
     orderFailed: 'ఆర్డర్ విఫలం',
     unableToPlaceOrder: 'ఇప్పుడు ఆర్డర్ ఇవ్వలేకపోయాము.',
+    unableToPlaceOrderNow: 'ఇప్పుడు ఆర్డర్ ఇవ్వలేకపోయాము.',
     
     // Stock Detail Screen
     tradingMetrics: 'వర్తక మెట్రిక్‌లు',

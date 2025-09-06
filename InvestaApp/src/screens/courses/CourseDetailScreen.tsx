@@ -22,6 +22,7 @@ type CourseDetail = {
   lessons?: Lesson[];
 };
 import { PAGE_BG, TEXT_DARK, TEXT_MUTED, BORDER, CARD_BG, PRIMARY, DIFFICULTY_COLORS, DIFFICULTY_LABELS } from './constants/courseConstants';
+import { useTranslation } from '../../language';
 
 type ParamList = {
   CourseDetail: { courseId: string; course?: any; sample?: boolean };
@@ -30,6 +31,11 @@ type ParamList = {
 const CourseDetailScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
   const route = useRoute<RouteProp<ParamList, 'CourseDetail'>>();
+  const { t } = useTranslation();
+  
+  // Debug log to verify language is working
+  console.log('CourseDetailScreen - Selected Language:', t.language);
+  
   const courseId = Number(route.params?.courseId);
   const initialFromRoute = route.params?.course && route.params?.sample ? (route.params.course as CourseDetail) : null;
   const [course, setCourse] = useState<CourseDetail | null>(null);
@@ -65,10 +71,10 @@ const CourseDetailScreen: React.FC = () => {
         };
         setCourse(normalized);
       } else {
-        setError('Course not found');
+        setError(t.courseNotFound || 'Course not found');
       }
     } catch (e: any) {
-      setError(e?.response?.data?.detail || 'Failed to load course');
+      setError(e?.response?.data?.detail || t.failedToLoadCourse || 'Failed to load course');
     } finally {
       setLoading(false);
     }
@@ -85,16 +91,16 @@ const CourseDetailScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scroll} stickyHeaderIndices={[0]}>
-        <MainHeader title={course?.title || 'Course'} iconName="library" showBackButton onBackPress={() => navigation.goBack()} />
+        <MainHeader title={course?.title || t.course} iconName="library" showBackButton onBackPress={() => navigation.goBack()} />
       {loading ? (
         <View style={styles.center}> 
           <ActivityIndicator size="large" color={PRIMARY} />
-          <Text style={styles.loadingText}>Loading course…</Text>
+          <Text style={styles.loadingText}>{t.loadingCourse || 'Loading course…'}</Text>
         </View>
       ) : error ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={load}><Text style={styles.retryText}>Retry</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.retryBtn} onPress={load}><Text style={styles.retryText}>{t.retry || 'Retry'}</Text></TouchableOpacity>
         </View>
       ) : course ? (
         <View>
@@ -107,13 +113,13 @@ const CourseDetailScreen: React.FC = () => {
             <Text style={styles.title}>{course.title}</Text>
             <Text style={styles.desc}>{course.description}</Text>
             <View style={styles.metaRow}>
-              <Text style={styles.meta}>Language: {course.language?.name}</Text>
-              <Text style={styles.meta}>{course.estimated_duration} mins</Text>
+              <Text style={styles.meta}>{t.language}: {course.language?.name}</Text>
+              <Text style={styles.meta}>{course.estimated_duration} {t.minutes}</Text>
             </View>
           </View>
 
           <View style={{ marginHorizontal: 12 }}>
-            <Text style={styles.sectionTitle}>Lessons</Text>
+            <Text style={styles.sectionTitle}>{t.lessons}</Text>
             <LessonList
               lessons={((course.lessons || []).map(l => ({ ...l, is_active: l.is_active ?? true })) as unknown) as ApiLesson[]}
               onPressLesson={onPressLesson}

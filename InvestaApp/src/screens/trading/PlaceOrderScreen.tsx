@@ -78,6 +78,7 @@ const PlaceOrderScreen = () => {
   };
 
   const handleHelp = () => {
+    // Using translation keys for help dialog
     Alert.alert(t.help, t.simulatedTradingEnvironment);
   };
 

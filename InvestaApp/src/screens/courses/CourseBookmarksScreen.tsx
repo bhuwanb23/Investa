@@ -6,9 +6,15 @@ import { PAGE_BG, CARD_BG, TEXT_DARK, TEXT_MUTED, BORDER, PRIMARY } from './cons
 import BookmarkFilterBar from './components/BookmarkFilterBar';
 import BookmarksList, { BookmarkItem } from './components/BookmarksList';
 import MainHeader from '../../components/MainHeader';
+import { useTranslation } from '../../language';
 
 const CourseBookmarksScreen: React.FC = () => {
 	const navigation = useNavigation();
+	const { t } = useTranslation();
+	
+	// Debug log to verify language is working
+	console.log('CourseBookmarksScreen - Selected Language:', t.language);
+	
 	const [filter, setFilter] = useState<'recent' | 'relevant'>('recent');
 
 	const items = useMemo<BookmarkItem[]>(() => [
@@ -41,14 +47,14 @@ const CourseBookmarksScreen: React.FC = () => {
 	return (
 		<SafeAreaView style={styles.safe}>
 			<ScrollView contentContainerStyle={{ paddingBottom: 16 }} stickyHeaderIndices={[0]}>
-				<MainHeader title="Bookmarks" iconName="bookmark" showBackButton onBackPress={() => navigation.goBack()} />
+				<MainHeader title={t.bookmarks} iconName="bookmark" showBackButton onBackPress={() => navigation.goBack()} />
 				{/* Filters */}
 				<View style={{ marginHorizontal: 12 }}>
 					<BookmarkFilterBar selected={filter} onSelect={setFilter} />
 				</View>
 				<View style={{ paddingVertical: 16, marginHorizontal: 12 }}>
 					<View style={{ marginBottom: 8 }}>
-						<Text style={styles.countText}>{items.length} bookmarked lessons</Text>
+						<Text style={styles.countText}>{items.length} {t.bookmarkedLessons || 'bookmarked lessons'}</Text>
 					</View>
 					<BookmarksList
 						items={items}

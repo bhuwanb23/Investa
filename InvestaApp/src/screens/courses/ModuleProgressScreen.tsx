@@ -9,14 +9,16 @@ import MotivationalBanner from './components/MotivationalBanner';
 import StatCard from './components/StatCard';
 import BadgesRow from './components/BadgesRow';
 import RecentActivityItem from './components/RecentActivityItem';
+import { useTranslation } from '../../language';
 
 const ModuleProgressScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll} stickyHeaderIndices={[0]}>
-        <MainHeader title="Module Progress" iconName="analytics" showBackButton onBackPress={() => navigation.goBack()} />
+        <MainHeader title={t.moduleProgress || 'Module Progress'} iconName="analytics" showBackButton onBackPress={() => navigation.goBack()} />
         {/* Overview Card */}
         <View style={styles.card}> 
           <View style={styles.center}> 

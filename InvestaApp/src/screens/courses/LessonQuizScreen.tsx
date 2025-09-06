@@ -9,6 +9,7 @@ import { fetchQuizForLesson, fetchQuizzesForLesson, startQuizAttempt, submitQuiz
 import { getQuizAttempt } from './utils/coursesApi';
 import { markLessonCompleted, fetchCourseDetailWithProgress } from './utils/coursesApi';
 import { Alert } from 'react-native';
+import { useTranslation } from '../../language';
 
 type ParamList = { 
   LessonQuiz: { 
@@ -29,6 +30,7 @@ const LessonQuizScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quizCompleted, setQuizCompleted] = useState(false);
+  const { t } = useTranslation();
   const [attemptResult, setAttemptResult] = useState<any>(null);
 
   useEffect(() => {
@@ -55,7 +57,7 @@ const LessonQuizScreen: React.FC = () => {
       setQuizAttempt(attempt);
     } catch (err) {
       console.error('Error loading quiz:', err);
-      setError('Failed to load quiz');
+      setError(t.failedToLoadQuiz || 'Failed to load quiz');
     } finally {
       setLoading(false);
     }
@@ -88,10 +90,10 @@ const LessonQuizScreen: React.FC = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <MainHeader title="Quiz" iconName="help-circle" />
+        <MainHeader title={t.quiz || 'Quiz'} iconName="help-circle" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#4f46e5" />
-          <Text style={styles.loadingText}>Loading quiz...</Text>
+          <Text style={styles.loadingText}>{t.loadingQuiz || 'Loading quiz...'}</Text>
         </View>
       </SafeAreaView>
     );
@@ -100,10 +102,10 @@ const LessonQuizScreen: React.FC = () => {
   if (error || !quiz) {
     return (
       <SafeAreaView style={styles.container}>
-        <MainHeader title="Quiz" iconName="help-circle" />
+        <MainHeader title={t.quiz || 'Quiz'} iconName="help-circle" />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            {error || 'No quiz available for this lesson'}
+            {error || t.noQuizAvailable || 'No quiz available for this lesson'}
           </Text>
         </View>
       </SafeAreaView>
@@ -117,7 +119,7 @@ const LessonQuizScreen: React.FC = () => {
 
     return (
       <SafeAreaView style={styles.container}>
-        <MainHeader title={`Quiz Results`} iconName="trophy" />
+        <MainHeader title={t.quizResults || 'Quiz Results'} iconName="trophy" />
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Hero Banner */}
           <View style={{ backgroundColor: '#EEF2FF', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#E0E7FF' }}>
@@ -222,7 +224,7 @@ const LessonQuizScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <MainHeader title={`Quiz: ${quiz.title}`} iconName="help-circle" />
+      <MainHeader title={`${t.quiz || 'Quiz'}: ${quiz.title}`} iconName="help-circle" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {quizzes.length > 1 && (
           <View style={{ marginBottom: 12, backgroundColor: '#EEF2FF', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#E0E7FF' }}>

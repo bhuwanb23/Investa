@@ -12,6 +12,7 @@ import ObjectivesList from './components/ObjectivesList';
 import BadgesGrid from './components/BadgesGrid';
 import ModuleStats from './components/ModuleStats';
 import { fetchCourseDetailWithProgress } from './utils/coursesApi';
+import { useTranslation } from '../../language';
 
 type ParamList = {
   ModuleScreen: { courseId: string; course?: any };
@@ -20,6 +21,11 @@ type ParamList = {
 const ModuleScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
   const route = useRoute<RouteProp<ParamList, 'ModuleScreen'>>();
+  const { t } = useTranslation();
+  
+  // Debug log to verify language is working
+  console.log('ModuleScreen - Selected Language:', t.language);
+  
   const courseIdParam = route.params?.courseId;
   const courseParam = route.params?.course;
 
@@ -71,9 +77,9 @@ const ModuleScreen: React.FC = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <MainHeader title="Loading..." iconName="library" showBackButton onBackPress={() => navigation.goBack()} />
+        <MainHeader title={t.loading || 'Loading...'} iconName="library" showBackButton onBackPress={() => navigation.goBack()} />
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading module...</Text>
+          <Text style={styles.loadingText}>{t.loadingModule || 'Loading module...'}</Text>
         </View>
       </SafeAreaView>
     );
@@ -82,7 +88,7 @@ const ModuleScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scroll} stickyHeaderIndices={[0]}>
-        <MainHeader title="Module Overview" iconName="library" showBackButton onBackPress={() => navigation.goBack()} />
+        <MainHeader title={t.moduleOverview || 'Module Overview'} iconName="library" showBackButton onBackPress={() => navigation.goBack()} />
         <View style={{ marginHorizontal: 12 }}>
           <ModuleHero
             title={course.title || 'Module Title'}
@@ -95,17 +101,17 @@ const ModuleScreen: React.FC = () => {
         <View style={{ marginHorizontal: 12 }}>
           <ProgressCard 
             percent={progressPercentage} 
-            hint={`${completedLessons} of ${totalLessons} lessons completed`} 
+            hint={`${completedLessons} ${t.of} ${totalLessons} ${t.lessons} ${t.completed}`} 
           />
         </View>
 
         <View style={{ marginHorizontal: 12 }}>
           <ObjectivesList
             objectives={[
-              { text: 'Complete all lessons in the module', achieved: completedLessons === totalLessons && totalLessons > 0 },
-              { text: 'Achieve 80% or higher on assessments', achieved: false },
-              { text: 'Apply concepts in practical exercises', achieved: completedLessons >= Math.ceil(totalLessons * 0.5) },
-              { text: 'Participate in module discussions', achieved: false },
+              { text: t.completeAllLessonsInModule || 'Complete all lessons in the module', achieved: completedLessons === totalLessons && totalLessons > 0 },
+              { text: t.achieve80PercentOrHigher || 'Achieve 80% or higher on assessments', achieved: false },
+              { text: t.applyConceptsInPracticalExercises || 'Apply concepts in practical exercises', achieved: completedLessons >= Math.ceil(totalLessons * 0.5) },
+              { text: t.participateInModuleDiscussions || 'Participate in module discussions', achieved: false },
             ]}
           />
         </View>
@@ -113,9 +119,9 @@ const ModuleScreen: React.FC = () => {
         <View style={{ marginHorizontal: 12 }}>
           <BadgesGrid
             badges={[
-              { icon: 'code', title: 'Module Master', subtitle: 'Complete all lessons', highlighted: completedLessons === totalLessons && totalLessons > 0 },
-              { icon: 'rocket', title: 'Fast Learner', subtitle: 'Finish in 3 days', highlighted: false },
-              { icon: 'trophy', title: 'Perfect Score', subtitle: 'Score 100% on quiz', highlighted: false },
+              { icon: 'code', title: t.moduleMaster || 'Module Master', subtitle: t.completeAllLessons || 'Complete all lessons', highlighted: completedLessons === totalLessons && totalLessons > 0 },
+              { icon: 'rocket', title: t.fastLearner || 'Fast Learner', subtitle: t.finishIn3Days || 'Finish in 3 days', highlighted: false },
+              { icon: 'trophy', title: t.perfectScore || 'Perfect Score', subtitle: t.score100PercentOnQuiz || 'Score 100% on quiz', highlighted: false },
             ]}
           />
         </View>
@@ -140,11 +146,11 @@ const ModuleScreen: React.FC = () => {
         >
           <Ionicons name="play" size={16} color="#fff" />
           <Text style={styles.primaryBtnText}>
-            {completedLessons === 0 ? 'Start Module' : 'Continue Module'}
+            {completedLessons === 0 ? (t.startModule || 'Start Module') : (t.continueModule || 'Continue Module')}
           </Text>
         </TouchableOpacity>
         {nextLesson && (
-          <Text style={styles.nextHint}>Next: {nextLesson.title}</Text>
+          <Text style={styles.nextHint}>{t.next}: {nextLesson.title}</Text>
         )}
       </View>
     </SafeAreaView>

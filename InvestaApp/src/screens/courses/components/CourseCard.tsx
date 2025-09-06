@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Course } from '../utils/coursesApi';
 import { CARD_BG, BORDER, TEXT_DARK, TEXT_MUTED, DIFFICULTY_COLORS, DIFFICULTY_LABELS } from '../constants/courseConstants';
+import { useTranslation } from '../../../language';
 
 type Props = {
   course: Course;
@@ -10,6 +11,7 @@ type Props = {
 };
 
 const CourseCard: React.FC<Props> = ({ course, onPress }) => {
+  const { t } = useTranslation();
   const color = DIFFICULTY_COLORS[course.difficulty_level];
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
@@ -31,7 +33,7 @@ const CourseCard: React.FC<Props> = ({ course, onPress }) => {
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
             <Ionicons name="time-outline" size={14} color={TEXT_MUTED} />
-            <Text style={styles.metaText}>{course.estimated_duration} mins</Text>
+            <Text style={styles.metaText}>{course.estimated_duration} {t.minutes}</Text>
           </View>
           <View style={styles.metaItem}>
             <Ionicons name="language" size={14} color={TEXT_MUTED} />

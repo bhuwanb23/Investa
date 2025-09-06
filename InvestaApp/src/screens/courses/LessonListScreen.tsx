@@ -7,6 +7,7 @@ import { PAGE_BG, TEXT_DARK, TEXT_MUTED, PRIMARY } from './constants/courseConst
 import MainHeader from '../../components/MainHeader';
 import LessonListAdvanced from './components/LessonListAdvanced';
 import { fetchCourseDetail, fetchCourseDetailWithProgress } from './utils/coursesApi';
+import { useTranslation } from '../../language';
 
 type ParamList = {
   LessonList: { courseId?: string; course?: any; completedLessonId?: number; lessonCompleted?: boolean };
@@ -21,6 +22,7 @@ const LessonListScreen: React.FC = () => {
   const [lessons, setLessons] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [course, setCourse] = useState<any>(courseParam);
+  const { t } = useTranslation();
  
   // Transform backend lessons to frontend format with proper unlocking logic
   const transformLessonsWithUnlocking = (lessons: any[]) => {
@@ -237,9 +239,9 @@ const LessonListScreen: React.FC = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <MainHeader title="Loading..." iconName="book" showBackButton onBackPress={() => navigation.goBack()} />
+        <MainHeader title={t.loadingLesson || 'Loading...'} iconName="book" showBackButton onBackPress={() => navigation.goBack()} />
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading course...</Text>
+          <Text style={styles.loadingText}>{t.loadingCourse || 'Loading course...'}</Text>
         </View>
       </SafeAreaView>
     );
@@ -249,7 +251,7 @@ const LessonListScreen: React.FC = () => {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scroll} stickyHeaderIndices={[0]}>
         <MainHeader 
-          title={course.title || 'Course'} 
+          title={course.title || t.course || 'Course'} 
           iconName="book" 
           showBackButton 
           onBackPress={() => navigation.goBack()} 
@@ -258,14 +260,14 @@ const LessonListScreen: React.FC = () => {
         {/* Continue CTA */}
         <View style={styles.ctaCard}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.ctaOver}>Continue where you left off</Text>
+            <Text style={styles.ctaOver}>{t.continueWhereLeftOff || 'Continue where you left off'}</Text>
             <Text style={styles.ctaTitle}>
-              Lesson {nextLessonId}: {lessons.find(l => l.id === nextLessonId)?.title || 'Continue Learning'}
+              {t.lesson} {nextLessonId}: {lessons.find(l => l.id === nextLessonId)?.title || t.continueLearning || 'Continue Learning'}
             </Text>
             <Text style={styles.ctaSub}>
               {lessons.find(l => l.id === nextLessonId)?.state === 'completed' 
-                ? 'Great job! Keep going!' 
-                : 'Continue your learning journey'}
+                ? (t.greatJobKeepGoing || 'Great job! Keep going!')
+                : (t.continueLearningJourney || 'Continue your learning journey')}
             </Text>
           </View>
           <TouchableOpacity 
@@ -281,7 +283,7 @@ const LessonListScreen: React.FC = () => {
               }
             }}
           >
-            <Text style={styles.ctaBtnText}>Continue</Text>
+            <Text style={styles.ctaBtnText}>{t.continue || 'Continue'}</Text>
           </TouchableOpacity>
         </View>
 

@@ -20,6 +20,7 @@ import MainHeader from '../../components/MainHeader';
 import { Ionicons } from '@expo/vector-icons';
 import { PAGE_BG, TEXT_DARK, TEXT_MUTED, BORDER, CARD_BG, PRIMARY, VIDEO_DATA } from './constants/courseConstants';
 import { fetchLessonDetail, markLessonCompleted } from './utils/coursesApi';
+import { useTranslation } from '../../language';
 
 // Local-first lesson detail with backend when available
 type Language = { id: number; code: string; name: string; native_name: string };
@@ -35,6 +36,11 @@ const { width } = Dimensions.get('window');
 const LessonDetailScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
   const route = useRoute<RouteProp<ParamList, 'LessonDetail'>>();
+  const { t } = useTranslation();
+  
+  // Debug log to verify language is working
+  console.log('LessonDetailScreen - Selected Language:', t.language);
+  
   const lessonId = Number(route.params?.lessonId);
   const courseId = route.params?.courseId;
   const [lesson, setLesson] = useState<LessonDetail | null>(null);
@@ -64,10 +70,10 @@ const LessonDetailScreen: React.FC = () => {
           course: data.course as any,
         });
       } else {
-        setError('Lesson not found');
+        setError(t.lessonNotFound || 'Lesson not found');
       }
     } catch (e: any) {
-      setError(e?.response?.data?.detail || 'Failed to load lesson');
+      setError(e?.response?.data?.detail || t.failedToLoadLesson || 'Failed to load lesson');
     } finally {
       setLoading(false);
     }
@@ -109,7 +115,7 @@ const LessonDetailScreen: React.FC = () => {
 
   const handleAskQuestion = () => {
     if (!question.trim()) {
-      Alert.alert('Please enter a question');
+      Alert.alert(t.pleaseEnterQuestion || 'Please enter a question');
       return;
     }
     
@@ -220,18 +226,18 @@ const LessonDetailScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scroll} stickyHeaderIndices={[0]}>
-        <MainHeader title={lesson?.title || 'Lesson'} iconName="book" showBackButton onBackPress={() => navigation.goBack()} />
+        <MainHeader title={lesson?.title || t.lesson} iconName="book" showBackButton onBackPress={() => navigation.goBack()} />
         
         {loading ? (
           <View style={styles.center}> 
             <ActivityIndicator size="large" color={PRIMARY} />
-            <Text style={styles.loadingText}>Loading lesson…</Text>
+            <Text style={styles.loadingText}>{t.loadingLesson || 'Loading lesson…'}</Text>
           </View>
         ) : error ? (
           <View style={styles.center}>
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity style={styles.retryBtn} onPress={load}>
-              <Text style={styles.retryText}>Retry</Text>
+              <Text style={styles.retryText}>{t.retry}</Text>
             </TouchableOpacity>
           </View>
         ) : lesson ? (
@@ -249,7 +255,7 @@ const LessonDetailScreen: React.FC = () => {
 
             {/* Key Takeaways */}
             <View style={styles.cardSection}>
-              <Text style={styles.sectionHeading}>Key Takeaways</Text>
+              <Text style={styles.sectionHeading}>{t.keyTakeaways || 'Key Takeaways'}</Text>
               <View style={styles.bulletRow}>
                 <View style={styles.bulletDot} />
                 <Text style={styles.bulletText}>Functions are reusable blocks of code that perform specific tasks</Text>
@@ -266,7 +272,7 @@ const LessonDetailScreen: React.FC = () => {
 
             {/* Example Snippet */}
             <View style={styles.cardSection}>
-              <Text style={styles.sectionHeading}>Example</Text>
+              <Text style={styles.sectionHeading}>{t.example || 'Example'}</Text>
               <View style={styles.codeBlock}>
                 <Text style={styles.codeLine}>{`// Function definition`}</Text>
                 <Text style={styles.codeLine}>{`function greet(name) {`}</Text>
@@ -281,11 +287,11 @@ const LessonDetailScreen: React.FC = () => {
 
             {/* Progress */}
             <View style={styles.cardSection}>
-              <Text style={styles.sectionHeading}>Your Progress</Text>
+              <Text style={styles.sectionHeading}>{t.yourProgress || 'Your Progress'}</Text>
               <View style={styles.progressTrack}>
                 <View style={[styles.progressFillStrong, { width: `${Math.min(100, (lesson.estimated_duration / 20) * 20)}%` }]} />
               </View>
-              <Text style={styles.smallMuted}>Estimated {lesson.estimated_duration} minutes</Text>
+              <Text style={styles.smallMuted}>{t.estimated} {lesson.estimated_duration} {t.minutes}</Text>
             </View>
 
             {/* Quiz Section */}
@@ -315,7 +321,7 @@ const LessonDetailScreen: React.FC = () => {
               activeOpacity={0.85}
             >
               <Text style={styles.primaryBtnText}>
-                {completed ? 'Completed' : (completing ? 'Marking…' : 'Mark as Completed')}
+                {completed ? t.completed : (completing ? (t.marking || 'Marking…') : t.markAsComplete)}
               </Text>
             </TouchableOpacity>
 
@@ -323,7 +329,7 @@ const LessonDetailScreen: React.FC = () => {
             <View style={styles.actionsRow}>
               <TouchableOpacity style={[styles.secondaryBtnOutline, { borderColor: '#E5E7EB' }]} onPress={() => navigation.goBack()}>
                 <Ionicons name="arrow-back" size={14} color={TEXT_DARK} />
-                <Text style={styles.secondaryBtnOutlineText}>Back to Lessons</Text>
+                <Text style={styles.secondaryBtnOutlineText}>{t.backToLessons || 'Back to Lessons'}</Text>
               </TouchableOpacity>
             </View>
           </View>

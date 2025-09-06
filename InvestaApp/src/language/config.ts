@@ -5,6 +5,7 @@ import { privacySettingsTranslations } from './pages/privacySettings';
 import { homeTranslations } from './pages/home';
 import { progressTranslations } from './pages/progress';
 import { tradingTranslations } from './pages/trading';
+import { coursesTranslations } from './pages/courses';
 
 export interface Language {
   code: string;
@@ -30,6 +31,7 @@ export const translations = {
     ...homeTranslations.en,
     ...progressTranslations.en,
     ...tradingTranslations.en,
+    ...coursesTranslations.en,
   },
   hi: {
     ...profileTranslations.hi,
@@ -39,6 +41,7 @@ export const translations = {
     ...homeTranslations.hi,
     ...progressTranslations.hi,
     ...tradingTranslations.hi,
+    ...coursesTranslations.hi,
   },
   ta: {
     ...profileTranslations.ta,
@@ -48,6 +51,7 @@ export const translations = {
     ...homeTranslations.ta,
     ...progressTranslations.ta,
     ...tradingTranslations.ta,
+    ...coursesTranslations.ta,
   },
   te: {
     ...profileTranslations.te,
@@ -57,6 +61,7 @@ export const translations = {
     ...homeTranslations.te,
     ...progressTranslations.te,
     ...tradingTranslations.te,
+    ...coursesTranslations.te,
   },
 };
 

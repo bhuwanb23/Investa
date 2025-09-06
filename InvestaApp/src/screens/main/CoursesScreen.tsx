@@ -10,9 +10,15 @@ import { fetchCourses } from '../courses/utils/coursesApi';
 import CourseCard from '../courses/components/CourseCard';
 import { PAGE_BG, TEXT_DARK, TEXT_MUTED } from '../courses/constants/courseConstants';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '../../language';
 
 const CoursesScreen = () => {
   const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
+  const { t } = useTranslation();
+  
+  // Debug log to verify language is working
+  console.log('CoursesScreen - Selected Language:', t.language);
+  
   // Courses from backend
   const [courses, setCourses] = useState<ApiCourse[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -74,7 +80,7 @@ const CoursesScreen = () => {
       const data = await fetchCourses();
       setCourses(Array.isArray(data) ? data : []);
     } catch (e: any) {
-      setError('Failed to load courses');
+      setError(t.failedToLoadCourses);
     } finally {
       setLoading(false);
     }
@@ -98,17 +104,17 @@ const CoursesScreen = () => {
   const usingSample = !(Array.isArray(courses) && courses.length > 0);
 
   const filters = [
-    { key: 'all', label: 'All' },
-    { key: 'beginner', label: 'Beginner' },
-    { key: 'intermediate', label: 'Intermediate' },
-    { key: 'advanced', label: 'Advanced' },
+    { key: 'all', label: t.all },
+    { key: 'beginner', label: t.beginner },
+    { key: 'intermediate', label: t.intermediate },
+    { key: 'advanced', label: t.advanced },
   ] as const;
 
   if (bootLoader) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          <LogoLoader message="Loading Investa..." fullscreen />
+          <LogoLoader message={t.loadingInvesta} fullscreen />
         </View>
       </SafeAreaView>
     );
@@ -117,14 +123,14 @@ const CoursesScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <MainHeader title="Courses" iconName="library" />
+        <MainHeader title={t.courses} iconName="library" />
         <ScrollView contentContainerStyle={styles.scroll}>
 
           {/* Search Bar */}
           <View style={styles.searchRow}>
             <Ionicons name="search" size={18} color="#6B7280" />
             <TextInput
-              placeholder="Search courses..."
+              placeholder={t.searchCourses}
               placeholderTextColor="#6B7280"
               style={styles.searchInput}
               value={searchQuery}
@@ -149,7 +155,7 @@ const CoursesScreen = () => {
           {/* Recommended */}
           {recommended && (
             <View style={styles.recoCard}>
-              <View style={styles.recoBadge}><Text style={styles.recoBadgeText}>Recommended</Text></View>
+              <View style={styles.recoBadge}><Text style={styles.recoBadgeText}>{t.recommended}</Text></View>
               <Text style={styles.recoTitle}>{recommended.title}</Text>
               <Text style={styles.recoSubtitle}>{recommended.description}</Text>
               <View style={styles.recoProgressTrack}>
@@ -160,14 +166,14 @@ const CoursesScreen = () => {
 
           {/* Loading / Error */}
           {loading && (
-            <View style={styles.center}><Text style={styles.loadingText}>Loading courses…</Text></View>
+            <View style={styles.center}><Text style={styles.loadingText}>{t.loadingCourses}</Text></View>
           )}
           {!!error && !loading && (
             <View style={styles.center}><Text style={styles.errorText}>{error}</Text></View>
           )}
 
           {/* Courses list (stacked) */}
-          <Text style={styles.sectionTitle}>All Courses</Text>
+          <Text style={styles.sectionTitle}>{t.allCourses}</Text>
           <View style={{ gap: 12 }}>
             {dataSource.map((c) => (
               <View key={c.id}>
