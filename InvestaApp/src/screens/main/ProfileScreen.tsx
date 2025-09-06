@@ -11,11 +11,12 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { MainHeader } from '../../components';
+import { MainHeader, LanguageSelector } from '../../components';
 import LogoLoader from '../../components/LogoLoader';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { useProfile } from '../../hooks';
+import { useTranslation } from '../../language';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -24,8 +25,10 @@ const TEXT_MUTED = '#6b7280';
 
 const ProfileScreen = () => {
   const [bootLoader, setBootLoader] = useState(true);
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const { logout, user } = useAuth();
   const navigation = useNavigation();
+  const { t } = useTranslation(selectedLanguage);
   const { 
     profile, 
     isLoading, 
@@ -64,6 +67,12 @@ const ProfileScreen = () => {
       default:
         console.log('Unknown setting type:', settingType);
     }
+  };
+
+  const handleLanguageSelect = (languageCode: string) => {
+    setSelectedLanguage(languageCode);
+    // Here you would typically save the language preference to the backend
+    console.log('Language selected:', languageCode);
   };
 
   // Fetch profile data on component mount only if user is authenticated
@@ -129,10 +138,10 @@ const ProfileScreen = () => {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          <MainHeader title="Profile" iconName="person" />
+          <MainHeader title={t.profile} iconName="person" />
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={PRIMARY} />
-            <Text style={styles.loadingText}>Loading profile...</Text>
+            <Text style={styles.loadingText}>{t.loadingProfile}</Text>
           </View>
         </View>
       </SafeAreaView>
@@ -144,11 +153,11 @@ const ProfileScreen = () => {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          <MainHeader title="Profile" iconName="person" />
+          <MainHeader title={t.profile} iconName="person" />
           <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>Please log in to view your profile</Text>
+            <Text style={styles.errorText}>{t.pleaseLogin}</Text>
             <Pressable style={styles.retryButton} onPress={() => navigation.navigate('Login' as never)}>
-              <Text style={styles.retryButtonText}>Go to Login</Text>
+              <Text style={styles.retryButtonText}>{t.goToLogin}</Text>
             </Pressable>
           </View>
         </View>
@@ -161,11 +170,11 @@ const ProfileScreen = () => {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          <MainHeader title="Profile" iconName="person" />
+          <MainHeader title={t.profile} iconName="person" />
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{error}</Text>
             <Pressable style={styles.retryButton} onPress={fetchProfile}>
-              <Text style={styles.retryButtonText}>Retry</Text>
+              <Text style={styles.retryButtonText}>{t.retry}</Text>
             </Pressable>
           </View>
         </View>
@@ -177,7 +186,7 @@ const ProfileScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={[styles.scrollContent, styles.fullWidth]} showsVerticalScrollIndicator={false} stickyHeaderIndices={[0]}>
-          <MainHeader title="Profile" iconName="person" />
+          <MainHeader title={t.profile} iconName="person" />
           <View style={styles.pagePadding}>
 
           {/* Profile Header */}
@@ -203,7 +212,7 @@ const ProfileScreen = () => {
               <View style={styles.levelPill}>
                 <Ionicons name="star" size={14} color="#facc15" />
                 <Text style={styles.levelPillText}>
-                  Level {profile?.level || 1} • {profile?.experience_points?.toLocaleString() || 0} XP
+                  {t.level} {profile?.level || 1} • {profile?.experience_points?.toLocaleString() || 0} {t.xp}
                 </Text>
               </View>
             </View>
@@ -212,9 +221,9 @@ const ProfileScreen = () => {
           {/* Personal Details */}
           <View style={styles.card}>
             <View style={styles.cardHeaderRow}>
-              <Text style={styles.cardTitle}>Personal Details</Text>
+              <Text style={styles.cardTitle}>{t.personalDetails}</Text>
               <Pressable android_ripple={{ color: '#e5e7eb' }}>
-                <Text style={styles.link}>Edit</Text>
+                <Text style={styles.link}>{t.edit}</Text>
               </Pressable>
             </View>
             <View style={styles.detailRow}>
@@ -222,8 +231,8 @@ const ProfileScreen = () => {
                 <Ionicons name="mail" size={14} color={PRIMARY} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.detailLabel}>Email</Text>
-                <Text style={styles.detailValue}>{profile?.user?.email || user?.email || 'Not set'}</Text>
+                <Text style={styles.detailLabel}>{t.email}</Text>
+                <Text style={styles.detailValue}>{profile?.user?.email || user?.email || t.notSet}</Text>
               </View>
             </View>
             <View style={styles.detailRow}>
@@ -231,8 +240,8 @@ const ProfileScreen = () => {
                 <Ionicons name="call" size={14} color="#10b981" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.detailLabel}>Phone</Text>
-                <Text style={styles.detailValue}>{profile?.phone_number || 'Not set'}</Text>
+                <Text style={styles.detailLabel}>{t.phone}</Text>
+                <Text style={styles.detailValue}>{profile?.phone_number || t.notSet}</Text>
               </View>
             </View>
             <View style={styles.detailRow}>
@@ -240,9 +249,9 @@ const ProfileScreen = () => {
                 <Ionicons name="globe" size={14} color="#a855f7" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.detailLabel}>Language</Text>
+                <Text style={styles.detailLabel}>{t.language}</Text>
                 <Text style={styles.detailValue}>
-                  {profile?.preferred_language?.name || 'Not set'}
+                  {profile?.preferred_language?.name || t.notSet}
                 </Text>
               </View>
             </View>
@@ -251,44 +260,44 @@ const ProfileScreen = () => {
                 <Ionicons name="disc-outline" size={14} color="#f97316" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.detailLabel}>Learning Goal</Text>
-                <Text style={styles.detailValue}>{profile?.learning_goal || 'Not set'}</Text>
+                <Text style={styles.detailLabel}>{t.learningGoal}</Text>
+                <Text style={styles.detailValue}>{profile?.learning_goal || t.notSet}</Text>
               </View>
             </View>
           </View>
 
           {/* Learning Progress */}
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Learning Progress</Text>
+            <Text style={styles.cardTitle}>{t.learningProgress}</Text>
             <View style={{ marginTop: 8 }}>
               <View style={styles.progressHeaderRow}>
-                <Text style={styles.progressTitle}>Modules Completed</Text>
+                <Text style={styles.progressTitle}>{t.modulesCompleted}</Text>
                 <Text style={[styles.progressTitle, { color: PRIMARY }]}>73%</Text>
               </View>
               <View style={styles.progressTrack}>
                 <View style={[styles.progressFill, { width: '73%' }]} />
               </View>
-              <Text style={styles.smallMuted}>22 of 30 modules completed</Text>
+              <Text style={styles.smallMuted}>22 of 30 {t.modulesCompletedText}</Text>
             </View>
             <View style={styles.progressStatsRow}>
               <View style={styles.statBox}> 
                 <Text style={styles.statValue}>156</Text>
-                <Text style={styles.statLabel}>Hours Learned</Text>
+                <Text style={styles.statLabel}>{t.hoursLearned}</Text>
               </View>
               <View style={styles.statBox}> 
                 <Text style={styles.statValue}>12</Text>
-                <Text style={styles.statLabel}>Certificates</Text>
+                <Text style={styles.statLabel}>{t.certificates}</Text>
               </View>
             </View>
           </View>
 
           {/* Quiz Performance */}
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Quiz Performance</Text>
+            <Text style={styles.cardTitle}>{t.quizPerformance}</Text>
             <View style={styles.quizTopRow}>
               <View>
                 <Text style={[styles.quizScore, { color: '#10b981' }]}>87%</Text>
-                <Text style={styles.quizScoreLabel}>Average Score</Text>
+                <Text style={styles.quizScoreLabel}>{t.averageScore}</Text>
               </View>
               <View style={styles.quizIconsRow}>
                 <View style={[styles.quizIconBox, { backgroundColor: '#FEF9C3' }]}>
@@ -305,25 +314,25 @@ const ProfileScreen = () => {
             <View style={styles.kpiGrid3}>
               <View style={styles.quizStat}> 
                 <Text style={styles.quizStatValue}>45</Text>
-                <Text style={styles.quizStatLabel}>Quizzes Taken</Text>
+                <Text style={styles.quizStatLabel}>{t.quizzesTaken}</Text>
               </View>
               <View style={styles.quizStat}> 
                 <Text style={styles.quizStatValue}>38</Text>
-                <Text style={styles.quizStatLabel}>Passed</Text>
+                <Text style={styles.quizStatLabel}>{t.passed}</Text>
               </View>
               <View style={styles.quizStat}> 
                 <Text style={styles.quizStatValue}>7</Text>
-                <Text style={styles.quizStatLabel}>Badges Earned</Text>
+                <Text style={styles.quizStatLabel}>{t.badgesEarned}</Text>
               </View>
             </View>
           </View>
 
           {/* Trading Performance */}
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Trading Performance</Text>
+            <Text style={styles.cardTitle}>{t.tradingPerformance}</Text>
             <View style={styles.tradingRow}>
               <View>
-                <Text style={styles.smallMuted}>Portfolio Growth</Text>
+                <Text style={styles.smallMuted}>{t.portfolioGrowth}</Text>
                 <Text style={[styles.tradeGrowth, { color: '#10b981' }]}>+24.7%</Text>
               </View>
               <View style={styles.tradeIconBox}>
@@ -333,22 +342,39 @@ const ProfileScreen = () => {
             <View style={styles.progressStatsRow}>
               <View style={styles.statPill}> 
                 <Text style={styles.statValue}>127</Text>
-                <Text style={styles.statLabel}>Trades Executed</Text>
+                <Text style={styles.statLabel}>{t.tradesExecuted}</Text>
               </View>
               <View style={styles.statPill}> 
                 <Text style={styles.statValue}>78%</Text>
-                <Text style={styles.statLabel}>Success Rate</Text>
+                <Text style={styles.statLabel}>{t.successRate}</Text>
               </View>
             </View>
           </View>
 
           {/* Settings */}
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Settings</Text>
+            <Text style={styles.cardTitle}>{t.settings}</Text>
+            
+            {/* Language Selection */}
+            <View style={styles.languageSection}>
+              <View style={styles.settingLeft}>
+                <View style={[styles.settingIconBox, { backgroundColor: '#FEF3C7' }]}>
+                  <Ionicons name="language" size={16} color="#f59e0b" />
+                </View>
+                <Text style={styles.settingLabel}>{t.language}</Text>
+              </View>
+            </View>
+            <LanguageSelector
+              selectedLanguage={selectedLanguage}
+              onLanguageSelect={handleLanguageSelect}
+              currentLanguage={selectedLanguage}
+              style={styles.languageSelector}
+            />
+            
             {[
-              { label: 'Notifications', iconBg: '#DBEAFE', iconColor: PRIMARY, icon: 'notifications', type: 'notifications' },
-              { label: 'Privacy', iconBg: '#F5F3FF', iconColor: '#a855f7', icon: 'shield', type: 'privacy' },
-              { label: 'Security', iconBg: '#FEE2E2', iconColor: '#ef4444', icon: 'lock-closed', type: 'security' },
+              { label: t.notifications, iconBg: '#DBEAFE', iconColor: PRIMARY, icon: 'notifications', type: 'notifications' },
+              { label: t.privacy, iconBg: '#F5F3FF', iconColor: '#a855f7', icon: 'shield', type: 'privacy' },
+              { label: t.security, iconBg: '#FEE2E2', iconColor: '#ef4444', icon: 'lock-closed', type: 'security' },
             ].map((s, idx) => (
               <Pressable 
                 key={idx} 
@@ -374,7 +400,7 @@ const ProfileScreen = () => {
                 <View style={[styles.settingIconBox, { backgroundColor: '#DCFCE7' }]}>
                   <Ionicons name="key" size={16} color="#10b981" />
                 </View>
-                <Text style={styles.settingLabel}>Two-Factor Auth</Text>
+                <Text style={styles.settingLabel}>{t.twoFactorAuth}</Text>
               </View>
               <View style={styles.toggleTrack}>
                 <View style={styles.toggleThumb} />
@@ -393,14 +419,14 @@ const ProfileScreen = () => {
               {isUpdating ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Text style={styles.primaryBtnText}>Update Profile</Text>
+                <Text style={styles.primaryBtnText}>{t.updateProfile}</Text>
               )}
             </Pressable>
             <Pressable style={styles.secondaryBtn} android_ripple={{ color: '#e5e7eb' }} onPress={handleResetPassword}>
-              <Text style={styles.secondaryBtnText}>Reset Password</Text>
+              <Text style={styles.secondaryBtnText}>{t.resetPassword}</Text>
             </Pressable>
             <Pressable style={styles.logoutBtn} android_ripple={{ color: '#fee2e2' }} onPress={handleLogout}>
-              <Text style={styles.logoutBtnText}>Logout</Text>
+              <Text style={styles.logoutBtnText}>{t.logout}</Text>
             </Pressable>
           </View>
           </View>
@@ -766,6 +792,14 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: '#fff',
     fontWeight: '800',
+  },
+  languageSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  languageSelector: {
+    marginTop: 0,
   },
 });
 
