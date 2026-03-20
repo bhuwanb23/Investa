@@ -18,11 +18,11 @@ const TEXT_DARK = '#111827';
 const TEXT_MUTED = '#6b7280';
 
 const lessons = [
-  { id: 'l1', title: 'Introduction to JavaScript', duration: '8:32', completed: true },
-  { id: 'l2', title: 'Variables and Data Types', duration: '12:05', completed: true },
-  { id: 'l3', title: 'Functions and Scope', duration: '15:44', completed: false },
-  { id: 'l4', title: 'Asynchronous JS', duration: '10:21', completed: false },
-  { id: 'l5', title: 'DOM Manipulation', duration: '16:08', completed: false },
+  { id: 'l1', title: 'What are Stocks?', duration: '8:32', completed: true },
+  { id: 'l2', title: 'Market Cap and Sector Analysis', duration: '12:05', completed: true },
+  { id: 'l3', title: 'Reading Balance Sheets', duration: '15:44', completed: false },
+  { id: 'l4', title: 'Understanding P/E Ratio', duration: '10:21', completed: false },
+  { id: 'l5', title: 'Risk Management Basics', duration: '16:08', completed: false },
 ];
 
 const LessonsScreen = () => {

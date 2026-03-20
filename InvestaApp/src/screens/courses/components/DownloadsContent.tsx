@@ -17,11 +17,11 @@ type DownloadItem = {
 const DownloadsContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'All' | 'Completed' | 'In Progress'>('All');
   const [items, setItems] = useState<DownloadItem[]>([ 
-    { id: '1', kind: 'video', title: 'Introduction to React Hooks', subtitle: 'React Fundamentals • Chapter 3', size: '245 MB', downloadedAgo: '2h ago', status: 'Completed' },
-    { id: '2', kind: 'text', title: 'CSS Grid Layout Guide', subtitle: 'CSS Mastery • Chapter 8', size: '12 MB', downloadedAgo: '1d ago', status: 'In Progress' },
-    { id: '3', kind: 'infographic', title: 'JavaScript Performance Tips', subtitle: 'JavaScript Advanced • Infographic', size: '8 MB', downloadedAgo: '3d ago', status: 'Completed' },
-    { id: '4', kind: 'video', title: 'Node.js Authentication', subtitle: 'Backend Development • Chapter 12', size: '389 MB', downloadedAgo: '5d ago', status: 'In Progress' },
-    { id: '5', kind: 'text', title: 'Database Design Principles', subtitle: 'Database Fundamentals • Chapter 2', size: '18 MB', downloadedAgo: '1w ago', status: 'Completed' },
+    { id: '1', kind: 'video', title: 'Introduction to NSE & BSE', subtitle: 'Market Fundamentals • Chapter 1', size: '245 MB', downloadedAgo: '2h ago', status: 'Completed' },
+    { id: '2', kind: 'text', title: 'Technical Analysis Guide', subtitle: 'Chart Mastery • Chapter 5', size: '12 MB', downloadedAgo: '1d ago', status: 'In Progress' },
+    { id: '3', kind: 'infographic', title: 'Risk Management Cheat Sheet', subtitle: 'Trading Strategy • Infographic', size: '8 MB', downloadedAgo: '3d ago', status: 'Completed' },
+    { id: '4', kind: 'video', title: 'Options Trading Explained', subtitle: 'Advanced Derivatives • Chapter 8', size: '389 MB', downloadedAgo: '5d ago', status: 'In Progress' },
+    { id: '5', kind: 'text', title: 'Fundamental Analysis Checklist', subtitle: 'Investing Basics • Chapter 3', size: '18 MB', downloadedAgo: '1w ago', status: 'Completed' },
   ]);
 
   const filtered = useMemo(() => {

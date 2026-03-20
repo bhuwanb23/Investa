@@ -40,7 +40,7 @@ const FeedbackContent: React.FC = () => {
           <View style={styles.logoCircle}>
             <Ionicons name="school" size={22} color={PRIMARY} />
           </View>
-          <Text style={styles.headline}>JavaScript Fundamentals</Text>
+          <Text style={styles.headline}>Stock Market Fundamentals</Text>
           <View style={styles.starsRow}>
             {Array.from({ length: 5 }).map((_, i) => (
               <Ionicons key={i} name="star" size={16} color="#FBBF24" style={{ marginRight: 6 }} />

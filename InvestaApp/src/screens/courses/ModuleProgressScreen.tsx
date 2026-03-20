@@ -24,7 +24,7 @@ const ModuleProgressScreen: React.FC = () => {
           <View style={styles.center}> 
             <ProgressDonut percent={70} label="" />
           </View>
-          <Text style={styles.moduleTitle}>JavaScript Fundamentals</Text>
+          <Text style={styles.moduleTitle}>Stock Market Fundamentals</Text>
           <Text style={styles.moduleSub}>7 of 10 lessons completed</Text>
 
           <View style={{ marginTop: 12 }}>
@@ -78,7 +78,7 @@ const ModuleProgressScreen: React.FC = () => {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Recent Activity</Text>
           <View style={{ marginTop: 12 }}>
-            <RecentActivityItem icon="checkmark" iconColor="#16A34A" iconBg="#DCFCE7" title="Completed: Functions & Scope" subtitle="2 hours ago" />
+            <RecentActivityItem icon="checkmark" iconColor="#16A34A" iconBg="#DCFCE7" title="Completed: Market Cap Analysis" subtitle="2 hours ago" />
             <RecentActivityItem icon="star" iconColor="#2563EB" iconBg="#DBEAFE" title="Quiz Score: 92%" subtitle="Yesterday" />
           </View>
         </View>
@@ -88,7 +88,7 @@ const ModuleProgressScreen: React.FC = () => {
           <Ionicons name="play" size={16} color="#fff" />
           <Text style={styles.ctaText}>Continue Learning</Text>
         </TouchableOpacity>
-        <Text style={styles.nextLabel}>Next: Arrays & Objects</Text>
+        <Text style={styles.nextLabel}>Next: Technical Indicators</Text>
       </ScrollView>
     </SafeAreaView>
   );

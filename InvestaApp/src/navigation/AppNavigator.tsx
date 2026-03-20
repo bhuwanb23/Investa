@@ -18,7 +18,6 @@ import SplashScreen from '../screens/auth/SplashScreen';
 import HomeScreen from '../screens/main/HomeScreen';
 import CoursesScreen from '../screens/main/CoursesScreen';
 import LessonsScreen from '../screens/main/LessonsScreen';
-import QuizScreen from '../screens/quiz/QuizScreen';
 import TradingScreen from '../screens/main/TradingScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 import ProgressScreen from '../screens/main/ProgressScreen';
@@ -79,7 +78,6 @@ export type MainStackParamList = {
   CourseFeedback: undefined;
   LessonQuiz: undefined;
   Quiz: undefined;
-  QuizStart: undefined;
   QuizQuestion: { 
     quizId: string; 
     quizTitle: string; 
@@ -173,13 +171,8 @@ const MainStackNavigator = () => {
       />
       <MainStack.Screen 
         name="Quiz" 
-        component={QuizScreen}
-        options={{ title: 'Quiz' }}
-      />
-      <MainStack.Screen 
-        name="QuizStart" 
         component={QuizStartScreen}
-        options={{ title: 'Quiz Topics', headerShown: false }}
+        options={{ title: 'Quiz Center', headerShown: false }}
       />
       <MainStack.Screen 
         name="QuizQuestion" 
