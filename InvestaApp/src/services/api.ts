@@ -61,13 +61,23 @@ if (__DEV__) {
   console.log('🔗 API base URL:', CONFIG.API.BASE_URL);
 }
 
-// Request interceptor to add auth token (disabled for development)
+// Request interceptor to add auth token
 api.interceptors.request.use(
   async (config) => {
-    // Skip token requirement for development
+    // Inject token from storage
+    const token = await AsyncStorage.getItem('authToken');
+    if (token) {
+      config.headers['Authorization'] = `Token ${token}`;
+    }
+
+    // Logging for development
     if (__DEV__) {
-      console.log('🔐 API Request - Development mode, skipping token requirement');
       console.log('🔐 API Request - URL:', config.url);
+      if (token) {
+        console.log('🔐 API Request - Token injected successfully');
+      } else {
+        console.log('🔐 API Request - No token found in storage');
+      }
     }
     return config;
   },

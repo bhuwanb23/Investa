@@ -54,21 +54,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔐 AuthContext: Stored token:', storedToken ? storedToken.substring(0, 20) + '...' : 'None');
       console.log('🔐 AuthContext: Stored user:', storedUser ? 'Found' : 'None');
       
-      // Keep fake tokens for development
-      if (storedToken === 'dev-token' && __DEV__) {
-        console.log('🔐 AuthContext: Found development token, keeping it...');
-        const userData = JSON.parse(storedUser || '{}');
-        setToken(storedToken);
-        setUser(userData);
-        return;
-      }
-      
-      // Clear old fake tokens (non-dev environment)
-      if (storedToken === 'dev-token' && !__DEV__) {
-        console.log('🔐 AuthContext: Found fake token in production, clearing storage...');
+      // Clear old fake tokens (dev-tokens are no longer allowed)
+      if (storedToken === 'dev-token') {
+        console.log('🔐 AuthContext: Found legacy dev-token, clearing storage for security...');
         await AsyncStorage.removeItem('authToken');
         await AsyncStorage.removeItem('user');
-        console.log('🔐 AuthContext: Fake token cleared');
+        console.log('🔐 AuthContext: Storage cleared');
+        setIsLoading(false);
         return;
       }
       

@@ -36,7 +36,7 @@ export const useProfile = (): UseProfileReturn => {
   const [error, setError] = useState<string | null>(null);
   
   // Development mode: use fake profile data
-  const USE_FAKE_PROFILE = true; // Set to false when backend is ready
+  const USE_FAKE_PROFILE = false; // Set to false when backend is ready
 
   const clearError = useCallback(() => {
     setError(null);
