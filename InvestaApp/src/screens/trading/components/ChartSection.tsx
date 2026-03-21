@@ -17,6 +17,7 @@ interface ChartSectionProps {
   selectedFilter?: string;
   onFilterChange?: (filter: string) => void;
   filterOptions?: string[];
+  priceHistory?: any[];
 }
 
 const ChartSection: React.FC<ChartSectionProps> = ({
@@ -25,6 +26,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
   selectedFilter = 'All',
   onFilterChange,
   filterOptions = ['All', 'Bullish', 'Bearish', 'Volatile', 'This Week', 'This Month', 'This Year'],
+  priceHistory = [],
 }) => {
   const timeframes = ['1D', '1W', '1M', '1Y'];
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -32,8 +34,21 @@ const ChartSection: React.FC<ChartSectionProps> = ({
   const [isZoomed, setIsZoomed] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Generate mock candlestick data based on timeframe and filter
+  // Generate candlestick data based on priceHistory if available, otherwise mock
   const generateCandlestickData = () => {
+    if (priceHistory && priceHistory.length > 0) {
+      return priceHistory.map((item, i) => ({
+        open: item.open_price || item.price,
+        high: item.high_price || item.price * 1.01,
+        low: item.low_price || item.price * 0.99,
+        close: item.close_price || item.price,
+        volume: item.volume || 0,
+        timestamp: i,
+        isGreen: (item.close_price || item.price) >= (item.open_price || item.price),
+        date: new Date(item.timestamp || item.date),
+      }));
+    }
+
     const data = [];
     let basePoints = selectedTimeframe === '1D' ? 24 : 
                      selectedTimeframe === '1W' ? 7 : 

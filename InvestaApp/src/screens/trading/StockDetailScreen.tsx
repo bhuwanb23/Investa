@@ -124,12 +124,12 @@ const StockDetailScreen = () => {
     setIsBookmarked(!isBookmarked);
     Alert.alert(
       isBookmarked ? t.removedFromBookmarks : t.addedToBookmarks,
-      `${stock.symbol} ${isBookmarked ? t.hasBeenRemovedFrom : t.hasBeenAddedTo} ${t.yourBookmarks}.`
+      `${stock.symbol} ${isBookmarked ? t.hasBeenRemoved : t.hasBeenAdded} ${t.yourBookmarks}`
     );
   };
 
   const handleShare = () => {
-    Alert.alert(t.share, `${t.sharing} ${stock.symbol} ${t.stockDetails}`);
+    Alert.alert(t.share, (t.sharingStockDetails as string).replace('{symbol}', stock.symbol));
   };
 
   const handleBuy = () => {
@@ -143,7 +143,7 @@ const StockDetailScreen = () => {
   const handleSell = () => {
     Alert.alert(
       t.sellStock,
-      `${t.areYouSureYouWantToSell} ${stock.symbol}?`,
+      (t.areYouSureSell as string).replace('{symbol}', stock.symbol),
       [
         { text: t.cancel, style: 'cancel' },
         { 
