@@ -11,7 +11,7 @@ import {
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTradingData } from './hooks/useTradingData';
-import { placeOrder } from './utils/tradingApi';
+import { placeOrder, fetchMyPortfolio } from './utils/tradingApi';
 import {
   OrderTypeToggle,
   OrderForm,
@@ -49,6 +49,21 @@ const PlaceOrderScreen = () => {
   const [quantity, setQuantity] = useState('1');
   const [price, setPrice] = useState(currentPrice.toString());
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [currentCash, setCurrentCash] = useState(2817.55);
+
+  useEffect(() => {
+    const loadPortfolio = async () => {
+      try {
+        const portfolioData = await fetchMyPortfolio();
+        if (portfolioData && portfolioData.cash_balance !== undefined) {
+          setCurrentCash(portfolioData.cash_balance);
+        }
+      } catch (error) {
+        console.error('Error loading portfolio:', error);
+      }
+    };
+    loadPortfolio();
+  }, []);
 
   // Get stock data
   const stock = getStockBySymbol(stockSymbol) || {
@@ -70,7 +85,6 @@ const PlaceOrderScreen = () => {
   const estimatedCost = quantityNum * priceNum;
   const commission = 0; // Free commission for demo
   const totalCost = estimatedCost + commission;
-  const currentCash = 2817.55;
   const newCash = isBuyMode ? currentCash - totalCost : currentCash + totalCost;
 
   const handleBack = () => {

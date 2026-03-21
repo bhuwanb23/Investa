@@ -85,12 +85,12 @@ export const fetchTradeSummary = async () => {
 
 // Performance
 export const fetchMyPerformance = async () => {
-	const res = await api.get('performance/my_performance/');
+	const res = await api.get('trading-performance/my_performance/');
 	return res.data;
 };
 
 export const fetchLeaderboard = async (timeframe: 'all' | 'weekly' | 'monthly' = 'all') => {
-	const res = await api.get('performance/leaderboard/', { params: { timeframe } });
+	const res = await api.get('trading-performance/leaderboard/', { params: { timeframe } });
 	return Array.isArray(res.data) ? res.data : (res.data?.results ?? res.data);
 };
 

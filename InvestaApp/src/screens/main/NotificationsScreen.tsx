@@ -1,12 +1,15 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SectionList, Platform, SafeAreaView } from 'react-native';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SectionList, Platform, SafeAreaView, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@react-navigation/native';
 import MainHeader from '../../components/MainHeader';
 import LogoLoader from '../../components/LogoLoader';
+import { useNotifications } from '../../hooks/useNotifications';
+import { Notification } from '../../services/notificationsApi';
 
 type NotificationItem = {
   id: string;
+  realId: number;
   title: string;
   description: string;
   timeAgo: string;
@@ -17,127 +20,101 @@ type NotificationItem = {
 };
 
 const NotificationsScreen: React.FC = () => {
+  const { notifications, fetchNotifications, markAsRead, isLoading } = useNotifications();
   const [bootLoader, setBootLoader] = useState(true);
+
   useEffect(() => {
     const t = setTimeout(() => setBootLoader(false), 800);
+    fetchNotifications();
     return () => clearTimeout(t);
   }, []);
+
   const { colors } = useTheme();
 
-  const initialToday = useMemo<NotificationItem[]>(
-    () => [
-      {
-        id: 'today-1',
-        title: 'New Module Released',
-        description:
-          'Advanced Portfolio Management module is now available. Start learning about asset allocation strategies.',
-        timeAgo: '2 hours ago',
-        tone: 'primary',
-        icon: 'school-outline',
-        cta: [
-          { label: 'View' },
-          { label: 'Dismiss' },
-        ],
-        isNew: true,
-      },
-      {
-        id: 'today-2',
-        title: 'SEBI Circular Summary',
-        description:
-          'New regulations on mutual fund investments. Key changes affecting retail investors explained.',
-        timeAgo: '4 hours ago',
-        tone: 'warning',
-        icon: 'document-text-outline',
-        cta: [
-          { label: 'View' },
-          { label: 'Dismiss' },
-        ],
-      },
-      {
-        id: 'today-3',
-        title: 'Quiz Reminder',
-        description:
-          'Complete your weekly assessment on "Risk Management" before tomorrow to maintain your streak.',
-        timeAgo: '6 hours ago',
-        tone: 'success',
-        icon: 'time-outline',
-        cta: [
-          { label: 'Take Quiz' },
-          { label: 'Later' },
-        ],
-      },
-    ],
-    []
-  );
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (seconds < 60) return 'Just now';
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + " years ago";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + " months ago";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + " days ago";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + " hours ago";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + " minutes ago";
+    return Math.floor(seconds) + " seconds ago";
+  };
 
-  const initialWeek = useMemo<NotificationItem[]>(
-    () => [
-      {
-        id: 'week-1',
-        title: 'Achievement Unlocked',
-        description:
-          "Congratulations! You've completed 5 modules and earned the 'Learning Enthusiast' badge.",
-        timeAgo: '2 days ago',
-        tone: 'purple',
-        icon: 'trophy-outline',
-        cta: [{ label: 'View Badge' }, { label: 'Dismiss' }],
-      },
-      {
-        id: 'week-2',
-        title: 'Market Update',
-        description:
-          'Weekly market summary: Key indices performance and sector-wise analysis for informed investing.',
-        timeAgo: '3 days ago',
-        tone: 'red',
-        icon: 'stats-chart-outline',
-        cta: [{ label: 'Read' }, { label: 'Dismiss' }],
-      },
-    ],
-    []
-  );
+  const getTone = (type: string): NotificationItem['tone'] => {
+    switch(type) {
+      case 'trading': return 'primary';
+      case 'learning': return 'indigo';
+      case 'achievement': return 'purple';
+      case 'security': return 'red';
+      default: return 'orange';
+    }
+  };
 
-  const initialEarlier = useMemo<NotificationItem[]>(
-    () => [
-      {
-        id: 'earlier-1',
-        title: 'Community Discussion',
-        description:
-          'Join the discussion on "Best Investment Strategies for 2024" with fellow learners and experts.',
-        timeAgo: '1 week ago',
-        tone: 'indigo',
-        icon: 'people-outline',
-        cta: [{ label: 'Join' }, { label: 'Dismiss' }],
-      },
-      {
-        id: 'earlier-2',
-        title: 'System Maintenance',
-        description:
-          'Scheduled maintenance completed. All features are now fully operational with improved performance.',
-        timeAgo: '2 weeks ago',
-        tone: 'orange',
-        icon: 'notifications-outline',
-        cta: [{ label: 'Dismiss' }],
-      },
-    ],
-    []
-  );
+  const getIcon = (type: string): keyof typeof Ionicons.glyphMap => {
+    switch(type) {
+      case 'trading': return 'trending-up-outline';
+      case 'learning': return 'school-outline';
+      case 'achievement': return 'trophy-outline';
+      case 'security': return 'shield-checkmark-outline';
+      default: return 'notifications-outline';
+    }
+  };
 
-  const [today, setToday] = useState(initialToday);
-  const [week, setWeek] = useState(initialWeek);
-  const [earlier, setEarlier] = useState(initialEarlier);
+  const mappedNotifications = useMemo(() => {
+    return notifications.map(n => ({
+      id: `notif-${n.id}`,
+      realId: n.id,
+      title: n.title,
+      description: n.message,
+      timeAgo: getTimeAgo(n.created_at),
+      tone: getTone(n.notification_type),
+      icon: getIcon(n.notification_type),
+      isNew: !n.read,
+      cta: n.read ? [] : [{ label: 'Mark as read' }]
+    } as NotificationItem));
+  }, [notifications]);
 
-  const palettes = getPalettes(colors);
+  const sections = useMemo(() => {
+    const today: NotificationItem[] = [];
+    const thisWeek: NotificationItem[] = [];
+    const earlier: NotificationItem[] = [];
 
-  const sections = useMemo(
-    () => [
-      { key: 'today', title: 'Today', data: today, badge: `${today.length} new`, onDismiss: (id: string) => setToday((l) => l.filter((n) => n.id !== id)) },
-      { key: 'week', title: 'This Week', data: week, onDismiss: (id: string) => setWeek((l) => l.filter((n) => n.id !== id)) },
-      { key: 'earlier', title: 'Earlier', data: earlier, onDismiss: (id: string) => setEarlier((l) => l.filter((n) => n.id !== id)) },
-    ],
-    [today, week, earlier]
-  );
+    const now = new Date();
+    const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  const totalCount = today.length + week.length + earlier.length;
+    notifications.forEach((n, index) => {
+      const item = mappedNotifications[index];
+      const nDate = new Date(n.created_at);
+      
+      if (nDate >= todayDate) {
+        today.push(item);
+      } else if (nDate >= weekAgo) {
+        thisWeek.push(item);
+      } else {
+        earlier.push(item);
+      }
+    });
+
+    const result = [];
+    if (today.length > 0) result.push({ key: 'today', title: 'Today', data: today, badge: `${today.filter(n => n.isNew).length} new`, onDismiss: markAsRead });
+    if (thisWeek.length > 0) result.push({ key: 'week', title: 'This Week', data: thisWeek, onDismiss: markAsRead });
+    if (earlier.length > 0) result.push({ key: 'earlier', title: 'Earlier', data: earlier, onDismiss: markAsRead });
+    
+    return result;
+  }, [notifications, mappedNotifications, markAsRead]);
+
+  const totalCount = notifications.length;
 
   if (bootLoader) {
     return (
@@ -150,35 +127,45 @@ const NotificationsScreen: React.FC = () => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }] }>
       <MainHeader title="Notifications" iconName="notifications" showBackButton />
-      <SectionList
-        sections={sections as any}
-        keyExtractor={(item: NotificationItem) => item.id}
-        renderItem={({ item, section }: { item: NotificationItem; section: any }) => (
-          <View style={styles.centerWrap}>
-            <Card item={item} onDismiss={section.onDismiss} palettes={palettes} />
-          </View>
-        )}
-        renderSectionHeader={({ section }: { section: any }) => (
-          <View style={styles.centerWrap}>
-            <View style={styles.sectionHeaderRow}>
-              <Text style={[styles.sectionTitle, { color: palettes.mutedText }]}>{section.title}</Text>
-              {section.badge ? (
-                <View style={[styles.badgePill, { backgroundColor: colors.primary }]}>
-                  <Text style={styles.badgePillText}>{section.badge}</Text>
-                </View>
-              ) : null}
+      {notifications.length === 0 && !isLoading ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="notifications-off-outline" size={64} color={colors.text} style={{ opacity: 0.2 }} />
+          <Text style={[styles.emptyText, { color: colors.text }]}>No notifications yet</Text>
+        </View>
+      ) : (
+        <SectionList
+          sections={sections as any}
+          keyExtractor={(item: NotificationItem) => item.id}
+          refreshControl={
+            <RefreshControl refreshing={isLoading} onRefresh={fetchNotifications} />
+          }
+          renderItem={({ item, section }: { item: NotificationItem; section: any }) => (
+            <View style={styles.centerWrap}>
+              <Card item={item} onDismiss={() => section.onDismiss(item.realId)} palettes={getPalettes(colors)} />
             </View>
-          </View>
-        )}
-        stickySectionHeadersEnabled={false}
-        keyboardShouldPersistTaps="handled"
-        removeClippedSubviews={Platform.OS === 'web' ? false : undefined}
-        disableVirtualization={Platform.OS === 'web'}
-        initialNumToRender={Platform.OS === 'web' ? totalCount : undefined}
-        maxToRenderPerBatch={Platform.OS === 'web' ? totalCount : undefined}
-        contentContainerStyle={[styles.listContent, { paddingBottom: 24 }]}
-        showsVerticalScrollIndicator={false}
-      />
+          )}
+          renderSectionHeader={({ section }: { section: any }) => (
+            <View style={styles.centerWrap}>
+              <View style={styles.sectionHeaderRow}>
+                <Text style={[styles.sectionTitle, { color: getPalettes(colors).mutedText }]}>{section.title}</Text>
+                {section.badge ? (
+                  <View style={[styles.badgePill, { backgroundColor: colors.primary }]}>
+                    <Text style={styles.badgePillText}>{section.badge}</Text>
+                  </View>
+                ) : null}
+              </View>
+            </View>
+          )}
+          stickySectionHeadersEnabled={false}
+          keyboardShouldPersistTaps="handled"
+          removeClippedSubviews={Platform.OS === 'web' ? false : undefined}
+          disableVirtualization={Platform.OS === 'web'}
+          initialNumToRender={Platform.OS === 'web' ? totalCount : undefined}
+          maxToRenderPerBatch={Platform.OS === 'web' ? totalCount : undefined}
+          contentContainerStyle={[styles.listContent, { paddingBottom: 24 }]}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </SafeAreaView>
   );
 };

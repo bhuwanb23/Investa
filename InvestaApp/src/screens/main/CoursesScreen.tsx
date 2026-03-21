@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput, RefreshControl } from 'react-native';
 import MainHeader from '../../components/MainHeader';
 import LogoLoader from '../../components/LogoLoader';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import type { MainStackParamList } from '../../navigation/AppNavigator';
 import type { Course as ApiCourse } from '../courses/utils/coursesApi';
@@ -28,51 +28,6 @@ const CoursesScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [bootLoader, setBootLoader] = useState(true);
 
-  const sampleCourses: ApiCourse[] = useMemo(() => ([
-    {
-      id: 101,
-      title: 'Introduction to Stock Market',
-      description: 'Learn the fundamentals of stock market investing and how to get started.',
-      language: { id: 1, code: 'en', name: 'English', native_name: 'English' },
-      difficulty_level: 'beginner',
-      estimated_duration: 120,
-      thumbnail: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=1200&q=60&auto=format&fit=crop',
-      is_active: true,
-      lessons: [
-        { id: 1001, title: 'What is a Stock?', order: 1, estimated_duration: 10, content: 'Understanding the basics of shares and ownership.', video_url: null, is_active: true },
-        { id: 1002, title: 'How Markets Work', order: 2, estimated_duration: 20, content: 'Learn about NSE, BSE, and market operations.', video_url: null, is_active: true },
-      ],
-    },
-    {
-      id: 102,
-      title: 'Technical Analysis Mastery',
-      description: 'Master chart patterns, indicators, and price action to predict market movements.',
-      language: { id: 1, code: 'en', name: 'English', native_name: 'English' },
-      difficulty_level: 'intermediate',
-      estimated_duration: 180,
-      thumbnail: 'https://images.unsplash.com/photo-1611974714658-75d4f1ad33c3?w=1200&q=60&auto=format&fit=crop',
-      is_active: true,
-      lessons: [
-        { id: 1101, title: 'Candlestick Patterns', order: 1, estimated_duration: 15, content: 'Introduction to Japanese candlesticks.', video_url: null, is_active: true },
-        { id: 1102, title: 'Moving Averages', order: 2, estimated_duration: 25, content: 'Using SMA and EMA for trend analysis.', video_url: null, is_active: true },
-      ],
-    },
-    {
-      id: 103,
-      title: 'Advanced Options Trading',
-      description: 'Explore complex options strategies like iron condors, straddles, and butterflies.',
-      language: { id: 1, code: 'en', name: 'English', native_name: 'English' },
-      difficulty_level: 'advanced',
-      estimated_duration: 240,
-      thumbnail: 'https://images.unsplash.com/photo-1535320903710-d993d3d77d29?w=1200&q=60&auto=format&fit=crop',
-      is_active: true,
-      lessons: [
-        { id: 1201, title: 'Option Greeks', order: 1, estimated_duration: 20, content: 'Delta, Gamma, Theta, and Vega explained.', video_url: null, is_active: true },
-        { id: 1202, title: 'Hedging Strategies', order: 2, estimated_duration: 30, content: 'Protecting your portfolio with options.', video_url: null, is_active: true },
-      ],
-    },
-  ]), []);
-
   const load = useCallback(async () => {
     try {
       setError(null);
@@ -84,7 +39,7 @@ const CoursesScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t.failedToLoadCourses]);
 
   useEffect(() => {
     const t = setTimeout(() => setBootLoader(false), 800);
@@ -92,16 +47,21 @@ const CoursesScreen = () => {
     return () => clearTimeout(t);
   }, [load]);
 
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
+
   const dataSource: ApiCourse[] = useMemo(() => {
-    const source = Array.isArray(courses) && courses.length > 0 ? courses : sampleCourses;
+    const source = Array.isArray(courses) ? courses : [];
     const byFilter = selectedFilter === 'all' ? source : source.filter(c => c.difficulty_level === selectedFilter);
     if (!searchQuery.trim()) return byFilter;
     const q = searchQuery.toLowerCase();
     return byFilter.filter(c => c.title.toLowerCase().includes(q) || c.description.toLowerCase().includes(q));
-  }, [courses, sampleCourses, selectedFilter, searchQuery]);
+  }, [courses, selectedFilter, searchQuery]);
 
   const recommended = dataSource[0];
-  const usingSample = !(Array.isArray(courses) && courses.length > 0);
 
   const filters = [
     { key: 'all', label: t.all },
@@ -124,7 +84,12 @@ const CoursesScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <MainHeader title={t.courses} iconName="library" />
-        <ScrollView contentContainerStyle={styles.scroll}>
+        <ScrollView 
+          contentContainerStyle={styles.scroll}
+          refreshControl={
+            <RefreshControl refreshing={loading} onRefresh={load} />
+          }
+        >
 
           {/* Search Bar */}
           <View style={styles.searchRow}>
@@ -169,24 +134,41 @@ const CoursesScreen = () => {
             <View style={styles.center}><Text style={styles.loadingText}>{t.loadingCourses}</Text></View>
           )}
           {!!error && !loading && (
-            <View style={styles.center}><Text style={styles.errorText}>{error}</Text></View>
+            <View style={styles.center}>
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity style={styles.retryBtn} onPress={load}>
+                <Text style={styles.retryText}>{t.retry || 'Retry'}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Empty State */}
+          {!loading && !error && dataSource.length === 0 && (
+            <View style={styles.center}>
+              <Ionicons name="book-outline" size={48} color="#6B7280" style={{ opacity: 0.3 }} />
+              <Text style={styles.subtitle}>No courses found.</Text>
+            </View>
           )}
 
           {/* Courses list (stacked) */}
-          <Text style={styles.sectionTitle}>{t.allCourses}</Text>
-          <View style={{ gap: 12 }}>
-            {dataSource.map((c) => (
-              <View key={c.id}>
-                <CourseCard
-                  course={c}
-                  onPress={() => {
-                    // Navigate to ModuleScreen instead of CourseDetail
-                    navigation.navigate('ModuleScreen' as any, { courseId: String(c.id), course: c });
-                  }}
-                />
+          {dataSource.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>{t.allCourses}</Text>
+              <View style={{ gap: 12 }}>
+                {dataSource.map((c) => (
+                  <View key={c.id}>
+                    <CourseCard
+                      course={c}
+                      onPress={() => {
+                        // Navigate to ModuleScreen instead of CourseDetail
+                        navigation.navigate('ModuleScreen' as any, { courseId: String(c.id), course: c });
+                      }}
+                    />
+                  </View>
+                ))}
               </View>
-            ))}
-          </View>
+            </>
+          )}
         </ScrollView>
       </View>
     </SafeAreaView>

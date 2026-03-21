@@ -20,6 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import LogoLoader from '../../components/LogoLoader';
 import { useTranslation } from '../../language';
+import { progressApi, ProgressSummary } from '../../services';
 
 const { width, height } = Dimensions.get('window');
 
@@ -42,6 +43,8 @@ const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const { user, logout } = useAuth();
   const [showBootLoader, setShowBootLoader] = useState(true);
+  const [progressData, setProgressData] = useState<ProgressSummary | null>(null);
+  const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
 
   // Animation refs
@@ -56,8 +59,21 @@ const HomeScreen = () => {
     new Animated.Value(0),
   ]).current;
 
+  const fetchProgress = async () => {
+    try {
+      setLoading(true);
+      const data = await progressApi.getProgressSummary();
+      setProgressData(data);
+    } catch (error) {
+      console.error('HomeScreen: Error fetching progress:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => setShowBootLoader(false), 800);
+    fetchProgress();
 
     // Staggered entrance animations
     Animated.parallel([
@@ -118,13 +134,13 @@ const HomeScreen = () => {
   };
 
 
-  // Mock data - replace with actual API data
+  // Data from progress API or fallback
   const userProgress = {
-    completedLessons: 12,
-    totalLessons: 25,
-    currentStreak: 5,
-    totalPoints: 850,
-    overallProgress: 0.73,
+    completedLessons: progressData?.completed_lessons ?? 0,
+    totalLessons: progressData?.total_lessons ?? 10,
+    currentStreak: progressData?.current_streak_days ?? 0,
+    totalPoints: progressData?.experience_points ?? 0,
+    overallProgress: (progressData?.overall_progress_percentage ?? 0) / 100,
   };
 
   const quickAccessItems = [
