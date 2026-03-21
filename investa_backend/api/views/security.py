@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from ..models import SecuritySettings, UserSession
-from ..serializers import SecuritySettingsSerializer
+from ..serializers import SecuritySettingsSerializer, UserSessionSerializer
 
 
 class SecuritySettingsViewSet(viewsets.ModelViewSet):
@@ -54,7 +54,7 @@ class SecuritySettingsViewSet(viewsets.ModelViewSet):
 
 class UserSessionViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for user sessions"""
-    serializer_class = SecuritySettingsSerializer  # Use SecuritySettingsSerializer as fallback
+    serializer_class = UserSessionSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):

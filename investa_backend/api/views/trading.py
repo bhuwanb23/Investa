@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.db.models import Q, F, Sum, Count, Avg
 from django.utils import timezone
 from datetime import timedelta
+from decimal import Decimal
 
 from ..models import (
     Stock, StockPrice, UserWatchlist, Portfolio, PortfolioHolding,
@@ -191,7 +192,99 @@ class OrderViewSet(viewsets.ModelViewSet):
         if not user.is_authenticated:
             from django.contrib.auth.models import User
             user, _ = User.objects.get_or_create(username='dev_user', defaults={'email': 'dev@example.com'})
-        serializer.save(user=user)
+        
+        # Save the order
+        order = serializer.save(user=user)
+        
+        # Handle MARKET order execution
+        if order.order_type == 'MARKET':
+            stock = order.stock
+            market_data = stock.market_data.first()
+            
+            if not market_data:
+                # If no market data, use a default price or return error
+                # For now, let's assume market data exists or use a fallback
+                price = Decimal('150.00') 
+            else:
+                price = market_data.current_price
+                
+            # Update order status to FILLED
+            order.status = 'FILLED'
+            order.filled_quantity = order.quantity
+            order.average_fill_price = price
+            order.save()
+            
+            # Create a Trade record
+            total_amount = order.quantity * price
+            trade = Trade.objects.create(
+                user=user,
+                order=order,
+                stock=stock,
+                side=order.side,
+                quantity=order.quantity,
+                price=price,
+                total_amount=total_amount,
+                commission=total_amount * Decimal('0.001'), # 0.1% commission
+                net_amount=total_amount # Simplified for now
+            )
+            
+            # Update Portfolio
+            portfolio, _ = Portfolio.objects.get_or_create(user=user)
+            
+            if order.side == 'BUY':
+                # Deduct from cash balance
+                portfolio.cash_balance -= total_amount
+                
+                # Create or update PortfolioHolding
+                holding, created = PortfolioHolding.objects.get_or_create(
+                    portfolio=portfolio,
+                    stock=stock,
+                    defaults={
+                        'quantity': order.quantity,
+                        'average_price': price,
+                        'total_invested': total_amount,
+                        'current_price': price,
+                        'market_value': total_amount
+                    }
+                )
+                
+                if not created:
+                    # Update existing holding
+                    new_quantity = holding.quantity + order.quantity
+                    new_total_invested = holding.total_invested + total_amount
+                    holding.quantity = new_quantity
+                    holding.total_invested = new_total_invested
+                    holding.average_price = new_total_invested / new_quantity
+                    holding.current_price = price
+                    holding.market_value = new_quantity * price
+                    holding.save()
+            
+            elif order.side == 'SELL':
+                # Credit to cash balance
+                portfolio.cash_balance += total_amount
+                
+                # Update or remove PortfolioHolding
+                try:
+                    holding = PortfolioHolding.objects.get(portfolio=portfolio, stock=stock)
+                    if holding.quantity <= order.quantity:
+                        # Selling everything or more than owned (should be handled by validation usually)
+                        holding.delete()
+                    else:
+                        holding.quantity -= order.quantity
+                        # total_invested adjustment (simplified: reduce proportionally)
+                        holding.total_invested = (holding.total_invested / (holding.quantity + order.quantity)) * holding.quantity
+                        holding.market_value = holding.quantity * price
+                        holding.save()
+                except PortfolioHolding.DoesNotExist:
+                    # Selling something not owned - should be caught by validation
+                    pass
+            
+            # Recalculate portfolio totals
+            all_holdings = portfolio.holdings.all()
+            portfolio.total_invested = all_holdings.aggregate(total=Sum('total_invested'))['total'] or Decimal('0.00')
+            portfolio.total_value = (all_holdings.aggregate(total=Sum('market_value'))['total'] or Decimal('0.00')) + portfolio.cash_balance
+            portfolio.total_profit_loss = portfolio.total_value - portfolio.total_invested
+            portfolio.save()
     
     @action(detail=False, methods=['get'])
     def order_history(self, request):

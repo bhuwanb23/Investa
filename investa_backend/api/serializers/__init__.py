@@ -1,7 +1,7 @@
 # Import all serializers from subdirectories
 from .auth import UserSerializer, UserRegistrationSerializer
 from .user import LanguageSerializer, UserProfileSerializer, UserProfileDetailSerializer, ProfileUpdateSerializer, CompleteProfileSerializer
-from .security import SecuritySettingsSerializer
+from .security import SecuritySettingsSerializer, UserSessionSerializer
 from .privacy import PrivacySettingsSerializer, PrivacySettingsUpdateSerializer
 from .learning import (
     LearningProgressSerializer, BadgeSerializer, UserBadgeSerializer,
@@ -28,7 +28,7 @@ __all__ = [
     'LanguageSerializer', 'UserProfileSerializer', 'UserProfileDetailSerializer', 'ProfileUpdateSerializer', 'CompleteProfileSerializer',
     
     # Security serializers
-    'SecuritySettingsSerializer',
+    'SecuritySettingsSerializer', 'UserSessionSerializer',
     
     # Privacy serializers
     'PrivacySettingsSerializer', 'PrivacySettingsUpdateSerializer',

@@ -588,6 +588,17 @@ class UserQuizAttemptViewSet(viewsets.ModelViewSet):
         except LearningProgress.DoesNotExist:
             pass
         
+        # Update UserProgress XP and Level
+        try:
+            from ..models.progress import UserProgress
+            progress_obj, _ = UserProgress.objects.get_or_create(user=attempt.user)
+            # Add XP: score // 10 per quiz (10 points scored = 1 XP)
+            progress_obj.experience_points += attempt.score // 10
+            progress_obj.completed_quizzes += 1
+            progress_obj.save() # Automatically triggers calculate_level()
+        except Exception as e:
+            print(f"Error updating UserProgress: {e}")
+        
         serializer = self.get_serializer(attempt)
         return Response(serializer.data)
     
