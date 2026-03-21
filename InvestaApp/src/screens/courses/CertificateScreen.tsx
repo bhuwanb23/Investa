@@ -1,19 +1,63 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Share } from 'react-native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { PAGE_BG, TEXT_DARK, TEXT_MUTED, PRIMARY, CARD_BG } from './constants/courseConstants';
 import CertificateCard from './components/CertificateCard';
 import SocialShareBar from './components/SocialShareBar';
 import CertificateConfetti from './components/CertificateConfetti';
 import { useTranslation } from '../../language';
+import api from '../../services/api';
+import { MainStackParamList } from '../../navigation/AppNavigator';
+
+type CertificateScreenRouteProp = RouteProp<MainStackParamList, 'Certificate'>;
 
 const CertificateScreen: React.FC = () => {
 	const navigation = useNavigation();
+	const route = useRoute<CertificateScreenRouteProp>();
+	const { courseId } = route.params;
 	const { t } = useTranslation();
 	
-	// Debug log to verify language is working
-	console.log('CertificateScreen - Selected Language:', t.language);
+	const [loading, setLoading] = useState(true);
+	const [certData, setCertData] = useState<any>(null);
+	
+	useEffect(() => {
+		const fetchCertificate = async () => {
+			try {
+				setLoading(true);
+				const response = await api.get(`/courses/${courseId}/certificate/`);
+				setCertData(response.data);
+			} catch (error: any) {
+				console.error('Error fetching certificate:', error);
+				Alert.alert(
+					'Not Eligible',
+					error.response?.data?.detail || 'You haven\'t completed all lessons in this course yet.',
+					[{ text: 'OK', onPress: () => navigation.goBack() }]
+				);
+			} finally {
+				setLoading(false);
+			}
+		};
+		fetchCertificate();
+	}, [courseId]);
+
+	const handleShare = async () => {
+		try {
+			await Share.share({
+				message: `I just completed the "${certData?.course_title}" course on Investa! My certificate ID is ${certData?.certificate_id}`,
+			});
+		} catch (error) {
+			Alert.alert('Error', 'Failed to share achievement');
+		}
+	};
+
+	if (loading) {
+		return (
+			<View style={[styles.safe, { justifyContent: 'center', alignItems: 'center' }]}>
+				<ActivityIndicator size="large" color="#7C3AED" />
+			</View>
+		);
+	}
 
 	return (
 		<SafeAreaView style={styles.safe}>
@@ -24,7 +68,7 @@ const CertificateScreen: React.FC = () => {
 					<TouchableOpacity style={styles.iconBtn} onPress={() => navigation.goBack()}>
 						<Ionicons name="arrow-back" size={18} color="#fff" />
 					</TouchableOpacity>
-					<TouchableOpacity style={styles.iconBtn}>
+					<TouchableOpacity style={styles.iconBtn} onPress={handleShare}>
 						<Ionicons name="share-social" size={18} color="#fff" />
 					</TouchableOpacity>
 				</View>
@@ -42,9 +86,9 @@ const CertificateScreen: React.FC = () => {
 
 				<View style={{ marginHorizontal: 12, marginBottom: 20 }}>
 					<CertificateCard
-						userName="Sarah Johnson"
-						courseTitle="Advanced React Development"
-						completedOn="January 15, 2024"
+						userName={certData?.user_name || 'Student'}
+						courseTitle={certData?.course_title || 'Course'}
+						completedOn={certData?.completed_at ? new Date(certData.completed_at).toLocaleDateString() : 'Today'}
 					/>
 				</View>
 
@@ -53,14 +97,14 @@ const CertificateScreen: React.FC = () => {
 						<Ionicons name="download" size={18} color="#fff" />
 						<Text style={styles.primaryBtnText}>{t.downloadCertificate}</Text>
 					</TouchableOpacity>
-					<TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation.navigate('Share' as never)}>
+					<TouchableOpacity style={styles.secondaryBtn} onPress={handleShare}>
 						<Ionicons name="share" size={18} color="#7C3AED" />
 						<Text style={styles.secondaryBtnText}>{t.shareAchievement || 'Share Achievement'}</Text>
 					</TouchableOpacity>
 				</View>
 
 				<View style={{ marginHorizontal: 12 }}>
-					<SocialShareBar onPress={() => {}} />
+					<SocialShareBar onPress={handleShare} />
 				</View>
 
 				<View style={[styles.nextCard, { marginHorizontal: 12 }]}>
@@ -70,8 +114,8 @@ const CertificateScreen: React.FC = () => {
 					<View style={{ flex: 1 }}>
 						<Text style={styles.nextTitle}>{t.keepLearning || 'Keep Learning!'}</Text>
 						<Text style={styles.nextMuted}>{t.nextRecommendedModule || 'Next Recommended Module:'}</Text>
-						<Text style={styles.nextCourse}>Node.js Backend Development</Text>
-						<TouchableOpacity style={styles.nextCta}>
+						<Text style={styles.nextCourse}>Financial Market Analysis</Text>
+						<TouchableOpacity style={styles.nextCta} onPress={() => navigation.navigate('Courses' as never)}>
 							<Text style={styles.nextCtaText}>{t.startNextModule || 'Start Next Module'}</Text>
 							<Ionicons name="arrow-forward" size={14} color="#fff" />
 						</TouchableOpacity>

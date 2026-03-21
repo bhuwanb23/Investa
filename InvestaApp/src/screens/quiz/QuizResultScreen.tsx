@@ -59,7 +59,7 @@ const QuizResultScreen = () => {
   };
 
   const handleGoToModules = () => {
-    navigation.navigate('LearningHome');
+    navigation.navigate('Courses' as any);
   };
 
   const handleShare = () => {

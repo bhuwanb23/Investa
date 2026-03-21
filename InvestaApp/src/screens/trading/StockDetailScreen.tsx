@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +20,7 @@ import {
 import { STOCK_DETAIL_DATA } from './constants/tradingConstants';
 import MainHeader from '../../components/MainHeader';
 import { useTranslation } from '../../language';
+import { fetchStockDetail, fetchStockTechnicalIndicators, fetchStockPriceHistory, fetchStocks } from './utils/tradingApi';
 
 const { width } = Dimensions.get('window');
 
@@ -39,28 +41,79 @@ const StockDetailScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'StockDetail'>>();
   const { stockSymbol, stockName } = route.params;
-  const { getStockBySymbol } = useTradingData();
   const { t } = useTranslation();
   
-  // Debug log to verify language is working
-  console.log('StockDetailScreen - Selected Language:', t.language);
-
+  const [loading, setLoading] = useState(true);
+  const [stockData, setStockData] = useState<any>(null);
+  const [technicalIndicators, setTechnicalIndicators] = useState<any[]>([]);
+  const [priceHistory, setPriceHistory] = useState<any[]>([]);
   const [selectedTimeframe, setSelectedTimeframe] = useState('1D');
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('All');
 
-  // Get stock data from the hook
-  const stock = getStockBySymbol(stockSymbol) || {
+  useEffect(() => {
+    const loadAllData = async () => {
+      try {
+        setLoading(true);
+        // 1. Find stock ID by symbol
+        const stocks = await fetchStocks();
+        const foundStock = stocks.find((s: any) => s.symbol === stockSymbol);
+        
+        if (foundStock) {
+          const stockId = foundStock.id;
+          
+          // 2. Fetch detail, indicators, and history in parallel
+          const [detail, indicators, history] = await Promise.all([
+            fetchStockDetail(stockId),
+            fetchStockTechnicalIndicators(stockId),
+            fetchStockPriceHistory(stockId, 30)
+          ]);
+          
+          setStockData(detail);
+          setTechnicalIndicators(indicators);
+          setPriceHistory(history);
+        } else {
+          // Fallback if stock not found in API
+          console.warn(`Stock ${stockSymbol} not found in backend`);
+        }
+      } catch (error) {
+        console.error('Error loading stock detail data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadAllData();
+  }, [stockSymbol]);
+
+  // Derived metrics from stockData
+  const marketData = stockData?.market_data?.[0] || {};
+  const currentPrice = marketData?.current_price || 0;
+  
+  const tradingMetrics = {
+    open: `₹${marketData?.open_price || '0.00'}`,
+    high: `₹${marketData?.high_price || '0.00'}`,
+    low: `₹${marketData?.low_price || '0.00'}`,
+    prevClose: `₹${marketData?.prev_close_price || '0.00'}`,
+    volume: marketData?.volume ? `${(marketData.volume / 1000000).toFixed(1)}M` : '0.0M',
+    avgVolume: '3.1M',
+    marketCap: stockData?.market_cap ? `₹${(stockData.market_cap / 1000000000000).toFixed(1)}T` : 'N/A',
+    peRatio: stockData?.pe_ratio || 'N/A',
+    dividendYield: '0.85%',
+    beta: '1.24',
+  };
+
+  const stock = {
     symbol: stockSymbol,
-    name: stockName,
-    price: '₹2,456.80',
-    change: '+2.45%',
-    changeValue: '+58.75',
-    isPositive: true,
-    exchange: 'NSE',
+    name: stockData?.name || stockName,
+    price: `₹${currentPrice.toLocaleString()}`,
+    change: `${marketData?.change_percentage >= 0 ? '+' : ''}${marketData?.change_percentage?.toFixed(2)}%`,
+    changeValue: `${marketData?.change_amount >= 0 ? '+' : ''}${marketData?.change_amount?.toFixed(2)}`,
+    isPositive: marketData?.change_percentage >= 0,
+    exchange: stockData?.exchange || 'NSE',
     isFavorite: false,
-    volume: '2.5M',
-    marketCap: '₹16.2T',
+    volume: tradingMetrics.volume,
+    marketCap: tradingMetrics.marketCap,
   };
 
   const handleBack = () => {
@@ -80,7 +133,6 @@ const StockDetailScreen = () => {
   };
 
   const handleBuy = () => {
-    const currentPrice = parseFloat(stock.price.replace('₹', '').replace(',', ''));
     navigation.navigate('PlaceOrder', {
       stockSymbol: stock.symbol,
       stockName: stock.name,
@@ -118,33 +170,11 @@ const StockDetailScreen = () => {
     t.thisYear
   ];
 
-  // Mock data for enhanced trading information
-  const tradingMetrics = {
-    open: '₹2,398.05',
-    high: '₹2,478.90',
-    low: '₹2,385.20',
-    prevClose: '₹2,398.05',
-    volume: '2.5M',
-    avgVolume: '3.1M',
-    marketCap: '₹16.2T',
-    peRatio: '18.45',
-    dividendYield: '0.85%',
-    beta: '1.24',
-  };
-
-  const technicalIndicators = [
-    { name: 'RSI', value: '65.4', status: 'neutral', color: '#F59E0B' },
-    { name: 'MACD', value: 'Bullish', status: 'bullish', color: '#10B981' },
-    { name: 'Moving Avg', value: 'Above 50MA', status: 'bullish', color: '#10B981' },
-    { name: 'Support', value: '₹2,380', status: 'neutral', color: '#6B7280' },
-    { name: 'Resistance', value: '₹2,500', status: 'neutral', color: '#6B7280' },
-  ];
-
   const recentTrades = [
-    { time: '15:30', price: '₹2,456.80', quantity: '100', type: 'BUY' },
-    { time: '15:28', price: '₹2,455.50', quantity: '250', type: 'SELL' },
-    { time: '15:25', price: '₹2,457.20', quantity: '75', type: 'BUY' },
-    { time: '15:22', price: '₹2,454.90', quantity: '300', type: 'SELL' },
+    { time: '15:30', price: stock.price, quantity: '100', type: 'BUY' },
+    { time: '15:28', price: stock.price, quantity: '250', type: 'SELL' },
+    { time: '15:25', price: stock.price, quantity: '75', type: 'BUY' },
+    { time: '15:22', price: stock.price, quantity: '300', type: 'SELL' },
   ];
 
   const renderTradingMetrics = () => (
@@ -191,13 +221,19 @@ const StockDetailScreen = () => {
     <View style={styles.indicatorsContainer}>
       <Text style={styles.sectionTitle}>{t.technicalIndicators}</Text>
       <View style={styles.indicatorsGrid}>
-        {technicalIndicators.map((indicator, index) => (
+        {(technicalIndicators.length > 0 ? technicalIndicators : [
+          { name: 'RSI', value: '65.4', status: 'neutral', color: '#F59E0B' },
+          { name: 'MACD', value: 'Bullish', status: 'bullish', color: '#10B981' },
+          { name: 'Moving Avg', value: 'Above 50MA', status: 'bullish', color: '#10B981' },
+          { name: 'Support', value: '₹2,380', status: 'neutral', color: '#6B7280' },
+          { name: 'Resistance', value: '₹2,500', status: 'neutral', color: '#6B7280' },
+        ]).map((indicator, index) => (
           <View key={index} style={styles.indicatorItem}>
             <View style={styles.indicatorHeader}>
               <Text style={styles.indicatorName}>{indicator.name}</Text>
-              <View style={[styles.statusDot, { backgroundColor: indicator.color }]} />
+              <View style={[styles.statusDot, { backgroundColor: indicator.color || '#6B7280' }]} />
             </View>
-            <Text style={[styles.indicatorValue, { color: indicator.color }]}>
+            <Text style={[styles.indicatorValue, { color: indicator.color || '#6B7280' }]}>
               {indicator.value}
             </Text>
           </View>
@@ -243,7 +279,7 @@ const StockDetailScreen = () => {
         <Text style={styles.sectionTitle}>{t.companyProfile}</Text>
       </View>
       <Text style={styles.description}>
-        {STOCK_DETAIL_DATA.companyProfile.description}
+        {stockData?.description || STOCK_DETAIL_DATA.companyProfile.description}
       </Text>
       <View style={styles.infoGrid}>
         <View style={styles.infoItem}>
@@ -305,7 +341,7 @@ const StockDetailScreen = () => {
         <Text style={styles.sectionTitle}>{t.keyFundamentals}</Text>
       </View>
       <View style={styles.fundamentalsGrid}>
-        {STOCK_DETAIL_DATA.fundamentals.map((fundamental, index) => (
+        {(stockData?.fundamentals || STOCK_DETAIL_DATA.fundamentals).map((fundamental: any, index: number) => (
           <View key={index} style={styles.fundamentalItem}>
             <View style={styles.fundamentalIconContainer}>
               <Ionicons name="trending-up" size={16} color="#3B82F6" />
@@ -320,6 +356,14 @@ const StockDetailScreen = () => {
     </View>
   );
 
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#3B82F6" />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <MainHeader title={stock.name} iconName="trending-up" showBackButton onBackPress={handleBack} />
@@ -331,6 +375,7 @@ const StockDetailScreen = () => {
           onTimeframeChange={handleTimeframeChange}
           selectedFilter={selectedFilter}
           onFilterChange={handleFilterChange}
+          priceHistory={priceHistory}
         />
 
         {/* Trading Metrics */}

@@ -92,7 +92,7 @@ export type MainStackParamList = {
   };
   Bookmarks: undefined;
   CourseBookmarks: undefined;
-  Certificate: undefined;
+  Certificate: { courseId: number };
   ModuleProgress: undefined;
   // Trading Navigation
   MarketWatchlist: undefined;

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,12 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { MainStackParamList } from '../../navigation/AppNavigator';
-import { QUIZ_QUESTIONS } from './constants/quizData';
 import { useQuizTimer } from './hooks/useQuizTimer';
 import { useQuizProgress } from './hooks/useQuizProgress';
 import QuizHeader from './components/QuizHeader';
@@ -20,6 +20,8 @@ import QuizProgressBar from './components/QuizProgressBar';
 import QuizQuestionCard from './components/QuizQuestionCard';
 import QuizOptionButton from './components/QuizOptionButton';
 import QuizExplanation from './components/QuizExplanation';
+import { startQuizAttempt, submitQuizAnswer, completeQuizAttempt, getQuizAttempt } from '../courses/utils/coursesApi';
+import api from '../../services/api';
 
 type QuizQuestionScreenNavigationProp = StackNavigationProp<MainStackParamList, 'QuizQuestion'>;
 type QuizQuestionScreenRouteProp = RouteProp<MainStackParamList, 'QuizQuestion'>;
@@ -29,7 +31,33 @@ const QuizQuestionScreen = () => {
   const route = useRoute<QuizQuestionScreenRouteProp>();
   const { quizId, quizTitle, timeLimit } = route.params;
 
-  const questions = QUIZ_QUESTIONS[quizId] || [];
+  const [loading, setLoading] = useState(true);
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [quizAttempt, setQuizAttempt] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const initQuiz = async () => {
+      try {
+        setLoading(true);
+        // 1. Fetch quiz details from backend
+        const response = await api.get(`/quizzes/${quizId}/`);
+        const quizData = response.data;
+        setQuestions(quizData.questions || []);
+        
+        // 2. Start a new attempt
+        const attempt = await startQuizAttempt(Number(quizId));
+        setQuizAttempt(attempt);
+      } catch (err) {
+        console.error('Error initializing quiz:', err);
+        setError('Failed to load quiz from server.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    initQuiz();
+  }, [quizId]);
+
   const totalTime = timeLimit * 60; // Convert to seconds
 
   const {
@@ -41,7 +69,7 @@ const QuizQuestionScreen = () => {
   } = useQuizTimer({
     initialTime: totalTime,
     onTimeUp: handleTimeUp,
-    autoStart: true,
+    autoStart: !loading,
   });
 
   const {
@@ -52,10 +80,8 @@ const QuizQuestionScreen = () => {
     progress,
     selectAnswer,
     nextQuestion,
-    previousQuestion,
     submitQuiz,
     canGoNext,
-    canGoPrevious,
     isLastQuestion,
   } = useQuizProgress({
     questions,
@@ -64,31 +90,46 @@ const QuizQuestionScreen = () => {
 
   const currentQuestion = questions[currentQuestionIndex];
 
-  function handleTimeUp() {
+  async function handleTimeUp() {
     Alert.alert(
       "Time's Up!",
       "The quiz time has expired. Your answers will be submitted automatically.",
       [
         {
           text: "OK",
-          onPress: () => {
-            const result = submitQuiz();
-            navigation.navigate('QuizResult', {
-              ...result,
-              timeTaken: totalTime - timeLeft,
-            });
+          onPress: async () => {
+            await handleFinishQuiz();
           }
         }
       ]
     );
   }
 
-  function handleQuizComplete(result: any) {
-    navigation.navigate('QuizResult', {
-      ...result,
-      timeTaken: totalTime - timeLeft,
-    });
+  async function handleQuizComplete(result: any) {
+    // This is called by useQuizProgress.submitQuiz()
+    // We handle navigation in handleFinishQuiz instead
   }
+
+  const handleFinishQuiz = async () => {
+    try {
+      setLoading(true);
+      const timeTaken = totalTime - timeLeft;
+      const result = await completeQuizAttempt(quizAttempt.id, timeTaken);
+      
+      navigation.navigate('QuizResult', {
+        score: result.score,
+        totalQuestions: result.total_questions,
+        correctAnswers: result.correct_answers,
+        timeTaken: result.time_taken,
+        quizId: String(quizId),
+      });
+    } catch (err) {
+      console.error('Error finishing quiz:', err);
+      Alert.alert('Error', 'Failed to submit quiz results.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleExitQuiz = () => {
     Alert.alert(
@@ -110,17 +151,32 @@ const QuizQuestionScreen = () => {
 
   const handleSkipQuestion = () => {
     if (!isAnswered) {
-      selectAnswer(-1); // -1 indicates skipped
+      handleSelectOption(-1); // -1 indicates skipped
     }
   };
 
-  const handleNextQuestion = () => {
+  const handleSelectOption = async (optionIndex: number) => {
+    if (isAnswered) return;
+    
+    try {
+      // Find the answer ID from the current question's answers
+      const selectedAnswer = optionIndex === -1 ? null : currentQuestion.answers[optionIndex];
+      const answerId = selectedAnswer ? selectedAnswer.id : null;
+      
+      // Submit to backend
+      await submitQuizAnswer(quizAttempt.id, currentQuestion.id, answerId);
+      
+      // Update local state via hook
+      selectAnswer(optionIndex);
+    } catch (err) {
+      console.error('Error submitting answer:', err);
+      Alert.alert('Error', 'Failed to save your answer.');
+    }
+  };
+
+  const handleNextQuestion = async () => {
     if (isLastQuestion) {
-      const result = submitQuiz();
-      navigation.navigate('QuizResult', {
-        ...result,
-        timeTaken: totalTime - timeLeft,
-      });
+      await handleFinishQuiz();
     } else {
       nextQuestion();
     }
@@ -129,17 +185,32 @@ const QuizQuestionScreen = () => {
   const handleHint = () => {
     Alert.alert(
       "Hint",
-      "Read the question carefully and eliminate obviously wrong answers first.",
+      currentQuestion?.explanation || "Read the question carefully and eliminate obviously wrong answers first.",
       [{ text: "OK" }]
     );
   };
 
-  if (!currentQuestion) {
+  if (loading && !quizAttempt) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#3B82F6" />
+        <Text style={{ marginTop: 12, color: '#6B7280' }}>Initializing quiz...</Text>
+      </View>
+    );
+  }
+
+  if (error || !currentQuestion) {
     return (
       <View style={styles.container}>
-        <QuizHeader title="Quiz" onBack={handleExitQuiz} />
+        <QuizHeader title="Quiz" onBack={() => navigation.goBack()} />
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>No questions available for this quiz.</Text>
+          <Text style={styles.errorText}>{error || "No questions available for this quiz."}</Text>
+          <TouchableOpacity 
+            style={{ marginTop: 16, padding: 12, backgroundColor: '#3B82F6', borderRadius: 8 }}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={{ color: 'white', fontWeight: 'bold' }}>Go Back</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -148,7 +219,7 @@ const QuizQuestionScreen = () => {
   return (
     <View style={styles.container}>
       <QuizHeader 
-        title="Quiz" 
+        title={quizTitle} 
         onBack={handleExitQuiz}
         rightComponent={
           <QuizTimer timeLeft={timeLeft} formatTime={formatTime} />
@@ -163,21 +234,21 @@ const QuizQuestionScreen = () => {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <QuizQuestionCard
-          question={currentQuestion.question}
+          question={currentQuestion.question_text}
           questionNumber={currentQuestionIndex + 1}
           totalQuestions={questions.length}
         />
 
         <View style={styles.optionsContainer}>
-          {currentQuestion.options.map((option, index) => (
+          {currentQuestion.answers.map((answer: any, index: number) => (
             <QuizOptionButton
-              key={index}
-              option={option}
+              key={answer.id}
+              option={answer.answer_text}
               optionIndex={index}
               isSelected={selectedAnswers[currentQuestionIndex] === index}
-              isCorrect={index === currentQuestion.correctAnswer}
+              isCorrect={answer.is_correct}
               showResult={isAnswered}
-              onPress={() => selectAnswer(index)}
+              onPress={() => handleSelectOption(index)}
               disabled={isAnswered}
             />
           ))}
@@ -203,15 +274,21 @@ const QuizQuestionScreen = () => {
           <TouchableOpacity
             style={[
               styles.nextButton,
-              !canGoNext && styles.disabledButton,
+              !canGoNext && !isLastQuestion && styles.disabledButton,
             ]}
             onPress={handleNextQuestion}
-            disabled={!canGoNext}
+            disabled={!canGoNext && !isLastQuestion}
           >
-            <Text style={styles.nextButtonText}>
-              {isLastQuestion ? 'Finish Quiz' : 'Next Question'}
-            </Text>
-            <Ionicons name="arrow-forward" size={20} color="white" />
+            {loading ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <>
+                <Text style={styles.nextButtonText}>
+                  {isLastQuestion ? 'Finish Quiz' : 'Next Question'}
+                </Text>
+                <Ionicons name="arrow-forward" size={20} color="white" />
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </View>
