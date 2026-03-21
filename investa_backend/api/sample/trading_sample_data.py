@@ -144,47 +144,52 @@ def create_achievements():
     return achievements
 
 def create_stock_prices(stocks):
-    """Create historical stock prices"""
+    """Create historical stock prices with 90 days of data and realistic fluctuations"""
     from api.models import StockPrice
+    import random
     
     prices_created = 0
     created_prices = []
     for stock in stocks:
         # Get base price for this stock
-        base_price = STOCK_PRICES.get(stock.symbol, Decimal('1000.00'))
+        base_price = float(STOCK_PRICES.get(stock.symbol, Decimal('1000.00')))
+        current_price = base_price
         
-        # Create 30 days of historical data
-        for i in range(30):
+        # Create 90 days of historical data
+        for i in range(90, 0, -1):
             price_date = date.today() - timedelta(days=i)
             
-            # Add some price variation around the base price
-            price_variation = Decimal(str((i % 10 - 5) * 20))  # ±100 variation
-            current_price = base_price + price_variation
+            # Apply small daily random fluctuations (-2% to +2%)
+            change_percent = random.uniform(-0.02, 0.02)
+            close_price = round(current_price * (1 + change_percent), 2)
             
             # Calculate OHLC prices
-            open_price = current_price + Decimal(str((i % 5 - 2) * 10))
-            high_price = max(open_price, current_price) + Decimal('25.00')
-            low_price = min(open_price, current_price) - Decimal('15.00')
-            close_price = current_price
-            volume = 1000000 + (i * 50000)
+            # Open is previous close (current_price)
+            open_price = current_price
+            high_price = max(open_price, close_price) + round(random.uniform(0, current_price * 0.01), 2)
+            low_price = min(open_price, close_price) - round(random.uniform(0, current_price * 0.01), 2)
+            volume = random.randint(1000000, 5000000)
             
-            price, created = StockPrice.objects.get_or_create(
+            price_obj, created = StockPrice.objects.get_or_create(
                 stock=stock,
                 date=price_date,
                 defaults={
-                    'open_price': open_price,
-                    'high_price': high_price,
-                    'low_price': low_price,
-                    'close_price': close_price,
+                    'open_price': Decimal(str(open_price)),
+                    'high_price': Decimal(str(high_price)),
+                    'low_price': Decimal(str(low_price)),
+                    'close_price': Decimal(str(close_price)),
                     'volume': volume
                 }
             )
             
             if created:
                 prices_created += 1
-                created_prices.append(price)
+                created_prices.append(price_obj)
+            
+            # Update current_price for next day
+            current_price = close_price
     
-    print(f"   📊 Created {prices_created} stock price records")
+    print(f"   📊 Created {prices_created} stock price records (90 days per stock)")
     return created_prices
 
 def create_user_watchlists(users, stocks):

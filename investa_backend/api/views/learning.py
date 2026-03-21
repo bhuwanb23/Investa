@@ -64,27 +64,20 @@ class BadgeViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CourseViewSet(viewsets.ReadOnlyModelViewSet):
-    """List courses and retrieve details with lessons"""
-    queryset = Course.objects.prefetch_related('lessons').all()
+    """ViewSet for courses"""
+    queryset = Course.objects.filter(is_active=True)
     serializer_class = CourseSerializer
     permission_classes = [permissions.AllowAny]
-    
-    @action(detail=True, methods=['get'], permission_classes=[permissions.AllowAny])
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
+    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def with_progress(self, request, pk=None):
-        """Get course details with user progress (for development, uses default user)"""
+        """Get course details with user progress"""
         course = self.get_object()
-        
-        # For development, create a default user if none exists
-        if not request.user.is_authenticated:
-            from django.contrib.auth.models import User
-            user, created = User.objects.get_or_create(
-                username='dev_user',
-                defaults={'email': 'dev@example.com'}
-            )
-            if created:
-                user.set_password('devpass123')
-                user.save()
-            request.user = user
         
         print(f"🔍 Fetching course {course.id} ({course.title}) with progress for user {request.user.username}")
         
@@ -187,50 +180,21 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class LessonViewSet(viewsets.ReadOnlyModelViewSet):
-    """Retrieve lesson details"""
-    queryset = Lesson.objects.select_related('course').all()
+    """ViewSet for lessons"""
+    queryset = Lesson.objects.filter(is_active=True)
     serializer_class = LessonSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
-    @action(detail=True, methods=['post'], permission_classes=[permissions.AllowAny])
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def mark_completed(self, request, pk=None):
+        """Mark a lesson as completed for the user"""
         lesson = self.get_object()
+        user = request.user
         
-        # For development, create a default user if none exists
-        if not request.user.is_authenticated:
-            from django.contrib.auth.models import User
-            user, created = User.objects.get_or_create(
-                username='dev_user',
-                defaults={'email': 'dev@example.com'}
-            )
-            if created:
-                user.set_password('devpass123')
-                user.save()
-            request.user = user
-        
-        print(f"🔍 Marking lesson {lesson.id} ({lesson.title}) as completed for user {request.user.username}")
-        
-        # CRITICAL: Check existing progress records for this user and lesson
-        existing_progress = UserLessonProgress.objects.filter(user=request.user, lesson=lesson)
-        print(f"🔍 Found {existing_progress.count()} existing progress records for lesson {lesson.id}")
-        for ep in existing_progress:
-            print(f"   - Progress ID {ep.id}: Status={ep.status}, Progress={ep.progress}")
-        
-        # CRITICAL: Check if there are any other progress records that might be interfering
-        all_user_progress = UserLessonProgress.objects.filter(user=request.user)
-        print(f"🔍 Total progress records for user {request.user.username} BEFORE marking: {all_user_progress.count()}")
-        for ap in all_user_progress:
-            print(f"   - Lesson {ap.lesson.id} ({ap.lesson.title}): Status={ap.status}, Progress={ap.progress}")
-        
-        # CRITICAL: Use get_or_create to ensure only ONE record per lesson per user
         progress, created = UserLessonProgress.objects.get_or_create(
-            user=request.user, 
+            user=user,
             lesson=lesson,
-            defaults={
-                'status': 'completed',
-                'progress': 100,
-                'completed_at': timezone.now()
-            }
+            defaults={'status': 'completed', 'progress': 100, 'completed_at': timezone.now()}
         )
         
         if not created:
@@ -241,35 +205,28 @@ class LessonViewSet(viewsets.ReadOnlyModelViewSet):
         
         progress.save()
         
-        print(f"✅ Lesson {lesson.id} marked as completed for user {request.user.username}")
-        print(f"📊 Progress record: ID={progress.id}, Status={progress.status}, Progress={progress.progress}, Completed={progress.completed_at}")
+        # Create learning notification
+        from .trading import _create_notification
+        _create_notification(
+            request.user, 
+            'Lesson Completed', 
+            f'You have finished {lesson.title}', 
+            'learning'
+        )
         
-        # Verify the data was saved
-        saved_progress = UserLessonProgress.objects.get(id=progress.id)
-        print(f"🔍 Verification: Saved progress - Status={saved_progress.status}, Progress={saved_progress.progress}, Completed={saved_progress.completed_at}")
-        
-        # CRITICAL: Check all progress records for this user after saving
-        all_progress_after = UserLessonProgress.objects.filter(user=request.user)
-        print(f"🔍 Total progress records for user {request.user.username} AFTER marking: {all_progress_after.count()}")
-        for ap in all_progress_after:
-            print(f"   - Lesson {ap.lesson.id} ({ap.lesson.title}): Status={ap.status}, Progress={ap.progress}")
-        
-        # CRITICAL: Verify that ONLY the intended lesson was marked as completed
-        completed_lessons = UserLessonProgress.objects.filter(user=request.user, status='completed')
-        print(f"🔍 Lessons marked as completed: {completed_lessons.count()}")
-        for cl in completed_lessons:
-            print(f"   - Lesson {cl.lesson.id} ({cl.lesson.title}): Completed at {cl.completed_at}")
-        
-        return Response({'detail': 'Lesson marked as completed'})
+        return Response({'status': 'completed'})
 
 
-class UserLessonProgressViewSet(viewsets.ReadOnlyModelViewSet):
-    """Current user's lesson progress"""
+class UserLessonProgressViewSet(viewsets.ModelViewSet):
+    """ViewSet for lesson progress"""
     serializer_class = UserLessonProgressSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return UserLessonProgress.objects.filter(user=self.request.user).select_related('lesson__course', 'user')
+        return UserLessonProgress.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
     
     @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
     def debug_progress(self, request):
@@ -404,9 +361,9 @@ class UserLessonProgressViewSet(viewsets.ReadOnlyModelViewSet):
 
 class QuizViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for quizzes"""
-    queryset = Quiz.objects.prefetch_related('questions__answers').all()
+    queryset = Quiz.objects.filter(is_active=True)
     serializer_class = QuizSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     
     @action(detail=True, methods=['get'], permission_classes=[permissions.AllowAny])
     def for_lesson(self, request, pk=None):
@@ -499,23 +456,15 @@ class AnswerViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class UserQuizAttemptViewSet(viewsets.ModelViewSet):
-    """ViewSet for user quiz attempts"""
+    """ViewSet for quiz attempts"""
     serializer_class = UserQuizAttemptSerializer
-    permission_classes = [permissions.AllowAny]
-    
+    permission_classes = [permissions.IsAuthenticated]
+
     def get_queryset(self):
-        # For development, create a default user if none exists
-        if not self.request.user.is_authenticated:
-            from django.contrib.auth.models import User
-            user, created = User.objects.get_or_create(
-                username='dev_user',
-                defaults={'email': 'dev@example.com'}
-            )
-            if created:
-                user.set_password('devpass123')
-                user.save()
-            return UserQuizAttempt.objects.filter(user=user)
         return UserQuizAttempt.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
     
     @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
     def start_quiz(self, request):
@@ -640,6 +589,16 @@ class UserQuizAttemptViewSet(viewsets.ModelViewSet):
             progress_obj.experience_points += attempt.score // 10
             progress_obj.completed_quizzes += 1
             progress_obj.save() # Automatically triggers calculate_level()
+            
+            # Create achievement notification
+            if attempt.passed:
+                from .trading import _create_notification
+                _create_notification(
+                    attempt.user, 
+                    'Quiz Passed!', 
+                    f'You scored {attempt.score}% on {attempt.quiz.title}', 
+                    'achievement'
+                )
         except Exception as e:
             print(f"Error updating UserProgress: {e}")
         

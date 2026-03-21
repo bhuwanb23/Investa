@@ -7,10 +7,19 @@ from datetime import timedelta
 from decimal import Decimal
 
 from ..models import (
-    Stock, StockPrice, UserWatchlist, Portfolio, PortfolioHolding,
+    Stock, StockPrice, UserWatchlist, Portfolio, PortfolioHolding, 
     Order, Trade, TradingPerformance, TradingSession, MarketData,
-    TechnicalIndicator, Achievement, UserAchievement
+    TechnicalIndicator, Achievement, UserAchievement, Notification
 )
+
+def _create_notification(user, title, message, notif_type):
+    """Helper to create notifications"""
+    Notification.objects.create(
+        user=user, 
+        title=title, 
+        message=message, 
+        notification_type=notif_type
+    )
 from ..serializers.trading import (
     StockSerializer, StockDetailSerializer, StockPriceSerializer, UserWatchlistSerializer,
     PortfolioSerializer, PortfolioSummarySerializer, PortfolioHoldingSerializer,
@@ -25,6 +34,12 @@ class StockViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for stock information"""
     serializer_class = StockSerializer
     permission_classes = [permissions.AllowAny]
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve', 'price_history']:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['symbol', 'name', 'sector', 'industry']
     ordering_fields = ['symbol', 'name', 'market_cap', 'created_at']
@@ -85,13 +100,9 @@ class StockViewSet(viewsets.ReadOnlyModelViewSet):
 class UserWatchlistViewSet(viewsets.ModelViewSet):
     """ViewSet for user watchlist management"""
     serializer_class = UserWatchlistSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            from django.contrib.auth.models import User
-            user, _ = User.objects.get_or_create(username='dev_user', defaults={'email': 'dev@example.com'})
-            return UserWatchlist.objects.filter(user=user)
         return UserWatchlist.objects.filter(user=self.request.user)
     
     def perform_create(self, serializer):
@@ -131,13 +142,9 @@ class UserWatchlistViewSet(viewsets.ModelViewSet):
 class PortfolioViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for portfolio management"""
     serializer_class = PortfolioSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            from django.contrib.auth.models import User
-            user, _ = User.objects.get_or_create(username='dev_user', defaults={'email': 'dev@example.com'})
-            return Portfolio.objects.filter(user=user)
         return Portfolio.objects.filter(user=self.request.user)
     
     def get_serializer_class(self):
@@ -171,15 +178,11 @@ class PortfolioViewSet(viewsets.ReadOnlyModelViewSet):
 class OrderViewSet(viewsets.ModelViewSet):
     """ViewSet for order management"""
     serializer_class = OrderSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['created_at', 'status', 'side']
     
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            from django.contrib.auth.models import User
-            user, _ = User.objects.get_or_create(username='dev_user', defaults={'email': 'dev@example.com'})
-            return Order.objects.filter(user=user).select_related('stock')
         return Order.objects.filter(user=self.request.user).select_related('stock')
     
     def get_serializer_class(self):
@@ -189,10 +192,6 @@ class OrderViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         user = self.request.user
-        if not user.is_authenticated:
-            from django.contrib.auth.models import User
-            user, _ = User.objects.get_or_create(username='dev_user', defaults={'email': 'dev@example.com'})
-        
         # Save the order
         order = serializer.save(user=user)
         
@@ -285,6 +284,14 @@ class OrderViewSet(viewsets.ModelViewSet):
             portfolio.total_value = (all_holdings.aggregate(total=Sum('market_value'))['total'] or Decimal('0.00')) + portfolio.cash_balance
             portfolio.total_profit_loss = portfolio.total_value - portfolio.total_invested
             portfolio.save()
+            
+            # Create trading notification
+            _create_notification(
+                user, 
+                'Order Executed', 
+                f'{order.side} {order.quantity} {order.stock.symbol}', 
+                'trading'
+            )
     
     @action(detail=False, methods=['get'])
     def order_history(self, request):

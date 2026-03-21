@@ -18,7 +18,7 @@ from ..serializers.progress import (
 class UserProgressViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for comprehensive user progress"""
     serializer_class = UserProgressSerializer
-    permission_classes = []  # Temporarily disable authentication for testing
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
         return UserProgress.objects.filter(user=self.request.user)
@@ -39,32 +39,6 @@ class UserProgressViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['get'])
     def summary(self, request):
         """Get progress summary for display"""
-        # For testing purposes, return sample data for anonymous users
-        if request.user.is_anonymous:
-            sample_data = {
-                'id': 1,
-                'user': 1,
-                'current_level': 3,
-                'experience_points': 250,
-                'experience_to_next_level': 50,
-                'learning_completion_percentage': 65.0,
-                'course_completion_percentage': 40.0,
-                'quiz_completion_percentage': 75.0,
-                'overall_progress_percentage': 60.0,
-                'current_streak_days': 7,
-                'longest_streak_days': 15,
-                'total_activity_days': 30,
-                'portfolio_value': 5000.00,
-                'portfolio_growth_percentage': 12.5,
-                'win_rate': 75.0,
-                'total_badges': 10,
-                'earned_badges': 6,
-                'total_achievements': 15,
-                'earned_achievements': 8,
-                'updated_at': '2024-01-15T10:30:00Z'
-            }
-            return Response(sample_data)
-        
         try:
             progress = UserProgress.objects.get(user=request.user)
             serializer = UserProgressSummarySerializer(progress)
@@ -145,54 +119,6 @@ class UserProgressViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['get'])
     def weekly_activity(self, request):
         """Get weekly activity data for charts"""
-        # For testing purposes, return sample data for anonymous users
-        if request.user.is_anonymous:
-            sample_data = [
-                {
-                    'week': '2024-01-08',
-                    'lessons_completed': 3,
-                    'quizzes_taken': 2,
-                    'activity_score': 75
-                },
-                {
-                    'week': '2024-01-15',
-                    'lessons_completed': 5,
-                    'quizzes_taken': 3,
-                    'activity_score': 85
-                },
-                {
-                    'week': '2024-01-22',
-                    'lessons_completed': 2,
-                    'quizzes_taken': 1,
-                    'activity_score': 45
-                },
-                {
-                    'week': '2024-01-29',
-                    'lessons_completed': 4,
-                    'quizzes_taken': 2,
-                    'activity_score': 70
-                },
-                {
-                    'week': '2024-02-05',
-                    'lessons_completed': 6,
-                    'quizzes_taken': 4,
-                    'activity_score': 90
-                },
-                {
-                    'week': '2024-02-12',
-                    'lessons_completed': 3,
-                    'quizzes_taken': 2,
-                    'activity_score': 65
-                },
-                {
-                    'week': '2024-02-19',
-                    'lessons_completed': 7,
-                    'quizzes_taken': 5,
-                    'activity_score': 95
-                }
-            ]
-            return Response(sample_data)
-        
         # Calculate weekly activity for the current user
         from datetime import timedelta
         today = timezone.now().date()
