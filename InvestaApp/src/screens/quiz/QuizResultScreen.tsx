@@ -6,6 +6,8 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  ActivityIndicator,
+  Share,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -13,19 +15,39 @@ import { Ionicons } from '@expo/vector-icons';
 import { MainStackParamList } from '../../navigation/AppNavigator';
 import { SCORE_MESSAGES, SCORE_COLORS, getScoreLevel } from './constants/quizData';
 import QuizHeader from './components/QuizHeader';
+import api from '../../services/api';
 
 type QuizResultScreenNavigationProp = StackNavigationProp<MainStackParamList, 'QuizResult'>;
 type QuizResultScreenRouteProp = RouteProp<MainStackParamList, 'QuizResult'>;
 
 const QuizResultScreen = () => {
-  const navigation = useNavigation<QuizResultScreenNavigationProp>();
+  const navigation = useNavigation<any>();
   const route = useRoute<QuizResultScreenRouteProp>();
   const { score, totalQuestions, correctAnswers, timeTaken, quizId } = route.params;
 
+  const [loadingAchievements, setLoadingAchievements] = useState(true);
+  const [achievements, setAchievements] = useState<any[]>([]);
   const [showReview, setShowReview] = useState(false);
+  
   const scoreLevel = getScoreLevel(score);
   const scoreMessage = SCORE_MESSAGES[scoreLevel];
   const scoreColor = SCORE_COLORS[scoreLevel];
+
+  useEffect(() => {
+    const fetchAchievements = async () => {
+      try {
+        setLoadingAchievements(true);
+        const response = await api.get('trading-performance/my_achievements/');
+        // Filter for achievements earned recently (in the last hour) or just general ones
+        setAchievements(response.data || []);
+      } catch (error) {
+        console.error('Error fetching achievements:', error);
+      } finally {
+        setLoadingAchievements(false);
+      }
+    };
+    fetchAchievements();
+  }, []);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -34,7 +56,7 @@ const QuizResultScreen = () => {
   };
 
   const handleBack = () => {
-    navigation.navigate('QuizStart');
+    navigation.navigate('Quiz');
   };
 
   const handleRetryQuiz = () => {
@@ -46,8 +68,7 @@ const QuizResultScreen = () => {
         { 
           text: "Retry", 
           onPress: () => {
-            // Navigate back to quiz start or directly to quiz
-            navigation.navigate('QuizStart');
+            navigation.navigate('Quiz');
           }
         }
       ]
@@ -62,12 +83,14 @@ const QuizResultScreen = () => {
     navigation.navigate('Courses' as any);
   };
 
-  const handleShare = () => {
-    Alert.alert(
-      "Share Results",
-      "Share your quiz results with friends!",
-      [{ text: "OK" }]
-    );
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `I just scored ${score}% on the quiz in Investa! I got ${correctAnswers} out of ${totalQuestions} correct in ${formatTime(timeTaken)}.`,
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to share results');
+    }
   };
 
   return (
@@ -100,14 +123,29 @@ const QuizResultScreen = () => {
 
             {/* Achievement Badges */}
             <View style={styles.badgesSection}>
-              <View style={styles.badge}>
-                <Ionicons name="medal" size={16} color="#F59E0B" />
-                <Text style={styles.badgeText}>High Score</Text>
-              </View>
-              <View style={styles.badge}>
-                <Ionicons name="flame" size={16} color="#F59E0B" />
-                <Text style={styles.badgeText}>5 Day Streak</Text>
-              </View>
+              {loadingAchievements ? (
+                <ActivityIndicator size="small" color="#F59E0B" />
+              ) : achievements.length > 0 ? (
+                achievements.slice(0, 2).map((achievement, index) => (
+                  <View key={index} style={styles.badge}>
+                    <Ionicons name="medal" size={16} color="#F59E0B" />
+                    <Text style={styles.badgeText}>{achievement.achievement.name}</Text>
+                  </View>
+                ))
+              ) : (
+                <>
+                  <View style={styles.badge}>
+                    <Ionicons name="medal" size={16} color="#F59E0B" />
+                    <Text style={styles.badgeText}>Completed</Text>
+                  </View>
+                  {score >= 80 && (
+                    <View style={styles.badge}>
+                      <Ionicons name="star" size={16} color="#F59E0B" />
+                      <Text style={styles.badgeText}>High Score</Text>
+                    </View>
+                  )}
+                </>
+              )}
             </View>
           </View>
         </View>

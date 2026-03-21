@@ -146,7 +146,17 @@ const StockDetailScreen = () => {
       `${t.areYouSureYouWantToSell} ${stock.symbol}?`,
       [
         { text: t.cancel, style: 'cancel' },
-        { text: t.sell, onPress: () => console.log('Sell stock') }
+        { 
+          text: t.sell, 
+          onPress: () => {
+            navigation.navigate('PlaceOrder', {
+              stockSymbol: stock.symbol,
+              stockName: stock.name,
+              currentPrice,
+              initialSide: 'SELL'
+            });
+          } 
+        }
       ]
     );
   };

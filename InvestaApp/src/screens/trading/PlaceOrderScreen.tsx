@@ -24,7 +24,7 @@ import { useTranslation } from '../../language';
 // Define navigation types
 type RootStackParamList = {
   StockDetail: { stockSymbol: string; stockName: string };
-  PlaceOrder: { stockSymbol: string; stockName: string; currentPrice: number };
+  PlaceOrder: { stockSymbol: string; stockName: string; currentPrice: number; initialSide?: 'BUY' | 'SELL' };
   Home: undefined;
   Trading: undefined;
 };
@@ -37,14 +37,14 @@ type NavigationProp = {
 const PlaceOrderScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'PlaceOrder'>>();
-  const { stockSymbol, stockName, currentPrice } = route.params;
+  const { stockSymbol, stockName, currentPrice, initialSide } = route.params;
   const { getStockBySymbol, addToPortfolio, removeFromPortfolio } = useTradingData();
   const { t } = useTranslation();
   
   // Debug log to verify language is working
   console.log('PlaceOrderScreen - Selected Language:', t.language);
 
-  const [isBuyMode, setIsBuyMode] = useState(true);
+  const [isBuyMode, setIsBuyMode] = useState(initialSide === 'SELL' ? false : true);
   const [orderType, setOrderType] = useState<'MARKET' | 'LIMIT'>('MARKET');
   const [quantity, setQuantity] = useState('1');
   const [price, setPrice] = useState(currentPrice.toString());
