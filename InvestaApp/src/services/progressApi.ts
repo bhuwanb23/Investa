@@ -57,6 +57,8 @@ export interface ProgressSummary {
   earned_badges: number;
   total_achievements: number;
   earned_achievements: number;
+  completed_lessons: number;
+  total_lessons: number;
   updated_at: string;
 }
 
