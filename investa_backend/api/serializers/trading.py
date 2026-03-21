@@ -242,7 +242,7 @@ class UserAchievementSerializer(serializers.ModelSerializer):
 class LeaderboardSerializer(serializers.Serializer):
     """Serializer for leaderboard data"""
     user = UserSerializer(read_only=True)
-    total_profit = serializers.DecimalField(max_digits=15, decimal_places=2)
+    total_profit_loss = serializers.DecimalField(max_digits=15, decimal_places=2)
     total_trades = serializers.IntegerField()
     success_rate = serializers.DecimalField(max_digits=5, decimal_places=2)
     rank = serializers.IntegerField()

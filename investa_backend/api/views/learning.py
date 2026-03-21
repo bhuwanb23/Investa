@@ -141,6 +141,50 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
         
         return Response(course_data)
 
+    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def certificate(self, request, pk=None):
+        """Generate a certificate if course is completed"""
+        course = self.get_object()
+        user = request.user
+        
+        # Count active lessons in course
+        total_lessons = course.lessons.filter(is_active=True).count()
+        
+        # Count completed lessons for user
+        completed_lessons = UserLessonProgress.objects.filter(
+            user=user,
+            lesson__course=course,
+            status='completed'
+        ).count()
+        
+        if completed_lessons < total_lessons:
+            return Response({
+                'eligible': False,
+                'completed': completed_lessons,
+                'total': total_lessons,
+                'detail': 'Course not fully completed yet'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Get completion date (latest lesson completion)
+        latest_progress = UserLessonProgress.objects.filter(
+            user=user,
+            lesson__course=course,
+            status='completed'
+        ).order_by('-completed_at').first()
+        
+        completion_date = latest_progress.completed_at if latest_progress else timezone.now()
+        
+        # Generate dummy certificate ID
+        certificate_id = f"INVESTA-{user.id}-{course.id}-{completion_date.strftime('%Y%m%d')}"
+        
+        return Response({
+            'eligible': True,
+            'course_title': course.title,
+            'user_name': f"{user.first_name} {user.last_name}".strip() or user.username,
+            'completed_at': completion_date.isoformat(),
+            'certificate_id': certificate_id
+        })
+
 
 class LessonViewSet(viewsets.ReadOnlyModelViewSet):
     """Retrieve lesson details"""

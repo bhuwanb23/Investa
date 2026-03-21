@@ -12,7 +12,7 @@ from ..models import (
     TechnicalIndicator, Achievement, UserAchievement
 )
 from ..serializers.trading import (
-    StockSerializer, StockDetailSerializer, UserWatchlistSerializer,
+    StockSerializer, StockDetailSerializer, StockPriceSerializer, UserWatchlistSerializer,
     PortfolioSerializer, PortfolioSummarySerializer, PortfolioHoldingSerializer,
     OrderSerializer, OrderHistorySerializer, TradeSerializer,
     TradingPerformanceSerializer, TradingSessionSerializer,
