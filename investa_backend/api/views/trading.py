@@ -45,21 +45,7 @@ class StockViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ['symbol', 'name', 'market_cap', 'created_at']
     
     def get_queryset(self):
-        qs = Stock.objects.filter(is_active=True)
-        if not qs.exists():
-            # Auto-create a few demo stocks so frontend has data during development
-            samples = [
-                dict(symbol='RELIANCE', name='Reliance Industries Ltd.', exchange='NSE', sector='Energy'),
-                dict(symbol='TCS', name='Tata Consultancy Services', exchange='NSE', sector='Technology'),
-                dict(symbol='HDFCBANK', name='HDFC Bank Limited', exchange='NSE', sector='Banking'),
-                dict(symbol='INFY', name='Infosys Limited', exchange='NSE', sector='Technology'),
-                dict(symbol='ITC', name='ITC Limited', exchange='NSE', sector='Consumer Goods'),
-                dict(symbol='ICICIBANK', name='ICICI Bank Limited', exchange='NSE', sector='Banking'),
-            ]
-            for s in samples:
-                Stock.objects.get_or_create(symbol=s['symbol'], defaults=s)
-            qs = Stock.objects.filter(is_active=True)
-        return qs
+        return Stock.objects.filter(is_active=True)
     
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -332,15 +318,11 @@ class OrderViewSet(viewsets.ModelViewSet):
 class TradeViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for trade history"""
     serializer_class = TradeSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['executed_at', 'price', 'total_amount']
     
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            from django.contrib.auth.models import User
-            user, _ = User.objects.get_or_create(username='dev_user', defaults={'email': 'dev@example.com'})
-            return Trade.objects.filter(user=user)
         return Trade.objects.filter(user=self.request.user)
     
     @action(detail=False, methods=['get'])
@@ -363,13 +345,9 @@ class TradeViewSet(viewsets.ReadOnlyModelViewSet):
 class TradingPerformanceViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for trading performance"""
     serializer_class = TradingPerformanceSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            from django.contrib.auth.models import User
-            user, _ = User.objects.get_or_create(username='dev_user', defaults={'email': 'dev@example.com'})
-            return TradingPerformance.objects.filter(user=user)
         return TradingPerformance.objects.filter(user=self.request.user)
     
     @action(detail=False, methods=['get'])
@@ -416,7 +394,7 @@ class TradingPerformanceViewSet(viewsets.ReadOnlyModelViewSet):
 class MarketDataViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for market data"""
     serializer_class = MarketDataSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
         return MarketData.objects.all()
@@ -451,7 +429,7 @@ class MarketDataViewSet(viewsets.ReadOnlyModelViewSet):
 class AchievementViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for achievements"""
     serializer_class = AchievementSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
         return Achievement.objects.all()

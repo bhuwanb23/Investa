@@ -79,17 +79,11 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
         """Get course details with user progress"""
         course = self.get_object()
         
-        print(f"🔍 Fetching course {course.id} ({course.title}) with progress for user {request.user.username}")
-        
         # Get user progress for this course - ONLY for lessons that actually have progress
         lesson_progress = UserLessonProgress.objects.filter(
             user=request.user,
             lesson__course=course
         ).select_related('lesson')
-        
-        print(f"📊 Found {lesson_progress.count()} progress records for this course")
-        for lp in lesson_progress:
-            print(f"   - Lesson {lp.lesson.id}: Status={lp.status}, Progress={lp.progress}, Completed={lp.completed_at}")
         
         # Create a progress map - ONLY for lessons that have actual progress records
         progress_map = {lp.lesson_id: lp for lp in lesson_progress}
@@ -100,7 +94,6 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
         # Add progress info to lessons - CRITICAL: Only add progress for lessons that actually have it
         for lesson in course_data['lessons']:
             lesson_id = lesson['id']
-            print(f"🔍 Processing lesson {lesson_id} ({lesson.get('title', 'Unknown')})")
             
             if lesson_id in progress_map:
                 progress = progress_map[lesson_id]
@@ -111,14 +104,12 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
                         'progress': 100,
                         'completed_at': progress.completed_at.isoformat() if progress.completed_at else None
                     }
-                    print(f"✅ Lesson {lesson_id}: Marked as COMPLETED - Status={progress.status}, Progress={progress.progress}")
                 else:
                     lesson['user_progress'] = {
                         'status': progress.status,
                         'progress': progress.progress,
                         'completed_at': None
                     }
-                    print(f"🔄 Lesson {lesson_id}: Has progress but not completed - Status={progress.status}, Progress={progress.progress}")
             else:
                 # No progress record exists - this lesson is available
                 lesson['user_progress'] = {
@@ -126,11 +117,6 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
                     'progress': 0,
                     'completed_at': None
                 }
-                print(f"❌ Lesson {lesson_id}: No progress found, defaulting to available")
-        
-        print(f"🔍 Final course data lessons:")
-        for lesson in course_data['lessons']:
-            print(f"   - Lesson {lesson['id']}: {lesson.get('title', 'Unknown')} -> Status: {lesson['user_progress']['status']}")
         
         return Response(course_data)
 
@@ -227,136 +213,6 @@ class UserLessonProgressViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-    
-    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
-    def debug_progress(self, request):
-        """Debug endpoint to check all user progress (for development)"""
-        # For development, create a default user if none exists
-        if not request.user.is_authenticated:
-            from django.contrib.auth.models import User
-            user, created = User.objects.get_or_create(
-                username='dev_user',
-                defaults={'email': 'dev@example.com'}
-            )
-            if created:
-                user.set_password('devpass123')
-                user.save()
-            request.user = user
-        
-        # Get all progress for this user
-        progress_records = UserLessonProgress.objects.filter(
-            user=request.user
-        ).select_related('lesson__course')
-        
-        debug_data = {
-            'user': request.user.username,
-            'total_progress_records': progress_records.count(),
-            'progress_details': []
-        }
-        
-        for progress in progress_records:
-            debug_data['progress_details'].append({
-                'lesson_id': progress.lesson.id,
-                'lesson_title': progress.lesson.title,
-                'course_title': progress.lesson.course.title,
-                'status': progress.status,
-                'progress': progress.progress,
-                'completed_at': progress.completed_at.isoformat() if progress.completed_at else None,
-                'started_at': progress.started_at.isoformat()
-            })
-        
-        print(f"🔍 Debug progress for user {request.user.username}: {debug_data}")
-        return Response(debug_data)
-    
-    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
-    def cleanup_progress(self, request):
-        """Clean up progress records (for development)"""
-        # For development, create a default user if none exists
-        if not request.user.is_authenticated:
-            from django.contrib.auth.models import User
-            user, created = User.objects.get_or_create(
-                username='dev_user',
-                defaults={'email': 'dev@example.com'}
-            )
-            if created:
-                user.set_password('devpass123')
-                user.save()
-            request.user = user
-        
-        # Delete all progress records for this user
-        deleted_count = UserLessonProgress.objects.filter(user=request.user).delete()[0]
-        
-        print(f"🧹 Cleaned up {deleted_count} progress records for user {request.user.username}")
-        
-        return Response({
-            'detail': f'Cleaned up {deleted_count} progress records',
-            'deleted_count': deleted_count
-        })
-
-    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
-    def check_database_state(self, request):
-        """Check the current database state (for development)"""
-        # For development, create a default user if none exists
-        if not request.user.is_authenticated:
-            from django.contrib.auth.models import User
-            user, created = User.objects.get_or_create(
-                username='dev_user',
-                defaults={'email': 'dev@example.com'}
-            )
-            if created:
-                user.set_password('devpass123')
-                user.save()
-            request.user = user
-        
-        # Get all progress records for this user
-        progress_records = UserLessonProgress.objects.filter(
-            user=request.user
-        ).select_related('lesson__course')
-        
-        # Get all lessons for all courses
-        all_lessons = Lesson.objects.select_related('course').all()
-        
-        # Check which lessons have progress records
-        lessons_with_progress = []
-        lessons_without_progress = []
-        
-        for lesson in all_lessons:
-            has_progress = progress_records.filter(lesson=lesson).exists()
-            if has_progress:
-                progress = progress_records.get(lesson=lesson)
-                lessons_with_progress.append({
-                    'lesson_id': lesson.id,
-                    'lesson_title': lesson.title,
-                    'course_title': lesson.course.title,
-                    'progress_id': progress.id,
-                    'status': progress.status,
-                    'progress': progress.progress,
-                    'completed_at': progress.completed_at.isoformat() if progress.completed_at else None
-                })
-            else:
-                lessons_without_progress.append({
-                    'lesson_id': lesson.id,
-                    'lesson_title': lesson.title,
-                    'course_title': lesson.course.title
-                })
-        
-        debug_data = {
-            'user': request.user.username,
-            'total_progress_records': progress_records.count(),
-            'total_lessons': all_lessons.count(),
-            'lessons_with_progress': lessons_with_progress,
-            'lessons_without_progress': lessons_without_progress,
-            'completed_lessons_count': progress_records.filter(status='completed').count()
-        }
-        
-        print(f"🔍 Database state for user {request.user.username}:")
-        print(f"   - Total progress records: {debug_data['total_progress_records']}")
-        print(f"   - Total lessons: {debug_data['total_lessons']}")
-        print(f"   - Completed lessons: {debug_data['completed_lessons_count']}")
-        print(f"   - Lessons with progress: {len(debug_data['lessons_with_progress'])}")
-        print(f"   - Lessons without progress: {len(debug_data['lessons_without_progress'])}")
-        
-        return Response(debug_data)
 
 
 class QuizViewSet(viewsets.ReadOnlyModelViewSet):
@@ -365,9 +221,9 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = QuizSerializer
     permission_classes = [permissions.IsAuthenticated]
     
-    @action(detail=True, methods=['get'], permission_classes=[permissions.AllowAny])
+    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def for_lesson(self, request, pk=None):
-        """Get the first active quiz for a specific lesson (backward compatible)"""
+        """Get the first active quiz for a specific lesson"""
         try:
             lesson = Lesson.objects.get(id=pk)
         except Lesson.DoesNotExist:
@@ -424,7 +280,7 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(quiz)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['get'], permission_classes=[permissions.AllowAny])
+    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def list_for_lesson(self, request, pk=None):
         """List all active quizzes for a specific lesson"""
         try:
@@ -445,14 +301,14 @@ class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for quiz questions"""
     queryset = Question.objects.prefetch_related('answers').all()
     serializer_class = QuestionSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class AnswerViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for quiz answers"""
     queryset = Answer.objects.all()
     serializer_class = AnswerSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class UserQuizAttemptViewSet(viewsets.ModelViewSet):
@@ -466,7 +322,7 @@ class UserQuizAttemptViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
     
-    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
+    @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def start_quiz(self, request):
         """Start a new quiz attempt"""
         quiz_id = request.data.get('quiz_id')
@@ -478,18 +334,6 @@ class UserQuizAttemptViewSet(viewsets.ModelViewSet):
         except Quiz.DoesNotExist:
             return Response({'detail': 'Quiz not found'}, status=status.HTTP_404_NOT_FOUND)
         
-        # For development, create a default user if none exists
-        if not request.user.is_authenticated:
-            from django.contrib.auth.models import User
-            user, created = User.objects.get_or_create(
-                username='dev_user',
-                defaults={'email': 'dev@example.com'}
-            )
-            if created:
-                user.set_password('devpass123')
-                user.save()
-            request.user = user
-        
         # Create new quiz attempt
         attempt = UserQuizAttempt.objects.create(
             user=request.user,
@@ -500,7 +344,7 @@ class UserQuizAttemptViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(attempt)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-    @action(detail=True, methods=['post'], permission_classes=[permissions.AllowAny])
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def submit_answer(self, request, pk=None):
         """Submit an answer for a quiz question"""
         attempt = self.get_object()
@@ -557,7 +401,7 @@ class UserQuizAttemptViewSet(viewsets.ModelViewSet):
             'current_score': attempt.score
         })
     
-    @action(detail=True, methods=['post'], permission_classes=[permissions.AllowAny])
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def complete_quiz(self, request, pk=None):
         """Complete a quiz attempt"""
         attempt = self.get_object()
@@ -600,12 +444,13 @@ class UserQuizAttemptViewSet(viewsets.ModelViewSet):
                     'achievement'
                 )
         except Exception as e:
-            print(f"Error updating UserProgress: {e}")
+            # Log error in production
+            pass
         
         serializer = self.get_serializer(attempt)
         return Response(serializer.data)
     
-    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def my_attempts(self, request):
         """Get current user's quiz attempts"""
         attempts = self.get_queryset().order_by('-started_at')
