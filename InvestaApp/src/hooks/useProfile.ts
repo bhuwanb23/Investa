@@ -74,6 +74,7 @@ export const useProfile = (): UseProfileReturn => {
             native_name: 'English'
           },
           learning_goal: 'Master investment fundamentals',
+          risk_profile: 'moderate',
           level: 3,
           experience_points: 1250,
           created_at: '2024-01-01T00:00:00Z',
@@ -110,11 +111,21 @@ export const useProfile = (): UseProfileReturn => {
         
         // Update the fake profile with new data
         if (profile) {
-          const updatedProfile = {
+          const { preferred_language, ...rest } = data;
+          const updatedProfile: UserProfile = {
             ...profile,
-            ...data,
+            ...rest,
             updated_at: new Date().toISOString()
           };
+          
+          // If a language ID was provided, try to find the language object
+          if (preferred_language) {
+            const lang = languages.find(l => l.id === preferred_language);
+            if (lang) {
+              updatedProfile.preferred_language = lang;
+            }
+          }
+          
           setProfile(updatedProfile);
           console.log('🔐 useProfile: Fake profile updated successfully');
         }
@@ -157,11 +168,21 @@ export const useProfile = (): UseProfileReturn => {
         
         // Update the fake profile with completion data
         if (profile) {
-          const completedProfile = {
+          const { preferred_language, ...rest } = data;
+          const completedProfile: UserProfile = {
             ...profile,
-            ...data,
+            ...rest,
             updated_at: new Date().toISOString()
           };
+          
+          // If a language ID was provided, try to find the language object
+          if (preferred_language) {
+            const lang = languages.find(l => l.id === preferred_language);
+            if (lang) {
+              completedProfile.preferred_language = lang;
+            }
+          }
+          
           setProfile(completedProfile);
           console.log('🔐 useProfile: Fake profile completed successfully');
         }
