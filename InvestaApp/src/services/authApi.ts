@@ -103,13 +103,13 @@ export const authApi = {
   },
 
   // Request password reset
-  requestPasswordReset: async (email: string): Promise<ApiResponse<void>> => {
+  requestPasswordReset: async (email: string): Promise<ApiResponse<{ reset_token?: string; expires_at?: string }>> => {
     try {
-      await api.post('auth/password-reset/', { email });
+      const response = await api.post('auth/forgot-password/', { email });
       return {
-        data: undefined,
+        data: response.data,
         success: true,
-        message: 'Password reset email sent',
+        message: response.data?.detail || 'Password reset email sent',
       };
     } catch (error) {
       throw handleApiError(error);
@@ -117,13 +117,13 @@ export const authApi = {
   },
 
   // Confirm password reset
-  confirmPasswordReset: async (data: { token: string; new_password: string }): Promise<ApiResponse<void>> => {
+  confirmPasswordReset: async (data: { token: string; new_password: string; confirm_password: string }): Promise<ApiResponse<void>> => {
     try {
-      await api.post('auth/password-reset/confirm/', data);
+      const response = await api.post('auth/reset-password/', data);
       return {
         data: undefined,
         success: true,
-        message: 'Password reset successful',
+        message: response.data?.detail || 'Password reset successful',
       };
     } catch (error) {
       throw handleApiError(error);

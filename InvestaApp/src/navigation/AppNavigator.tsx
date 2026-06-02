@@ -24,6 +24,7 @@ import ProgressScreen from '../screens/main/ProgressScreen';
 
 // Settings Components
 import { PrivacySettings, SecuritySettings, TwoFactorAuth } from '../components';
+import { EditProfileScreen } from '../screens/profile';
 
 // Course Screens
 import CourseDetailScreen from '../screens/courses/CourseDetailScreen';
@@ -106,6 +107,7 @@ export type MainStackParamList = {
   PrivacySettings: undefined;
   SecuritySettings: undefined;
   TwoFactorAuth: undefined;
+  EditProfile: undefined;
 };
 
 const AuthStack = createStackNavigator<AuthStackParamList>();
@@ -224,6 +226,11 @@ const MainStackNavigator = () => {
         name="TwoFactorAuth" 
         component={TwoFactorAuth}
         options={{ title: 'Two-Factor Authentication', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="EditProfile" 
+        component={EditProfileScreen}
+        options={{ title: 'Edit Profile', headerShown: false }}
       />
       {/* Trading Screens */}
       <MainStack.Screen 

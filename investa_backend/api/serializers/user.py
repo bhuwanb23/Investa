@@ -39,12 +39,15 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
 
 
 class CompleteProfileSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    
+    preferred_language = serializers.PrimaryKeyRelatedField(
+        queryset=Language.objects.all(),
+        required=True,
+    )
+
     class Meta:
         model = UserProfile
         fields = [
-            'phone_number', 'preferred_language', 'learning_goal', 
+            'phone_number', 'preferred_language', 'learning_goal',
             'risk_profile', 'investment_experience', 'date_of_birth'
         ]
-        read_only_fields = ['user', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']

@@ -6,7 +6,7 @@ from ..views.trading import (
     StockViewSet, UserWatchlistViewSet, PortfolioViewSet, OrderViewSet,
     TradeViewSet, TradingPerformanceViewSet, MarketDataViewSet, AchievementViewSet
 )
-from ..views.auth import PingView
+from ..views.auth import PingView, ForgotPasswordView, ResetPasswordView
 
 router = DefaultRouter()
 router.register(r'languages', views.LanguageViewSet)
@@ -48,5 +48,7 @@ urlpatterns = [
     path('auth/token/', obtain_auth_token, name='api_token'),
     path('auth/me/', views.MeView.as_view(), name='auth_me'),
     path('auth/logout/', views.LogoutView.as_view(), name='auth_logout'),
+    path('auth/forgot-password/', ForgotPasswordView.as_view(), name='auth_forgot_password'),
+    path('auth/reset-password/', ResetPasswordView.as_view(), name='auth_reset_password'),
     path('ping/', PingView.as_view(), name='api_ping'),
 ]

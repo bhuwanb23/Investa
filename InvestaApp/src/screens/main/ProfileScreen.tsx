@@ -7,7 +7,6 @@ import {
   ScrollView,
   Image,
   Pressable,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -30,24 +29,24 @@ const ProfileScreen = () => {
   const { logout, user } = useAuth();
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const { 
-    profile, 
-    isLoading, 
-    isUpdating, 
-    error, 
-    fetchProfile, 
-    updateProfile, 
-    clearError 
+  const {
+    profile: profileFromHook,
+    isLoading,
+    isUpdating,
+    error,
+    fetchProfile,
+    clearError,
   } = useProfile();
+
+  // Use the login-bundle profile as a fallback so the first render shows
+  // real data instead of empty fields while /profiles/my_profile/ loads.
+  const profile = profileFromHook || (user?.profile as any) || null;
 
   const handleLogout = async () => {
     try {
-      console.log('🔐 ProfileScreen: Logout button pressed (direct)');
-      console.log('🔐 ProfileScreen: Current user state before logout:', user);
       await logout();
-      console.log('🔐 ProfileScreen: logout() awaited and completed');
     } catch (error) {
-      console.error('❌ ProfileScreen: Error during logout:', error);
+      console.error('ProfileScreen: Error during logout:', error);
     }
   };
 
@@ -103,19 +102,11 @@ const ProfileScreen = () => {
   }, [clearError]);
 
   const handleUpdateProfile = () => {
-    Alert.alert(
-      'Update Profile',
-      'Profile update functionality will be implemented here',
-      [{ text: 'OK' }]
-    );
+    (navigation as any).navigate('EditProfile');
   };
 
   const handleResetPassword = () => {
-    Alert.alert(
-      'Reset Password',
-      'Password reset functionality will be implemented here',
-      [{ text: 'OK' }]
-    );
+    (navigation as any).navigate('ForgotPassword');
   };
 
   // Boot splash
@@ -218,7 +209,7 @@ const ProfileScreen = () => {
           <View style={styles.card}>
             <View style={styles.cardHeaderRow}>
               <Text style={styles.cardTitle}>{t.personalDetails}</Text>
-              <Pressable android_ripple={{ color: '#e5e7eb' }}>
+              <Pressable android_ripple={{ color: '#e5e7eb' }} onPress={handleUpdateProfile}>
                 <Text style={styles.link}>{t.edit}</Text>
               </Pressable>
             </View>

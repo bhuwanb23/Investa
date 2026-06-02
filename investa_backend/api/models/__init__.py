@@ -1,6 +1,6 @@
 # Import all models from subdirectories
 from .user import Language, UserProfile
-from .security import SecuritySettings, UserSession
+from .security import SecuritySettings, UserSession, PasswordResetToken
 from .privacy import PrivacySettings
 from .learning import (
     LearningProgress, Badge, UserBadge, Course, Lesson, UserLessonProgress,
@@ -20,7 +20,7 @@ __all__ = [
     'Language', 'UserProfile',
     
     # Security models
-    'SecuritySettings', 'UserSession',
+    'SecuritySettings', 'UserSession', 'PasswordResetToken',
     
     # Privacy models
     'PrivacySettings',

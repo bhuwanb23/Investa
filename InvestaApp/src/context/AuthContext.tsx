@@ -1,26 +1,32 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { authApi, AuthResponse, api } from '../services';
+import { authApi, api } from '../services';
 
-/*
- * DEVELOPMENT MODE AUTHENTICATION
- * 
- * This context is currently set to use fake authentication for development.
- * To switch back to real backend authentication:
- * 
- * 1. Set USE_FAKE_AUTH = false in this file
- * 2. Uncomment the token interceptor code in src/services/api.ts
- * 3. Make sure your Django backend is running on port 8000
- * 4. Update the API base URL in src/config/config.ts
- * 
- * Test credentials for development: test@example.com / test123
- */
-
-interface User {
+export interface User {
   id: number;
   username: string;
   email: string;
+  first_name?: string;
+  last_name?: string;
   profile?: any;
+  security_settings?: any;
+  privacy_settings?: any;
+  learning_progress?: any;
+  trading_performance?: any;
+}
+
+export interface LoginResponseBundle {
+  token: string;
+  user_id: number;
+  username: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  profile?: any;
+  security_settings?: any;
+  privacy_settings?: any;
+  learning_progress?: any;
+  trading_performance?: any;
 }
 
 interface AuthContextType {
@@ -42,37 +48,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  // Temporary: offline auth mode to bypass backend
-  const USE_FAKE_AUTH = false; // Set to true for development without backend - Set to false when backend is ready
 
   const checkAuthStatus = async () => {
     try {
-      console.log('🔐 AuthContext: Checking auth status...');
       const storedToken = await AsyncStorage.getItem('authToken');
       const storedUser = await AsyncStorage.getItem('user');
-      
-      console.log('🔐 AuthContext: Stored token:', storedToken ? storedToken.substring(0, 20) + '...' : 'None');
-      console.log('🔐 AuthContext: Stored user:', storedUser ? 'Found' : 'None');
-      
-      // Clear old fake tokens (dev-tokens are no longer allowed)
-      if (storedToken === 'dev-token') {
-        console.log('🔐 AuthContext: Found legacy dev-token, clearing storage for security...');
-        await AsyncStorage.removeItem('authToken');
-        await AsyncStorage.removeItem('user');
-        console.log('🔐 AuthContext: Storage cleared');
-        setIsLoading(false);
-        return;
-      }
-      
+
       if (storedToken && storedUser) {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
-        
-        // Set api default header
         api.defaults.headers.common['Authorization'] = `Token ${storedToken}`;
-        console.log('🔐 AuthContext: User authenticated, token set in API headers');
-      } else {
-        console.log('🔐 AuthContext: No stored auth data found');
       }
     } catch (error) {
       console.error('Error checking auth status:', error);
@@ -82,78 +67,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const login = async (email: string, password: string): Promise<{ success: boolean; message: string }> => {
+    setIsLoading(true);
     try {
-      console.log('🔐 Starting login process for:', email);
-      setIsLoading(true);
-      
-      if (USE_FAKE_AUTH) {
-        // Offline: accept one test credential pair
-        if (email === 'test@example.com' && password === 'test123') {
-          const fakeToken = 'dev-token';
-          const userData = {
-            id: 1,
-            username: 'testuser',
-            email: 'test@example.com',
-            profile: { plan: 'dev', role: 'tester' },
-          };
+      const response = await authApi.login({
+        username: email,
+        password: password,
+      });
 
-          await AsyncStorage.setItem('authToken', fakeToken);
-          await AsyncStorage.setItem('user', JSON.stringify(userData));
+      const bundle: LoginResponseBundle = response.data;
+      const {
+        token: authToken,
+        user_id,
+        username,
+        email: userEmail,
+        first_name,
+        last_name,
+        profile,
+        security_settings,
+        privacy_settings,
+        learning_progress,
+        trading_performance,
+      } = bundle;
 
-          // Optional header for local API usage elsewhere
-          api.defaults.headers.common['Authorization'] = `Token ${fakeToken}`;
+      const userData: User = {
+        id: user_id,
+        username,
+        email: userEmail,
+        first_name,
+        last_name,
+        profile,
+        security_settings,
+        privacy_settings,
+        learning_progress,
+        trading_performance,
+      };
 
-          setToken(fakeToken);
-          setUser(userData);
-          console.log('🔐 AuthContext: Fake authentication successful');
-          return { success: true, message: 'Login successful.' };
-        }
-        return { success: false, message: 'Invalid credentials. Please check your email and password.' };
-      }
+      await AsyncStorage.setItem('authToken', authToken);
+      await AsyncStorage.setItem('user', JSON.stringify(userData));
 
-      // Online path (kept for later re-enable)
-      try {
-        const response = await authApi.login({
-          username: email,
-          password: password,
-        });
+      api.defaults.headers.common['Authorization'] = `Token ${authToken}`;
 
-        console.log('✅ Login API response:', response.data);
-        const { token: authToken, user_id, username, email: userEmail, profile } = response.data;
+      setToken(authToken);
+      setUser(userData);
 
-        const userData = {
-          id: user_id,
-          username: username,
-          email: userEmail,
-          profile: profile,
-        };
-
-        await AsyncStorage.setItem('authToken', authToken);
-        await AsyncStorage.setItem('user', JSON.stringify(userData));
-
-        api.defaults.headers.common['Authorization'] = `Token ${authToken}`;
-
-        setToken(authToken);
-        setUser(userData);
-
-        return { success: true, message: 'Login successful!' };
-             } catch (apiError) {
-         console.log('❌ API login failed:', apiError);
-         throw apiError; // Re-throw the original error
-       }
+      return { success: true, message: 'Login successful!' };
     } catch (error: any) {
-      // Don't spam console in production
-      if (__DEV__) {
-        console.error('❌ Login error:', error);
-        console.error('❌ Error details:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          config: error.config
-        });
-      }
-
       const friendly = (msg: string) => ({ success: false, message: msg });
       if (error?.response?.data?.non_field_errors) {
         return friendly(error.response.data.non_field_errors[0]);
@@ -180,26 +138,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      console.log('🔐 AuthContext: Starting logout process');
-      
-      // Clear stored data
       await AsyncStorage.removeItem('authToken');
       await AsyncStorage.removeItem('user');
-      console.log('🔐 AuthContext: Cleared AsyncStorage');
-      
-      // Clear api header
       delete api.defaults.headers.common['Authorization'];
-      console.log('🔐 AuthContext: Cleared API headers');
-      
-      // Clear state immediately
       setToken(null);
       setUser(null);
-      console.log('🔐 AuthContext: Cleared state, user should now be null');
-      
-      console.log('🔐 AuthContext: Logout process completed');
     } catch (error) {
-      console.error('❌ AuthContext: Logout error:', error);
-      throw error; // Re-throw to let the calling component handle it
+      console.error('Logout error:', error);
+      throw error;
     }
   };
 

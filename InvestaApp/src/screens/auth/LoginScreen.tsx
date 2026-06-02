@@ -20,10 +20,10 @@ import { useAuth } from '../../context/AuthContext';
 const LoginScreen = () => {
   const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>();
   const { login } = useAuth();
-  const [email, setEmail] = useState('john@example.com');
+  const [email, setEmail] = useState('');
   const [emailTouched, setEmailTouched] = useState(false);
   const isEmailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()), [email]);
-  const [password, setPassword] = useState('testpass123');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 

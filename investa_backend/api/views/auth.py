@@ -1,13 +1,27 @@
+from django.contrib.auth.models import User
 from rest_framework import viewsets, status, permissions
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from ..models import UserProfile, SecuritySettings, PrivacySettings, LearningProgress, TradingPerformance
+from ..models import (
+    UserProfile,
+    SecuritySettings,
+    PrivacySettings,
+    LearningProgress,
+    TradingPerformance,
+    PasswordResetToken,
+)
 from ..serializers import (
-    UserRegistrationSerializer, UserProfileSerializer, SecuritySettingsSerializer, 
-    PrivacySettingsSerializer, LearningProgressSerializer, TradingPerformanceSerializer
+    UserRegistrationSerializer,
+    UserProfileSerializer,
+    SecuritySettingsSerializer,
+    PrivacySettingsSerializer,
+    LearningProgressSerializer,
+    TradingPerformanceSerializer,
+    ForgotPasswordRequestSerializer,
+    PasswordResetRequestSerializer,
 )
 
 
@@ -142,3 +156,93 @@ class PingView(APIView):
             'status': 'ok',
             'message': 'Investa API is reachable',
         })
+
+
+class ForgotPasswordView(APIView):
+    """Step 1 of password reset.
+
+    Accepts an email, creates a PasswordResetToken (1h lifetime) if the
+    account exists, and returns a generic success response. The reset token
+    is returned in the response so the dev client can complete step 2; in
+    production an email would be sent instead.
+    """
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        serializer = ForgotPasswordRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email'].lower().strip()
+
+        # Always return a generic success message to avoid leaking which
+        # emails are registered. Only attach the reset_token to the response
+        # when the user actually exists.
+        generic_message = (
+            'If an account with that email exists, a password reset link '
+            'has been sent.'
+        )
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return Response({'detail': generic_message}, status=status.HTTP_200_OK)
+
+        reset_token = PasswordResetToken.create_for_user(user)
+        return Response(
+            {
+                'detail': generic_message,
+                'reset_token': reset_token.token,
+                'expires_at': reset_token.expires_at.isoformat(),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class ResetPasswordView(APIView):
+    """Step 2 of password reset.
+
+    Accepts the reset token and a new password. Validates the token is
+    unused and unexpired, sets the new password, and marks the token used.
+    """
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token_value = serializer.validated_data['token']
+        new_password = serializer.validated_data['new_password']
+
+        try:
+            reset_token = PasswordResetToken.objects.select_related('user').get(token=token_value)
+        except PasswordResetToken.DoesNotExist:
+            return Response(
+                {'detail': 'Invalid or expired reset token.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if reset_token.is_used:
+            return Response(
+                {'detail': 'This reset token has already been used.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if reset_token.is_expired:
+            return Response(
+                {'detail': 'This reset token has expired. Please request a new one.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = reset_token.user
+        user.set_password(new_password)
+        user.save(update_fields=['password'])
+        reset_token.mark_used()
+
+        # Invalidate any existing auth tokens so stolen tokens can't be
+        # reused after a password reset.
+        Token.objects.filter(user=user).delete()
+
+        return Response(
+            {
+                'detail': 'Password has been reset successfully. Please log in with your new password.',
+            },
+            status=status.HTTP_200_OK,
+        )

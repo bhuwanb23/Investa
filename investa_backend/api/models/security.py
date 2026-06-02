@@ -1,6 +1,10 @@
+import secrets
+from datetime import timedelta
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
 
 
 class SecuritySettings(models.Model):
@@ -32,6 +36,51 @@ class UserSession(models.Model):
     is_active = models.BooleanField(default=True)
     last_activity = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return f"{self.user.username} - {self.session_key[:8]}..."
+
+
+class PasswordResetToken(models.Model):
+    """One-time token used to reset a user's password via the forgot-password flow."""
+    RESET_TOKEN_LIFETIME = timedelta(hours=1)
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_tokens')
+    token = models.CharField(max_length=64, unique=True)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['token']),
+            models.Index(fields=['user', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f"PasswordResetToken(user={self.user.username}, used={'yes' if self.used_at else 'no'})"
+
+    @property
+    def is_expired(self):
+        return timezone.now() >= self.expires_at
+
+    @property
+    def is_used(self):
+        return self.used_at is not None
+
+    @property
+    def is_valid(self):
+        return not self.is_used and not self.is_expired
+
+    @classmethod
+    def create_for_user(cls, user):
+        """Generate a fresh reset token for a user. Old tokens remain (one-time use is enforced at consume)."""
+        return cls.objects.create(
+            user=user,
+            token=secrets.token_urlsafe(32),
+            expires_at=timezone.now() + cls.RESET_TOKEN_LIFETIME,
+        )
+
+    def mark_used(self):
+        self.used_at = timezone.now()
+        self.save(update_fields=['used_at'])

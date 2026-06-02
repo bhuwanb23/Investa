@@ -9,7 +9,7 @@ interface UseAuthApiReturn {
   login: (data: LoginData) => Promise<boolean>;
   register: (data: RegisterData) => Promise<boolean>;
   changePassword: (oldPassword: string, newPassword: string) => Promise<boolean>;
-  requestPasswordReset: (email: string) => Promise<boolean>;
+  requestPasswordReset: (email: string) => Promise<{ success: boolean; reset_token?: string; message: string }>;
   confirmPasswordReset: (token: string, newPassword: string) => Promise<boolean>;
   clearError: () => void;
 }
@@ -91,41 +91,39 @@ export const useAuthApi = (): UseAuthApiReturn => {
     }
   }, []);
 
-  const requestPasswordReset = useCallback(async (email: string): Promise<boolean> => {
+  const requestPasswordReset = useCallback(async (email: string): Promise<{ success: boolean; reset_token?: string; message: string }> => {
     try {
       setIsLoading(true);
       setError(null);
       const response = await authApi.requestPasswordReset(email);
-      
-      if (response.message) {
-        Alert.alert('Success', response.message);
-      }
-      
-      return true;
+      return {
+        success: true,
+        reset_token: response.data?.reset_token,
+        message: response.message || 'Password reset email sent',
+      };
     } catch (err) {
       const apiError = err as ApiError;
       setError(apiError.message);
-      Alert.alert('Error', apiError.message);
-      console.error('Error requesting password reset:', apiError);
-      return false;
+      return { success: false, message: apiError.message };
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const confirmPasswordReset = useCallback(async (token: string, newPassword: string): Promise<boolean> => {
+  const confirmPasswordReset = useCallback(async (token: string, newPassword: string, confirmPassword?: string): Promise<boolean> => {
     try {
       setIsLoading(true);
       setError(null);
       const response = await authApi.confirmPasswordReset({
         token,
         new_password: newPassword,
+        confirm_password: confirmPassword || newPassword,
       });
-      
+
       if (response.message) {
         Alert.alert('Success', response.message);
       }
-      
+
       return true;
     } catch (err) {
       const apiError = err as ApiError;
