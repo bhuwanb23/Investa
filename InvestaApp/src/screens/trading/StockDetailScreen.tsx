@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTradingData } from './hooks/useTradingData';
 import {
@@ -17,10 +17,16 @@ import {
   ChartSection,
   TradingButtons,
 } from './components';
-import { STOCK_DETAIL_DATA } from './constants/tradingConstants';
 import MainHeader from '../../components/MainHeader';
 import { useTranslation } from '../../language';
-import { fetchStockDetail, fetchStockTechnicalIndicators, fetchStockPriceHistory, fetchStocks } from './utils/tradingApi';
+import {
+  fetchStockDetail,
+  fetchStockTechnicalIndicators,
+  fetchStockPriceHistory,
+  fetchStocks,
+  fetchStockNews,
+  fetchStockRecentTrades,
+} from './utils/tradingApi';
 
 const { width } = Dimensions.get('window');
 
@@ -42,89 +48,121 @@ const StockDetailScreen = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'StockDetail'>>();
   const { stockSymbol, stockName } = route.params;
   const { t } = useTranslation();
-  
+  const { toggleFavorite } = useTradingData();
+
   const [loading, setLoading] = useState(true);
+  const [stockId, setStockId] = useState<number | null>(null);
   const [stockData, setStockData] = useState<any>(null);
   const [technicalIndicators, setTechnicalIndicators] = useState<any[]>([]);
   const [priceHistory, setPriceHistory] = useState<any[]>([]);
+  const [news, setNews] = useState<any[]>([]);
+  const [recentTrades, setRecentTrades] = useState<any[]>([]);
   const [selectedTimeframe, setSelectedTimeframe] = useState('1D');
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('All');
 
-  useEffect(() => {
-    const loadAllData = async () => {
-      try {
-        setLoading(true);
-        // 1. Find stock ID by symbol
-        const stocks = await fetchStocks();
-        const foundStock = stocks.find((s: any) => s.symbol === stockSymbol);
-        
-        if (foundStock) {
-          const stockId = foundStock.id;
-          
-          // 2. Fetch detail, indicators, and history in parallel
-          const [detail, indicators, history] = await Promise.all([
-            fetchStockDetail(stockId),
-            fetchStockTechnicalIndicators(stockId),
-            fetchStockPriceHistory(stockId, 30)
-          ]);
-          
-          setStockData(detail);
-          setTechnicalIndicators(indicators);
-          setPriceHistory(history);
-        } else {
-          // Fallback if stock not found in API
-          console.warn(`Stock ${stockSymbol} not found in backend`);
-        }
-      } catch (error) {
-        console.error('Error loading stock detail data:', error);
-      } finally {
-        setLoading(false);
+  const loadAllData = useCallback(async () => {
+    try {
+      setLoading(true);
+      // 1. Find stock ID by symbol
+      const stocks = await fetchStocks();
+      const foundStock = stocks.find((s: any) => s.symbol === stockSymbol);
+
+      if (!foundStock) {
+        console.warn(`Stock ${stockSymbol} not found in backend`);
+        return;
       }
-    };
-    
-    loadAllData();
+
+      const sid = foundStock.id;
+      setStockId(sid);
+
+      // 2. Fetch detail, indicators, history, news, recent trades in parallel
+      const [detail, indicators, history, newsData, tradesData] = await Promise.all([
+        fetchStockDetail(sid),
+        fetchStockTechnicalIndicators(sid),
+        fetchStockPriceHistory(sid, 30),
+        fetchStockNews(sid).catch(() => []),
+        fetchStockRecentTrades(sid, 5).catch(() => []),
+      ]);
+
+      setStockData(detail);
+      setTechnicalIndicators(indicators);
+      setPriceHistory(history);
+      setNews(newsData);
+      setRecentTrades(tradesData);
+    } catch (error) {
+      console.error('Error loading stock detail data:', error);
+    } finally {
+      setLoading(false);
+    }
   }, [stockSymbol]);
 
+  useEffect(() => {
+    loadAllData();
+  }, [loadAllData]);
+
   // Derived metrics from stockData
-  const marketData = stockData?.market_data?.[0] || {};
-  const currentPrice = marketData?.current_price || 0;
-  
+  const marketData = stockData?.market_data || {};
+  const currentPrice = Number(marketData?.current_price ?? stockData?.current_price ?? 0);
+
   const tradingMetrics = {
-    open: `₹${marketData?.open_price || '0.00'}`,
-    high: `₹${marketData?.high_price || '0.00'}`,
-    low: `₹${marketData?.low_price || '0.00'}`,
-    prevClose: `₹${marketData?.prev_close_price || '0.00'}`,
-    volume: marketData?.volume ? `${(marketData.volume / 1000000).toFixed(1)}M` : '0.0M',
-    avgVolume: '3.1M',
-    marketCap: stockData?.market_cap ? `₹${(stockData.market_cap / 1000000000000).toFixed(1)}T` : 'N/A',
-    peRatio: stockData?.pe_ratio || 'N/A',
-    dividendYield: '0.85%',
-    beta: '1.24',
+    open: marketData?.open_24h != null ? `₹${Number(marketData.open_24h).toFixed(2)}` : 'N/A',
+    high: marketData?.high_24h != null ? `₹${Number(marketData.high_24h).toFixed(2)}` : 'N/A',
+    low: marketData?.low_24h != null ? `₹${Number(marketData.low_24h).toFixed(2)}` : 'N/A',
+    prevClose: marketData?.previous_close != null ? `₹${Number(marketData.previous_close).toFixed(2)}` : 'N/A',
+    volume: marketData?.volume ? `${(Number(marketData.volume) / 1000000).toFixed(1)}M` : 'N/A',
+    avgVolume: stockData?.avg_volume != null ? `${(Number(stockData.avg_volume) / 1000000).toFixed(1)}M` : 'N/A',
+    marketCap: marketData?.market_cap != null
+      ? `₹${(Number(marketData.market_cap) / 1000000000000).toFixed(1)}T`
+      : (stockData?.market_cap != null ? `₹${(Number(stockData.market_cap) / 1000000000000).toFixed(1)}T` : 'N/A'),
+    peRatio: marketData?.pe_ratio != null ? String(marketData.pe_ratio) : 'N/A',
+    dividendYield: marketData?.dividend_yield != null ? `${Number(marketData.dividend_yield).toFixed(2)}%` : 'N/A',
+    beta: stockData?.beta != null ? String(stockData.beta) : 'N/A',
   };
 
   const stock = {
     symbol: stockSymbol,
     name: stockData?.name || stockName,
     price: `₹${currentPrice.toLocaleString()}`,
-    change: `${marketData?.change_percentage >= 0 ? '+' : ''}${marketData?.change_percentage?.toFixed(2)}%`,
-    changeValue: `${marketData?.change_amount >= 0 ? '+' : ''}${marketData?.change_amount?.toFixed(2)}`,
-    isPositive: marketData?.change_percentage >= 0,
+    change: `${Number(marketData?.change_percentage ?? 0) >= 0 ? '+' : ''}${Number(marketData?.change_percentage ?? 0).toFixed(2)}%`,
+    changeValue: `${Number(marketData?.change_amount ?? 0) >= 0 ? '+' : ''}${Number(marketData?.change_amount ?? 0).toFixed(2)}`,
+    isPositive: Number(marketData?.change_percentage ?? 0) >= 0,
     exchange: stockData?.exchange || 'NSE',
     isFavorite: false,
     volume: tradingMetrics.volume,
     marketCap: tradingMetrics.marketCap,
   };
 
+  // Map backend TechnicalIndicator to UI shape
+  const signalColor = (signal: string): string => {
+    const s = (signal || '').toLowerCase();
+    if (s === 'bullish') return '#10B981';
+    if (s === 'bearish') return '#EF4444';
+    return '#6B7280';
+  };
+  const mappedIndicators = technicalIndicators.map((ind: any) => ({
+    name: ind.indicator_name,
+    value: ind.value != null ? String(ind.value) : 'N/A',
+    status: ind.signal || 'Neutral',
+    color: signalColor(ind.signal),
+  }));
+
+  // Fundamentals come from serializer (if present), else fall back to empty
+  const fundamentals = (stockData?.fundamentals && stockData.fundamentals.length > 0)
+    ? stockData.fundamentals
+    : [];
+
   const handleBack = () => {
     navigation.navigate('Trading');
   };
 
-  const handleToggleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
+  const handleToggleBookmark = async () => {
+    if (!stockId) return;
+    const newState = await toggleFavorite(stockId);
+    setIsBookmarked(newState);
     Alert.alert(
-      isBookmarked ? t.removedFromBookmarks : t.addedToBookmarks,
-      `${stock.symbol} ${isBookmarked ? t.hasBeenRemoved : t.hasBeenAdded} ${t.yourBookmarks}`
+      newState ? t.addedToBookmarks : t.removedFromBookmarks,
+      `${stock.symbol} ${newState ? t.hasBeenAdded : t.hasBeenRemoved} ${t.yourBookmarks}`
     );
   };
 
@@ -146,8 +184,8 @@ const StockDetailScreen = () => {
       (t.areYouSureSell as string).replace('{symbol}', stock.symbol),
       [
         { text: t.cancel, style: 'cancel' },
-        { 
-          text: t.sell, 
+        {
+          text: t.sell,
           onPress: () => {
             navigation.navigate('PlaceOrder', {
               stockSymbol: stock.symbol,
@@ -155,7 +193,7 @@ const StockDetailScreen = () => {
               currentPrice,
               initialSide: 'SELL'
             });
-          } 
+          }
         }
       ]
     );
@@ -169,23 +207,8 @@ const StockDetailScreen = () => {
     setSelectedFilter(filter);
   };
 
-  // Filter options for chart
-  const filterOptions = [
-    t.all,
-    t.bullish,
-    t.bearish, 
-    t.volatile,
-    t.thisWeek,
-    t.thisMonth,
-    t.thisYear
-  ];
-
-  const recentTrades = [
-    { time: '15:30', price: stock.price, quantity: '100', type: 'BUY' },
-    { time: '15:28', price: stock.price, quantity: '250', type: 'SELL' },
-    { time: '15:25', price: stock.price, quantity: '75', type: 'BUY' },
-    { time: '15:22', price: stock.price, quantity: '300', type: 'SELL' },
-  ];
+  // (selectedFilter kept for backward compat with ChartSection prop, currently unused)
+  void selectedFilter;
 
   const renderTradingMetrics = () => (
     <View style={styles.metricsContainer}>
@@ -230,55 +253,65 @@ const StockDetailScreen = () => {
   const renderTechnicalIndicators = () => (
     <View style={styles.indicatorsContainer}>
       <Text style={styles.sectionTitle}>{t.technicalIndicators}</Text>
-      <View style={styles.indicatorsGrid}>
-        {(technicalIndicators.length > 0 ? technicalIndicators : [
-          { name: 'RSI', value: '65.4', status: 'neutral', color: '#F59E0B' },
-          { name: 'MACD', value: 'Bullish', status: 'bullish', color: '#10B981' },
-          { name: 'Moving Avg', value: 'Above 50MA', status: 'bullish', color: '#10B981' },
-          { name: 'Support', value: '₹2,380', status: 'neutral', color: '#6B7280' },
-          { name: 'Resistance', value: '₹2,500', status: 'neutral', color: '#6B7280' },
-        ]).map((indicator, index) => (
-          <View key={index} style={styles.indicatorItem}>
-            <View style={styles.indicatorHeader}>
-              <Text style={styles.indicatorName}>{indicator.name}</Text>
-              <View style={[styles.statusDot, { backgroundColor: indicator.color || '#6B7280' }]} />
+      {mappedIndicators.length === 0 ? (
+        <Text style={styles.emptyText}>{t.noIndicatorsAvailable ?? 'No technical indicators available'}</Text>
+      ) : (
+        <View style={styles.indicatorsGrid}>
+          {mappedIndicators.map((indicator, index) => (
+            <View key={`${indicator.name}-${index}`} style={styles.indicatorItem}>
+              <View style={styles.indicatorHeader}>
+                <Text style={styles.indicatorName}>{indicator.name}</Text>
+                <View style={[styles.statusDot, { backgroundColor: indicator.color }]} />
+              </View>
+              <Text style={[styles.indicatorValue, { color: indicator.color }]}>
+                {indicator.value}
+              </Text>
             </View>
-            <Text style={[styles.indicatorValue, { color: indicator.color || '#6B7280' }]}>
-              {indicator.value}
-            </Text>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 
   const renderRecentTrades = () => (
     <View style={styles.tradesContainer}>
       <Text style={styles.sectionTitle}>{t.recentTrades}</Text>
-      <View style={styles.tradesList}>
-        {recentTrades.map((trade, index) => (
-          <View key={index} style={styles.tradeItem}>
-            <View style={styles.tradeLeft}>
-              <Text style={styles.tradeTime}>{trade.time}</Text>
-              <Text style={styles.tradeQuantity}>{trade.quantity} {t.shares}</Text>
-            </View>
-            <View style={styles.tradeRight}>
-              <Text style={styles.tradePrice}>{trade.price}</Text>
-              <View style={[
-                styles.tradeType,
-                { backgroundColor: trade.type === 'BUY' ? '#DCFCE7' : '#FEE2E2' }
-              ]}>
-                <Text style={[
-                  styles.tradeTypeText,
-                  { color: trade.type === 'BUY' ? '#10B981' : '#EF4444' }
-                ]}>
-                  {trade.type}
-                </Text>
+      {recentTrades.length === 0 ? (
+        <Text style={styles.emptyText}>{t.noTradesYet ?? 'No recent trades'}</Text>
+      ) : (
+        <View style={styles.tradesList}>
+          {recentTrades.map((trade: any, index) => {
+            const side = (trade.side || trade.type || 'BUY').toString().toUpperCase();
+            const price = trade.price != null ? `₹${Number(trade.price).toFixed(2)}` : 'N/A';
+            const qty = trade.quantity ?? trade.shares ?? '—';
+            const time = trade.executed_at
+              ? new Date(trade.executed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              : (trade.time || '—');
+            return (
+              <View key={trade.id ?? index} style={styles.tradeItem}>
+                <View style={styles.tradeLeft}>
+                  <Text style={styles.tradeTime}>{time}</Text>
+                  <Text style={styles.tradeQuantity}>{qty} {t.shares}</Text>
+                </View>
+                <View style={styles.tradeRight}>
+                  <Text style={styles.tradePrice}>{price}</Text>
+                  <View style={[
+                    styles.tradeType,
+                    { backgroundColor: side === 'BUY' ? '#DCFCE7' : '#FEE2E2' }
+                  ]}>
+                    <Text style={[
+                      styles.tradeTypeText,
+                      { color: side === 'BUY' ? '#10B981' : '#EF4444' }
+                    ]}>
+                      {side}
+                    </Text>
+                  </View>
+                </View>
               </View>
-            </View>
-          </View>
-        ))}
-      </View>
+            );
+          })}
+        </View>
+      )}
     </View>
   );
 
@@ -289,7 +322,7 @@ const StockDetailScreen = () => {
         <Text style={styles.sectionTitle}>{t.companyProfile}</Text>
       </View>
       <Text style={styles.description}>
-        {stockData?.description || STOCK_DETAIL_DATA.companyProfile.description}
+        {stockData?.description || (t.noCompanyInfo ?? 'No company information available yet.')}
       </Text>
       <View style={styles.infoGrid}>
         <View style={styles.infoItem}>
@@ -298,7 +331,7 @@ const StockDetailScreen = () => {
           </View>
           <View style={styles.infoContent}>
             <Text style={styles.infoLabel}>{t.founded}</Text>
-            <Text style={styles.infoValue}>{STOCK_DETAIL_DATA.companyProfile.founded}</Text>
+            <Text style={styles.infoValue}>{stockData?.founded ?? 'N/A'}</Text>
           </View>
         </View>
         <View style={styles.infoItem}>
@@ -307,7 +340,16 @@ const StockDetailScreen = () => {
           </View>
           <View style={styles.infoContent}>
             <Text style={styles.infoLabel}>{t.employees}</Text>
-            <Text style={styles.infoValue}>{STOCK_DETAIL_DATA.companyProfile.employees}</Text>
+            <Text style={styles.infoValue}>{stockData?.employees ?? 'N/A'}</Text>
+          </View>
+        </View>
+        <View style={styles.infoItem}>
+          <View style={styles.infoIconContainer}>
+            <Ionicons name="location" size={16} color="#6B7280" />
+          </View>
+          <View style={styles.infoContent}>
+            <Text style={styles.infoLabel}>{t.headquarters ?? 'Headquarters'}</Text>
+            <Text style={styles.infoValue}>{stockData?.headquarters ?? 'N/A'}</Text>
           </View>
         </View>
       </View>
@@ -320,27 +362,31 @@ const StockDetailScreen = () => {
         <Ionicons name="newspaper" size={20} color="#10B981" />
         <Text style={styles.sectionTitle}>{t.newsHighlights}</Text>
       </View>
-      <View style={styles.newsList}>
-        {STOCK_DETAIL_DATA.news.map((newsItem) => (
-          <View key={newsItem.id} style={styles.newsItem}>
-            <View style={styles.newsImage}>
-              <Ionicons name="image" size={24} color="#9CA3AF" />
-            </View>
-            <View style={styles.newsContent}>
-              <Text style={styles.newsTitle} numberOfLines={2}>
-                {newsItem.title}
-              </Text>
-              <View style={styles.newsMeta}>
-                <Ionicons name="time" size={12} color="#9CA3AF" />
-                <Text style={styles.newsMetaText}>
-                  {newsItem.timeAgo} • {newsItem.source}
-                </Text>
+      {news.length === 0 ? (
+        <Text style={styles.emptyText}>{t.noNewsYet ?? 'No news available for this stock'}</Text>
+      ) : (
+        <View style={styles.newsList}>
+          {news.map((newsItem: any) => (
+            <View key={newsItem.id} style={styles.newsItem}>
+              <View style={styles.newsImage}>
+                <Ionicons name="newspaper" size={20} color="#9CA3AF" />
               </View>
+              <View style={styles.newsContent}>
+                <Text style={styles.newsTitle} numberOfLines={2}>
+                  {newsItem.title}
+                </Text>
+                <View style={styles.newsMeta}>
+                  <Ionicons name="time" size={12} color="#9CA3AF" />
+                  <Text style={styles.newsMetaText}>
+                    {newsItem.time_ago ?? newsItem.timeAgo ?? ''}{newsItem.source ? ` • ${newsItem.source}` : ''}
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 
@@ -350,19 +396,23 @@ const StockDetailScreen = () => {
         <Ionicons name="analytics" size={20} color="#F59E0B" />
         <Text style={styles.sectionTitle}>{t.keyFundamentals}</Text>
       </View>
-      <View style={styles.fundamentalsGrid}>
-        {(stockData?.fundamentals || STOCK_DETAIL_DATA.fundamentals).map((fundamental: any, index: number) => (
-          <View key={index} style={styles.fundamentalItem}>
-            <View style={styles.fundamentalIconContainer}>
-              <Ionicons name="trending-up" size={16} color="#3B82F6" />
+      {fundamentals.length === 0 ? (
+        <Text style={styles.emptyText}>{t.noFundamentals ?? 'No fundamental data available'}</Text>
+      ) : (
+        <View style={styles.fundamentalsGrid}>
+          {fundamentals.map((fundamental: any, index: number) => (
+            <View key={`${fundamental.label}-${index}`} style={styles.fundamentalItem}>
+              <View style={styles.fundamentalIconContainer}>
+                <Ionicons name="trending-up" size={16} color="#3B82F6" />
+              </View>
+              <View style={styles.fundamentalContent}>
+                <Text style={styles.fundamentalLabel}>{fundamental.label}</Text>
+                <Text style={styles.fundamentalValue}>{fundamental.value}</Text>
+              </View>
             </View>
-            <View style={styles.fundamentalContent}>
-              <Text style={styles.fundamentalLabel}>{fundamental.label}</Text>
-              <Text style={styles.fundamentalValue}>{fundamental.value}</Text>
-            </View>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 
@@ -383,8 +433,6 @@ const StockDetailScreen = () => {
         <ChartSection
           selectedTimeframe={selectedTimeframe}
           onTimeframeChange={handleTimeframeChange}
-          selectedFilter={selectedFilter}
-          onFilterChange={handleFilterChange}
           priceHistory={priceHistory}
         />
 
@@ -431,6 +479,12 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     lineHeight: 20,
     marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 13,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    paddingVertical: 16,
   },
   infoGrid: {
     gap: 8,

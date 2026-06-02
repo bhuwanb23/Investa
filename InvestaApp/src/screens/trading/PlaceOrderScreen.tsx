@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTradingData } from './hooks/useTradingData';
 import { placeOrder, fetchMyPortfolio } from './utils/tradingApi';
@@ -38,62 +38,57 @@ const PlaceOrderScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'PlaceOrder'>>();
   const { stockSymbol, stockName, currentPrice, initialSide } = route.params;
-  const { getStockBySymbol, addToPortfolio, removeFromPortfolio } = useTradingData();
+  const { getStockBySymbol } = useTradingData();
   const { t } = useTranslation();
-  
-  // Debug log to verify language is working
-  console.log('PlaceOrderScreen - Selected Language:', t.language);
 
   const [isBuyMode, setIsBuyMode] = useState(initialSide === 'SELL' ? false : true);
   const [orderType, setOrderType] = useState<'MARKET' | 'LIMIT'>('MARKET');
   const [quantity, setQuantity] = useState('1');
   const [price, setPrice] = useState(currentPrice.toString());
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [currentCash, setCurrentCash] = useState(2817.55);
+  const [currentCash, setCurrentCash] = useState<number | null>(null);
+  const [cashLoaded, setCashLoaded] = useState(false);
 
-  useEffect(() => {
-    const loadPortfolio = async () => {
-      try {
-        const portfolioData = await fetchMyPortfolio();
-        if (portfolioData && portfolioData.cash_balance !== undefined) {
-          setCurrentCash(portfolioData.cash_balance);
-        }
-      } catch (error) {
-        console.error('Error loading portfolio:', error);
+  const loadPortfolio = useCallback(async () => {
+    try {
+      const portfolioData = await fetchMyPortfolio();
+      if (portfolioData && portfolioData.cash_balance !== undefined) {
+        setCurrentCash(Number(portfolioData.cash_balance));
       }
-    };
-    loadPortfolio();
+    } catch (error) {
+      console.error('Error loading portfolio:', error);
+    } finally {
+      setCashLoaded(true);
+    }
   }, []);
 
-  // Get stock data
-  const stock = getStockBySymbol(stockSymbol) || {
-    symbol: stockSymbol,
-    name: stockName,
-    price: `₹${currentPrice}`,
-    change: '+2.15%',
-    changeValue: '+3.85',
-    isPositive: true,
-    exchange: 'NSE',
-    isFavorite: false,
-    volume: '2.5M',
-    marketCap: '₹16.2T',
-  };
+  useEffect(() => {
+    loadPortfolio();
+  }, [loadPortfolio]);
+
+  // Refetch cash balance when the screen is focused (e.g. after returning from elsewhere)
+  useFocusEffect(
+    useCallback(() => {
+      loadPortfolio();
+    }, [loadPortfolio])
+  );
+
+  // Get stock data from the loaded list; if not found, render an error state
+  const stock = getStockBySymbol(stockSymbol);
+  const stockNotFound = !stock;
 
   // Calculate costs
   const quantityNum = parseInt(quantity) || 1;
   const priceNum = parseFloat(price) || currentPrice;
   const estimatedCost = quantityNum * priceNum;
-  const commission = 0; // Free commission for demo
+  const commission = 0;
   const totalCost = estimatedCost + commission;
-  const newCash = isBuyMode ? currentCash - totalCost : currentCash + totalCost;
+  const newCash = currentCash !== null
+    ? (isBuyMode ? currentCash - totalCost : currentCash + totalCost)
+    : null;
 
   const handleBack = () => {
     navigation.navigate('Trading');
-  };
-
-  const handleHelp = () => {
-    // Using translation keys for help dialog
-    Alert.alert(t.help, t.simulatedTradingEnvironment);
   };
 
   const handleOrderTypeChange = (type: 'MARKET' | 'LIMIT') => {
@@ -122,25 +117,19 @@ const PlaceOrderScreen = () => {
       return;
     }
 
+    if (!stock?.id) {
+      Alert.alert(t.orderFailed, t.unableToPlaceOrderNow);
+      return;
+    }
+
     try {
-      // Backend order placement
-      const stockId = stock?.id as number | undefined;
-      if (!stockId) {
-        // Fallback: simulate portfolio update
-        if (isBuyMode) {
-          addToPortfolio(stockSymbol, quantityNum, priceNum);
-        } else {
-          removeFromPortfolio(stockSymbol, quantityNum, priceNum);
-        }
-      } else {
-        await placeOrder({
-          stock: stockId,
-          side: isBuyMode ? 'BUY' : 'SELL',
-          order_type: orderType,
-          quantity: quantityNum,
-          price: orderType === 'LIMIT' ? priceNum : undefined,
-        });
-      }
+      await placeOrder({
+        stock: stock.id,
+        side: isBuyMode ? 'BUY' : 'SELL',
+        order_type: orderType,
+        quantity: quantityNum,
+        price: orderType === 'LIMIT' ? priceNum : undefined,
+      });
       setShowSuccessModal(true);
     } catch (e: any) {
       Alert.alert(t.orderFailed, e?.response?.data?.detail || t.unableToPlaceOrderNow);
@@ -151,6 +140,23 @@ const PlaceOrderScreen = () => {
     setShowSuccessModal(false);
     navigation.goBack();
   };
+
+  if (stockNotFound) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <MainHeader title={t.placeOrder} iconName="swap-vertical" showBackButton onBackPress={handleBack} />
+        </View>
+        <View style={styles.notFoundContainer}>
+          <Ionicons name="alert-circle-outline" size={48} color="#9CA3AF" />
+          <Text style={styles.notFoundTitle}>{t.stockNotFound || 'Stock data unavailable'}</Text>
+          <Text style={styles.notFoundSubtext}>
+            {t.unableToLoadStock || 'Unable to load this stock. Please try again from the watchlist or market view.'}
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -169,10 +175,10 @@ const PlaceOrderScreen = () => {
           <View style={styles.priceInfo}>
             <Text style={styles.currentPrice}>₹{currentPrice.toFixed(2)}</Text>
             <View style={styles.changeContainer}>
-              <Ionicons 
-                name={stock.isPositive ? "arrow-up" : "arrow-down"} 
-                size={12} 
-                color={stock.isPositive ? "#16A34A" : "#DC2626"} 
+              <Ionicons
+                name={stock.isPositive ? "arrow-up" : "arrow-down"}
+                size={12}
+                color={stock.isPositive ? "#16A34A" : "#DC2626"}
               />
               <Text style={[
                 styles.changeText,
@@ -183,7 +189,6 @@ const PlaceOrderScreen = () => {
             </View>
           </View>
         </View>
-        <Text style={styles.lastUpdated}>{t.lastUpdated}: 15 {t.minDelay}</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -204,16 +209,22 @@ const PlaceOrderScreen = () => {
         />
 
         {/* Order Preview */}
-        <OrderPreview
-          isBuyMode={isBuyMode}
-          quantity={quantityNum}
-          price={priceNum}
-          estimatedCost={estimatedCost}
-          commission={commission}
-          totalCost={totalCost}
-          currentCash={currentCash}
-          newCash={newCash}
-        />
+        {cashLoaded && currentCash !== null ? (
+          <OrderPreview
+            isBuyMode={isBuyMode}
+            quantity={quantityNum}
+            price={priceNum}
+            estimatedCost={estimatedCost}
+            commission={commission}
+            totalCost={totalCost}
+            currentCash={currentCash}
+            newCash={newCash ?? currentCash}
+          />
+        ) : (
+          <View style={styles.loadingPreview}>
+            <Text style={styles.loadingText}>{t.loadingPortfolio || 'Loading portfolio...'}</Text>
+          </View>
+        )}
       </ScrollView>
 
       {/* Action Button */}
@@ -221,10 +232,14 @@ const PlaceOrderScreen = () => {
         <TouchableOpacity
           style={[
             styles.placeOrderButton,
-            { backgroundColor: isBuyMode ? '#10B981' : '#EF4444' }
+            {
+              backgroundColor: isBuyMode ? '#10B981' : '#EF4444',
+              opacity: cashLoaded && stock?.id ? 1 : 0.5,
+            }
           ]}
           onPress={handlePlaceOrder}
           activeOpacity={0.8}
+          disabled={!cashLoaded || !stock?.id}
         >
           <Text style={styles.placeOrderText}>
             {isBuyMode ? t.buy : t.sell} {quantityNum} {quantityNum > 1 ? t.shares : t.share}
@@ -319,6 +334,33 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  notFoundContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  notFoundTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  notFoundSubtext: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+  loadingPreview: {
+    padding: 24,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#6B7280',
   },
 });
 

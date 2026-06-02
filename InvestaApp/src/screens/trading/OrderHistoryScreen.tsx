@@ -77,7 +77,7 @@ const OrderHistoryScreen = () => {
 
   const getFilteredOrders = () => {
     let filtered = orders;
-    
+
     switch (selectedFilter) {
       case 'Buy':
         filtered = filtered.filter(order => (order.side || order.type) === 'BUY');
@@ -86,19 +86,45 @@ const OrderHistoryScreen = () => {
         filtered = filtered.filter(order => (order.side || order.type) === 'SELL');
         break;
       case 'This Week':
-        // Filter for orders from this week (mock implementation)
-        filtered = filtered.filter(order => Number(order.id) % 3 === 0); // Mock filter
+        {
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          filtered = filtered.filter(order => {
+            const ts = order.created_at ? new Date(order.created_at) : null;
+            return ts ? ts >= weekAgo : false;
+          });
+        }
         break;
       case 'This Month':
-        // Filter for orders from this month (mock implementation)
-        filtered = filtered.filter(order => Number(order.id) % 2 === 0); // Mock filter
+        {
+          const monthAgo = new Date();
+          monthAgo.setDate(monthAgo.getDate() - 30);
+          filtered = filtered.filter(order => {
+            const ts = order.created_at ? new Date(order.created_at) : null;
+            return ts ? ts >= monthAgo : false;
+          });
+        }
         break;
       default:
         // 'All' - no filtering
         break;
     }
-    
+
     return filtered;
+  };
+
+  const formatTimestamp = (ts: string | undefined): string => {
+    if (!ts) return '';
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return '';
+    const now = new Date();
+    const sameDay = d.toDateString() === now.toDateString();
+    const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    if (sameDay) return `Today, ${time}`;
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    if (d.toDateString() === yesterday.toDateString()) return `Yesterday, ${time}`;
+    return `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${time}`;
   };
 
   const filteredOrders = getFilteredOrders();
@@ -205,7 +231,7 @@ const OrderHistoryScreen = () => {
     }
     
     const mapped = {
-      id: String(trade.id ?? Math.random()),
+      id: String(trade.id ?? `trade-${symbol}-${type}`),
       symbol,
       name,
       type,
@@ -243,7 +269,7 @@ const OrderHistoryScreen = () => {
                   {mapped.name}
                 </Text>
               </View>
-              <Text style={styles.tradeTime}>Today, 2:45 PM</Text>
+              <Text style={styles.tradeTime}>{formatTimestamp(trade?.created_at || trade?.filled_at)}</Text>
             </View>
           </View>
           <View style={styles.tradeRight}>
@@ -294,7 +320,15 @@ const OrderHistoryScreen = () => {
 
   const renderTradesList = () => (
     <View style={styles.tradesList}>
-      {filteredOrders.map(renderTradeItem)}
+      {filteredOrders.length === 0 ? (
+        <View style={styles.emptyTrades}>
+          <Ionicons name="time-outline" size={48} color="#9CA3AF" />
+          <Text style={styles.emptyText}>{t.noOrdersYet || 'No orders yet'}</Text>
+          <Text style={styles.emptySubtext}>{t.startTradingToSee || 'Your trading activity will appear here'}</Text>
+        </View>
+      ) : (
+        filteredOrders.map(renderTradeItem)
+      )}
     </View>
   );
 
@@ -405,6 +439,23 @@ const styles = StyleSheet.create({
   },
   tradesList: {
     paddingBottom: 20,
+  },
+  emptyTrades: {
+    alignItems: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6B7280',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
   },
   tradeItem: {
     backgroundColor: '#FFFFFF',

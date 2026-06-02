@@ -11,12 +11,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import MainHeader from '../../components/MainHeader';
 import LogoLoader from '../../components/LogoLoader';
-import { 
-  fetchMyPortfolio, 
-  fetchPortfolioHoldings, 
-  fetchOrderHistory, 
+import {
+  fetchMyPortfolio,
+  fetchPortfolioHoldings,
+  fetchOrderHistory,
   fetchStocks,
-  fetchMyWatchlist
+  fetchMyWatchlist,
+  fetchMarketTopMovers,
+  fetchMarketIndices,
+  fetchLeaderboard,
 } from '../trading/utils/tradingApi';
 import { useTranslation } from '../../language';
 
@@ -53,27 +56,16 @@ const TradingScreen = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [stocks, setStocks] = useState<any[]>([]);
   const [watchlist, setWatchlist] = useState<any[]>([]);
+  const [marketIndices, setMarketIndices] = useState<any[]>([]);
+  const [topGainers, setTopGainers] = useState<any[]>([]);
+  const [topLosers, setTopLosers] = useState<any[]>([]);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [bootLoader, setBootLoader] = useState(true);
-  
+
   // Debug log to verify language is working
   console.log('TradingScreen - Selected Language:', t.language);
-  
-  // Mock data for market indices (these would come from a market data API)
-  const marketIndices = [
-    { name: 'S&P 500', value: '5,247', changePct: +0.72 },
-    { name: 'NASDAQ', value: '16,142', changePct: -0.31 },
-    { name: 'DOW', value: '39,518', changePct: +0.12 },
-  ];
-  
-  // Mock data for top movers (these would come from a market data API)
-  const topMovers = [
-    { s: 'PLTR', price: 26.41, changePct: +8.3 },
-    { s: 'COIN', price: 236.12, changePct: +6.1 },
-    { s: 'UBER', price: 73.55, changePct: -4.2 },
-    { s: 'SQ', price: 78.02, changePct: -3.5 },
-  ];
-  
+
   // Fetch real data on component mount
   useEffect(() => {
     const t = setTimeout(() => setBootLoader(false), 800);
@@ -81,30 +73,39 @@ const TradingScreen = () => {
     (async () => {
       try {
         setLoading(true);
-        const [portfolioRes, holdingsRes, ordersRes, stocksRes] = await Promise.all([
+        const [portfolioRes, holdingsRes, ordersRes, stocksRes, indicesRes, moversRes, leaderboardRes] = await Promise.all([
           fetchMyPortfolio(),
           fetchPortfolioHoldings(),
           fetchOrderHistory(),
-          fetchStocks()
+          fetchStocks(),
+          fetchMarketIndices().catch(() => []),
+          fetchMarketTopMovers().catch(() => ({ top_gainers: [], top_losers: [] })),
+          fetchLeaderboard('all').catch(() => []),
         ]);
-        
+
         if (!mounted) return;
-        
+
         setPortfolioData(portfolioRes);
         setHoldings(holdingsRes);
         setOrders(ordersRes);
         setStocks(stocksRes);
-        // For now, use stocks as watchlist until backend is fixed
         setWatchlist(stocksRes.slice(0, 4));
+        setMarketIndices(Array.isArray(indicesRes) ? indicesRes : []);
+        setTopGainers(moversRes?.top_gainers ?? []);
+        setTopLosers(moversRes?.top_losers ?? []);
+        setLeaderboard(Array.isArray(leaderboardRes) ? leaderboardRes.slice(0, 5) : []);
       } catch (error) {
         console.error('TradingScreen: Error fetching data:', error);
-        // Set empty arrays on error to prevent crashes
         if (mounted) {
           setPortfolioData(null);
           setHoldings([]);
           setOrders([]);
           setStocks([]);
           setWatchlist([]);
+          setMarketIndices([]);
+          setTopGainers([]);
+          setTopLosers([]);
+          setLeaderboard([]);
         }
       } finally {
         if (mounted) setLoading(false);
@@ -112,48 +113,52 @@ const TradingScreen = () => {
     })();
     return () => { mounted = false; clearTimeout(t); };
   }, []);
-  
-  // Refresh function for manual data refresh
-  const refreshData = async () => {
-    try {
-      setLoading(true);
-      const [portfolioRes, holdingsRes, ordersRes, stocksRes] = await Promise.all([
-        fetchMyPortfolio(),
-        fetchPortfolioHoldings(),
-        fetchOrderHistory(),
-        fetchStocks()
-      ]);
-      
-      setPortfolioData(portfolioRes);
-      setHoldings(holdingsRes);
-      setOrders(ordersRes);
-      setStocks(stocksRes);
-      setWatchlist(stocksRes.slice(0, 4));
-    } catch (error) {
-      console.error('TradingScreen: Error refreshing data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
+
   // Calculate portfolio statistics from real data
   const totalValue = Number(portfolioData?.total_value) || 0;
   const totalInvested = Number(portfolioData?.total_invested) || 0;
   const totalReturns = totalValue - totalInvested;
   const returnPercentage = totalInvested > 0 ? ((totalReturns / totalInvested) * 100).toFixed(1) : '0.0';
-  
-  // Generate sparkline data based on portfolio performance
-  const sparklineHeights = [8, 12, 9, 14, 10, 16, 20, 18, 22, 24, 20, 26, 28, 24, 30];
-  
+
+  // Sparkline derived from first watchlist stock's price history would be ideal;
+  // for now render a simple static shape when portfolio has value, empty otherwise.
+  const sparklineHeights = totalValue > 0
+    ? [8, 12, 9, 14, 10, 16, 20, 18, 22, 24, 20, 26, 28, 24, 30]
+    : [];
+
+  // Format a real order timestamp into a friendly string
+  const formatActivityTime = (ts: string | undefined): string => {
+    if (!ts) return '';
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return '';
+    const now = new Date();
+    const sameDay = d.toDateString() === now.toDateString();
+    const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
+    const sameYesterday = d.toDateString() === yesterday.toDateString();
+    const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (sameDay) return `${t.today ?? 'Today'}, ${time}`;
+    if (sameYesterday) return `${t.yesterday ?? 'Yesterday'}, ${time}`;
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+
   // Get recent activity from real orders
   const recentActivity = orders.slice(0, 3).map((order, index) => ({
     id: order.id || index + 1,
-    type: order.side || order.type || 'Buy',
+    type: (order.side || order.type || 'BUY').toString().toUpperCase(),
     s: order.stock_detail?.symbol || order.stock?.symbol || 'N/A',
     qty: Number(order.quantity) || 0,
     price: Number(order.price) || 0,
-    time: 'Today, 10:24' // This would come from order timestamp
+    time: formatActivityTime(order.created_at || order.executed_at),
   }));
+
+  // Combined movers list (gainers first, then losers, capped at 4)
+  const combinedMovers = [
+    ...topGainers.map((m: any) => ({ ...m, _dir: 'gainer' })),
+    ...topLosers.map((m: any) => ({ ...m, _dir: 'loser' })),
+  ].slice(0, 4);
+
+  // Top 3 leaders
+  const topLeaders = leaderboard.slice(0, 3);
 
   if (bootLoader) {
     return (
@@ -247,26 +252,6 @@ const TradingScreen = () => {
             </View>
           </View>
 
-          {/* Quick Actions */}
-          <View style={styles.quickActionsRow}>
-            <Pressable
-              style={[styles.quickActionCard, { backgroundColor: '#22c55e' }]}
-              android_ripple={{ color: '#16a34a' }}
-              onPress={() => navigation.navigate('PlaceOrder', { stockSymbol: 'AAPL', stockName: 'Apple', currentPrice: 189.23 })}
-            >
-              <Ionicons name="arrow-up" size={18} color="#fff" />
-              <Text style={styles.quickActionText}>{t.buy}</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.quickActionCard, { backgroundColor: '#ef4444' }]}
-              android_ripple={{ color: '#dc2626' }}
-              onPress={() => navigation.navigate('PlaceOrder', { stockSymbol: 'TSLA', stockName: 'Tesla', currentPrice: 244.18 })}
-            >
-              <Ionicons name="arrow-down" size={18} color="#fff" />
-              <Text style={styles.quickActionText}>{t.sell}</Text>
-            </Pressable>
-          </View>
-
           {/* Market Overview */}
           <View style={styles.marketSection}>
             <View style={styles.sectionHeaderRow}>
@@ -275,17 +260,26 @@ const TradingScreen = () => {
                 <Text style={styles.linkText}>{t.seeAll}</Text>
               </Pressable>
             </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.marketChipsRow}>
-              {marketIndices.map((m, idx) => (
-                <View key={idx} style={styles.marketChip}>
-                  <Text style={styles.marketChipTitle}>{m.name}</Text>
-                  <Text style={styles.marketChipValue}>{m.value}</Text>
-                  <Text style={[styles.marketChipChange, { color: m.changePct >= 0 ? SUCCESS : DANGER }]}>
-                    {m.changePct >= 0 ? '+' : ''}{m.changePct}%
-                  </Text>
-                </View>
-              ))}
-            </ScrollView>
+            {marketIndices.length === 0 ? (
+              <View style={styles.emptyWatchlist}>
+                <Text style={styles.emptyText}>{t.noIndicesAvailable ?? 'No market data available'}</Text>
+              </View>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.marketChipsRow}>
+                {marketIndices.map((m) => {
+                  const pct = Number(m.change_percentage ?? 0);
+                  return (
+                    <View key={m.id ?? m.name} style={styles.marketChip}>
+                      <Text style={styles.marketChipTitle}>{m.name}</Text>
+                      <Text style={styles.marketChipValue}>{Number(m.value).toLocaleString()}</Text>
+                      <Text style={[styles.marketChipChange, { color: pct >= 0 ? SUCCESS : DANGER }]}>
+                        {pct >= 0 ? '+' : ''}{pct.toFixed(2)}%
+                      </Text>
+                    </View>
+                  );
+                })}
+              </ScrollView>
+            )}
           </View>
 
           {/* Watchlist */}
@@ -297,15 +291,14 @@ const TradingScreen = () => {
               </Pressable>
             </View>
             {watchlist.length > 0 ? watchlist.map((w, idx) => {
-              // Find stock details from stocks array
-              const stock = stocks.find(s => s.id === w.stock_id);
-              const symbol = stock?.symbol || w.symbol || 'N/A';
-              const name = stock?.name || w.name || 'Unknown Stock';
-              const price = Number(stock?.current_price || w.current_price || 0);
-              const changePct = Number(stock?.change_percentage || w.change_percentage || 0);
-              
+              const stock = stocks.find(s => s.id === (w.stock_id ?? w.stock?.id));
+              const symbol = stock?.symbol || w.symbol || w.stock?.symbol || 'N/A';
+              const name = stock?.name || w.name || w.stock?.name || 'Unknown Stock';
+              const price = Number(stock?.current_price ?? w.current_price ?? w.stock?.current_price ?? 0);
+              const changePct = Number(stock?.change_percentage ?? w.change_percentage ?? w.stock?.change_percentage ?? 0);
+
               return (
-                <Pressable key={idx} style={styles.watchRow} onPress={() => navigation.navigate('StockDetail', { stockSymbol: symbol, stockName: name })} android_ripple={{ color: '#f3f4f6' }}>
+                <Pressable key={w.id ?? symbol + idx} style={styles.watchRow} onPress={() => navigation.navigate('StockDetail', { stockSymbol: symbol, stockName: name })} android_ripple={{ color: '#f3f4f6' }}>
                   <View style={styles.symbolBadge}>
                     <Text style={styles.symbolBadgeText}>{symbol}</Text>
                   </View>
@@ -318,7 +311,7 @@ const TradingScreen = () => {
                   <View style={{ alignItems: 'flex-end', minWidth: 80 }}>
                     <Text style={styles.priceText}>₹{price.toFixed(2)}</Text>
                     <Text style={[styles.changeText, { color: changePct >= 0 ? SUCCESS : DANGER }]}>
-                      {changePct >= 0 ? '+' : ''}{changePct}%
+                      {changePct >= 0 ? '+' : ''}{changePct.toFixed(2)}%
                     </Text>
                   </View>
                 </Pressable>
@@ -334,24 +327,42 @@ const TradingScreen = () => {
           {/* Top Movers */}
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>{t.topMovers}</Text>
-            <View style={styles.moversGrid}>
-              {topMovers.map((m, idx) => (
-                <Pressable key={idx} style={styles.moverCard} onPress={() => navigation.navigate('StockDetail', { stockSymbol: m.s, stockName: m.s })} android_ripple={{ color: '#e5e7eb' }}>
-                  <View style={styles.moverHeader}>
-                    <Text style={styles.moverSymbol}>{m.s}</Text>
-                    <Text style={[styles.moverChange, { color: m.changePct >= 0 ? SUCCESS : DANGER }]}>
-                      {m.changePct >= 0 ? '+' : ''}{m.changePct}%
-                    </Text>
-                  </View>
-                  <Text style={styles.moverPrice}>${m.price.toFixed(2)}</Text>
-                  <View style={styles.miniSparkRow}>
-                    {[6, 9, 7, 10, 8, 12, 11].map((h, i) => (
-                      <View key={i} style={[styles.miniBar, { height: h, backgroundColor: m.changePct >= 0 ? SUCCESS : DANGER }]} />
-                    ))}
-                  </View>
-                </Pressable>
-              ))}
-            </View>
+            {combinedMovers.length === 0 ? (
+              <View style={styles.emptyWatchlist}>
+                <Text style={styles.emptyText}>{t.noMoversAvailable ?? 'No top movers data available'}</Text>
+              </View>
+            ) : (
+              <View style={styles.moversGrid}>
+                {combinedMovers.map((m: any, idx) => {
+                  const s = m.stock || {};
+                  const symbol = s.symbol || 'N/A';
+                  const name = s.name || symbol;
+                  const price = Number(m.current_price ?? s.current_price ?? 0);
+                  const changePct = Number(m.change_percentage ?? s.change_percentage ?? 0);
+                  return (
+                    <Pressable
+                      key={`${symbol}-${idx}`}
+                      style={styles.moverCard}
+                      onPress={() => navigation.navigate('StockDetail', { stockSymbol: symbol, stockName: name })}
+                      android_ripple={{ color: '#e5e7eb' }}
+                    >
+                      <View style={styles.moverHeader}>
+                        <Text style={styles.moverSymbol}>{symbol}</Text>
+                        <Text style={[styles.moverChange, { color: changePct >= 0 ? SUCCESS : DANGER }]}>
+                          {changePct >= 0 ? '+' : ''}{changePct.toFixed(2)}%
+                        </Text>
+                      </View>
+                      <Text style={styles.moverPrice}>₹{price.toFixed(2)}</Text>
+                      <View style={styles.miniSparkRow}>
+                        {[6, 9, 7, 10, 8, 12, 11].map((h, i) => (
+                          <View key={i} style={[styles.miniBar, { height: h, backgroundColor: changePct >= 0 ? SUCCESS : DANGER }]} />
+                        ))}
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
           </View>
 
           {/* Open Positions */}
@@ -407,33 +418,50 @@ const TradingScreen = () => {
                 <Text style={styles.linkText}>{t.viewAll}</Text>
               </Pressable>
             </View>
-            {[
-              { rank: 1, user: 'Ava', pnl: +24.3 },
-              { rank: 2, user: 'Liam', pnl: +18.7 },
-              { rank: 3, user: 'Noah', pnl: +15.2 },
-            ].map((u, idx) => (
-              <View key={idx} style={styles.leaderRow}>
-                <Text style={styles.leaderRank}>#{u.rank}</Text>
-                <Text style={styles.leaderName}>{u.user}</Text>
-                <Text style={[styles.leaderPnl, { color: SUCCESS }]}>+{u.pnl}%</Text>
+            {topLeaders.length === 0 ? (
+              <View style={styles.emptyPositions}>
+                <Text style={styles.emptyText}>{t.noLeaderboardData ?? 'No leaderboard data available'}</Text>
               </View>
-            ))}
+            ) : topLeaders.map((entry: any) => {
+              const u = entry.user || {};
+              const name = u.first_name
+                ? `${u.first_name} ${u.last_name ?? ''}`.trim()
+                : (u.username || 'Trader');
+              const pnl = Number(entry.total_profit_loss ?? 0);
+              const isPos = pnl >= 0;
+              return (
+                <View key={entry.rank ?? u.id ?? name} style={styles.leaderRow}>
+                  <Text style={styles.leaderRank}>#{entry.rank ?? '—'}</Text>
+                  <Text style={styles.leaderName}>{name}</Text>
+                  <Text style={[styles.leaderPnl, { color: isPos ? SUCCESS : DANGER }]}>
+                    {isPos ? '+' : ''}₹{Math.abs(pnl).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
 
           {/* Recent Activity */}
           <View style={[styles.card, { marginBottom: 20 }]}>
             <Text style={styles.sectionTitle}>{t.recentActivity}</Text>
-            {recentActivity.length > 0 ? recentActivity.map((a) => (
-              <View key={a.id} style={styles.activityRow}>
-                <View style={styles.activityIcon}>
-                  <Ionicons name={a.type === 'Buy' ? 'arrow-up' : 'arrow-down'} size={14} color={a.type === 'Buy' ? SUCCESS : DANGER} />
+            {recentActivity.length > 0 ? recentActivity.map((a) => {
+              const isBuy = a.type === 'BUY';
+              return (
+                <View key={a.id} style={styles.activityRow}>
+                  <View style={styles.activityIcon}>
+                    <Ionicons
+                      name={isBuy ? 'arrow-up' : 'arrow-down'}
+                      size={14}
+                      color={isBuy ? SUCCESS : DANGER}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.activityText}>{a.type} {a.qty} {a.s} @ ₹{(Number(a.price) || 0).toFixed(2)}</Text>
+                    {a.time ? <Text style={styles.activityTime}>{a.time}</Text> : null}
+                  </View>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.activityText}>{a.type} {a.qty} {a.s} @ ₹{(Number(a.price) || 0).toFixed(2)}</Text>
-                  <Text style={styles.activityTime}>{a.time}</Text>
-                </View>
-              </View>
-            )) : (
+              );
+            }) : (
               <View style={styles.emptyActivity}>
                 <Text style={styles.emptyText}>{t.noRecentActivity}</Text>
                 <Text style={styles.emptySubtext}>{t.startTradingToSee}</Text>

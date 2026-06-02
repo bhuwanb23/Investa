@@ -31,7 +31,8 @@ from api.sample.trading_sample_data import (
     create_stocks, create_portfolios, create_achievements,
     create_stock_prices, create_user_watchlists, create_portfolio_holdings,
     create_orders_and_trades, create_trading_performance, create_trading_sessions,
-    create_market_data, create_technical_indicators
+    create_market_data, create_technical_indicators,
+    create_stock_news, create_market_indices
 )
 from api.sample.notifications_sample_data import create_notifications
 from api.sample.quizzes_sample_data import create_quizzes_for_all_lessons
@@ -49,7 +50,7 @@ def reset_data():
             SecuritySettings, PrivacySettings, LearningProgress, UserProfile,
             Language, UserQuizAttempt, UserQuizAnswer, UserWatchlist,
             Order, Trade, TradingPerformance, TradingSession, MarketData,
-            TechnicalIndicator
+            TechnicalIndicator, StockNews, MarketIndex
         )
         
         # Quiz related
@@ -84,6 +85,8 @@ def reset_data():
         TradingPerformance.objects.all().delete()
         UserWatchlist.objects.all().delete()
         StockPrice.objects.all().delete()
+        StockNews.objects.all().delete()
+        MarketIndex.objects.all().delete()
         Stock.objects.all().delete()
         
         # User sessions and settings
@@ -198,6 +201,14 @@ def create_sample_data():
     # 23. Create technical indicators
     print("\n📈 Creating technical indicators...")
     technical_indicators = create_technical_indicators(stocks)
+
+    # 23b. Create stock news (PR 2)
+    print("\n📰 Creating stock news...")
+    stock_news = create_stock_news(stocks)
+
+    # 23c. Create market indices (PR 2)
+    print("\n📊 Creating market indices...")
+    market_indices = create_market_indices()
     
     # 24. Create user badge assignments
     print("\n🏅 Assigning badges to users...")

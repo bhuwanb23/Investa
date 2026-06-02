@@ -12,12 +12,52 @@ class Stock(models.Model):
     sector = models.CharField(max_length=100, blank=True)
     industry = models.CharField(max_length=100, blank=True)
     market_cap = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
+    description = models.TextField(blank=True)
+    founded = models.CharField(max_length=20, blank=True)
+    employees = models.CharField(max_length=30, blank=True)
+    headquarters = models.CharField(max_length=100, blank=True)
+    beta = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    avg_volume = models.BigIntegerField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return f"{self.symbol} - {self.name}"
+
+
+class StockNews(models.Model):
+    """Stock-specific news and announcements"""
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE, related_name='news')
+    title = models.CharField(max_length=300)
+    source = models.CharField(max_length=100)
+    summary = models.TextField(blank=True)
+    url = models.URLField(blank=True)
+    published_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-published_at']
+        verbose_name_plural = 'Stock news'
+
+    def __str__(self):
+        return f"{self.stock.symbol} - {self.title[:50]}"
+
+
+class MarketIndex(models.Model):
+    """Indian market indices (NIFTY 50, SENSEX, BANK NIFTY, etc.)"""
+    name = models.CharField(max_length=50, unique=True)
+    value = models.DecimalField(max_digits=12, decimal_places=2)
+    change_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    change_percentage = models.DecimalField(max_digits=6, decimal_places=2)
+    as_of = models.DateTimeField()
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return f"{self.name} - {self.value}"
 
 
 class StockPrice(models.Model):

@@ -7,7 +7,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from ..models import (
-    Stock, StockPrice, UserWatchlist, Portfolio, PortfolioHolding, 
+    Stock, StockPrice, StockNews, MarketIndex, UserWatchlist, Portfolio, PortfolioHolding,
     Order, Trade, TradingPerformance, TradingSession, MarketData,
     TechnicalIndicator, Achievement, UserAchievement, Notification
 )
@@ -15,9 +15,9 @@ from ..models import (
 def _create_notification(user, title, message, notif_type):
     """Helper to create notifications"""
     Notification.objects.create(
-        user=user, 
-        title=title, 
-        message=message, 
+        user=user,
+        title=title,
+        message=message,
         notification_type=notif_type
     )
 from ..serializers.trading import (
@@ -26,7 +26,8 @@ from ..serializers.trading import (
     OrderSerializer, OrderHistorySerializer, TradeSerializer,
     TradingPerformanceSerializer, TradingSessionSerializer,
     MarketDataSerializer, TechnicalIndicatorSerializer,
-    AchievementSerializer, UserAchievementSerializer, LeaderboardSerializer
+    AchievementSerializer, UserAchievementSerializer, LeaderboardSerializer,
+    StockNewsSerializer, MarketIndexSerializer, RecentTradeSerializer
 )
 
 
@@ -77,10 +78,28 @@ class StockViewSet(viewsets.ReadOnlyModelViewSet):
         stock = self.get_object()
         days = int(request.query_params.get('days', 30))
         start_date = timezone.now().date() - timedelta(days=days)
-        
+
         prices = stock.prices.filter(date__gte=start_date).order_by('date')
         serializer = StockPriceSerializer(prices, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['get'])
+    def news(self, request, pk=None):
+        """Get latest news for a specific stock"""
+        stock = self.get_object()
+        limit = int(request.query_params.get('limit', 10))
+        latest = stock.news.all()[:limit]
+        serializer = StockNewsSerializer(latest, many=True)
+        return Response({'results': serializer.data})
+
+    @action(detail=True, methods=['get'])
+    def recent_trades(self, request, pk=None):
+        """Get recent trades for a specific stock (across all users)"""
+        stock = self.get_object()
+        limit = int(request.query_params.get('limit', 5))
+        trades = stock.trades.select_related('user').order_by('-executed_at')[:limit]
+        serializer = RecentTradeSerializer(trades, many=True)
+        return Response({'results': serializer.data})
 
 
 class UserWatchlistViewSet(viewsets.ModelViewSet):
@@ -283,19 +302,28 @@ class OrderViewSet(viewsets.ModelViewSet):
     def order_history(self, request):
         """Get order history with filters"""
         queryset = self.get_queryset().select_related('stock')
-        
+
         # Apply filters
         status_filter = request.query_params.get('status')
         if status_filter:
             queryset = queryset.filter(status=status_filter)
-        
+
         side_filter = request.query_params.get('side')
         if side_filter:
             queryset = queryset.filter(side=side_filter)
-        
+
+        # Date range filters (ISO format: YYYY-MM-DD)
+        date_from = request.query_params.get('date_from')
+        if date_from:
+            queryset = queryset.filter(created_at__date__gte=date_from)
+
+        date_to = request.query_params.get('date_to')
+        if date_to:
+            queryset = queryset.filter(created_at__date__lte=date_to)
+
         # Order by most recent first
         queryset = queryset.order_by('-created_at')
-        
+
         serializer = OrderHistorySerializer(queryset, many=True)
         return Response(serializer.data)
     
@@ -395,26 +423,26 @@ class MarketDataViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for market data"""
     serializer_class = MarketDataSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def get_queryset(self):
         return MarketData.objects.all()
-    
+
     @action(detail=False, methods=['get'])
     def top_movers(self, request):
         """Get top gainers and losers"""
         top_gainers = self.get_queryset().order_by('-change_percentage')[:10]
         top_losers = self.get_queryset().order_by('change_percentage')[:10]
-        
+
         return Response({
             'top_gainers': MarketDataSerializer(top_gainers, many=True).data,
             'top_losers': MarketDataSerializer(top_losers, many=True).data
         })
-    
+
     @action(detail=False, methods=['get'])
     def market_summary(self, request):
         """Get overall market summary"""
         market_data = self.get_queryset()
-        
+
         summary = {
             'total_stocks': market_data.count(),
             'advancing': market_data.filter(change_percentage__gt=0).count(),
@@ -422,8 +450,21 @@ class MarketDataViewSet(viewsets.ReadOnlyModelViewSet):
             'unchanged': market_data.filter(change_percentage=0).count(),
             'total_volume': market_data.aggregate(total=Sum('volume'))['total'] or 0,
         }
-        
+
         return Response(summary)
+
+    @action(detail=False, methods=['get'])
+    def indices(self, request):
+        """Get Indian market indices (NIFTY 50, SENSEX, BANK NIFTY, etc.)"""
+        indices = MarketIndex.objects.all()
+        return Response(MarketIndexSerializer(indices, many=True).data)
+
+
+class MarketIndexViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for Indian market indices (NIFTY 50, SENSEX, BANK NIFTY)"""
+    queryset = MarketIndex.objects.all()
+    serializer_class = MarketIndexSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class AchievementViewSet(viewsets.ReadOnlyModelViewSet):

@@ -1,50 +1,52 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface EmptyStateProps {
-  icon?: string;
+  icon?: keyof typeof Ionicons.glyphMap;
   title: string;
-  message: string;
-  iconColor?: string;
-  iconSize?: number;
+  subtitle?: string;
+  style?: ViewStyle;
 }
 
+/**
+ * Reusable empty state placeholder.
+ * Use everywhere a list/feed has zero data.
+ */
 const EmptyState: React.FC<EmptyStateProps> = ({
-  icon = 'search-outline',
+  icon = 'folder-open-outline',
   title,
-  message,
-  iconColor = '#9CA3AF',
-  iconSize = 64,
+  subtitle,
+  style,
 }) => {
   return (
-    <View style={styles.container}>
-      <Ionicons name={icon as any} size={iconSize} color={iconColor} />
+    <View style={[styles.container, style]}>
+      <Ionicons name={icon} size={48} color="#9CA3AF" />
       <Text style={styles.title}>{title}</Text>
-      <Text style={styles.message}>{message}</Text>
+      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
+    justifyContent: 'center',
+    paddingVertical: 32,
+    paddingHorizontal: 16,
   },
   title: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#374151',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  message: {
     fontSize: 16,
+    fontWeight: '600',
     color: '#6B7280',
+    marginTop: 12,
+    marginBottom: 4,
     textAlign: 'center',
-    lineHeight: 24,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
   },
 });
 

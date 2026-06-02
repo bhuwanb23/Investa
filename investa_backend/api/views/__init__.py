@@ -8,7 +8,7 @@ from .learning import (
     CourseViewSet, LessonViewSet, UserLessonProgressViewSet,
     QuizViewSet, QuestionViewSet, AnswerViewSet, UserQuizAttemptViewSet
 )
-from .trading import TradingPerformanceViewSet
+from .trading import TradingPerformanceViewSet, MarketIndexViewSet
 from .notifications import NotificationViewSet
 from .progress import UserProgressViewSet
 from .auth import CustomAuthToken, UserRegistrationView, MeView, LogoutView
@@ -45,6 +45,7 @@ __all__ = [
     
     # Trading views
     'TradingPerformanceViewSet',
+    'MarketIndexViewSet',
     
     # Progress views
     'UserProgressViewSet',

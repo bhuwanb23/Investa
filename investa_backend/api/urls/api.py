@@ -4,7 +4,8 @@ from rest_framework.authtoken.views import obtain_auth_token
 from .. import views
 from ..views.trading import (
     StockViewSet, UserWatchlistViewSet, PortfolioViewSet, OrderViewSet,
-    TradeViewSet, TradingPerformanceViewSet, MarketDataViewSet, AchievementViewSet
+    TradeViewSet, TradingPerformanceViewSet, MarketDataViewSet, MarketIndexViewSet,
+    AchievementViewSet
 )
 from ..views.auth import PingView, ForgotPasswordView, ResetPasswordView
 
@@ -38,6 +39,7 @@ router.register(r'orders', OrderViewSet, basename='order')
 router.register(r'trades', TradeViewSet, basename='trade')
 router.register(r'trading-performance', TradingPerformanceViewSet, basename='trading')
 router.register(r'market-data', MarketDataViewSet, basename='market')
+router.register(r'market-indices', MarketIndexViewSet, basename='market-index')
 router.register(r'achievements', AchievementViewSet, basename='achievement')
 
 urlpatterns = [

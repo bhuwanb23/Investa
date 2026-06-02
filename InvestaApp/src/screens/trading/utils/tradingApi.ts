@@ -49,7 +49,7 @@ export const fetchPortfolioHoldings = async () => {
 };
 
 // Orders
-export const fetchOrderHistory = async (params?: { status?: string; side?: string }) => {
+export const fetchOrderHistory = async (params?: { status?: string; side?: string; date_from?: string; date_to?: string }) => {
 	const res = await api.get('orders/order_history/', { params });
 	return Array.isArray(res.data) ? res.data : (res.data?.results ?? []);
 };
@@ -105,4 +105,25 @@ export const fetchMarketSummary = async () => {
 	return res.data;
 };
 
+export const fetchMarketIndices = async () => {
+	const res = await api.get('market-data/indices/');
+	return Array.isArray(res.data) ? res.data : (res.data?.results ?? []);
+};
+
+// Stock news + recent trades
+export const fetchStockNews = async (stockId: number) => {
+	const res = await api.get(`stocks/${stockId}/news/`);
+	return res.data?.results ?? [];
+};
+
+export const fetchStockRecentTrades = async (stockId: number, limit = 5) => {
+	const res = await api.get(`stocks/${stockId}/recent_trades/`, { params: { limit } });
+	return res.data?.results ?? [];
+};
+
+// Watchlist
+export const removeFromWatchlist = async (watchlistId: number) => {
+	const res = await api.delete(`watchlist/${watchlistId}/`);
+	return res.data;
+};
 

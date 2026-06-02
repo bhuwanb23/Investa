@@ -7,7 +7,7 @@ from .learning import (
     Quiz, Question, Answer, UserQuizAttempt, UserQuizAnswer
 )
 from .trading import (
-    Stock, StockPrice, UserWatchlist, Portfolio, PortfolioHolding,
+    Stock, StockPrice, StockNews, MarketIndex, UserWatchlist, Portfolio, PortfolioHolding,
     Order, Trade, TradingPerformance, TradingSession, MarketData,
     TechnicalIndicator, Achievement, UserAchievement
 )
@@ -30,7 +30,7 @@ __all__ = [
     'Quiz', 'Question', 'Answer', 'UserQuizAttempt', 'UserQuizAnswer',
     
     # Trading models
-    'Stock', 'StockPrice', 'UserWatchlist', 'Portfolio', 'PortfolioHolding',
+    'Stock', 'StockPrice', 'StockNews', 'MarketIndex', 'UserWatchlist', 'Portfolio', 'PortfolioHolding',
     'Order', 'Trade', 'TradingPerformance', 'TradingSession', 'MarketData',
     'TechnicalIndicator', 'Achievement', 'UserAchievement',
     

@@ -15,7 +15,13 @@ STOCK_DATA = [
         'exchange': 'NSE',
         'sector': 'Oil & Gas',
         'industry': 'Refineries',
-        'market_cap': Decimal('15000000000000')  # 15 trillion market cap
+        'market_cap': Decimal('15000000000000'),  # 15 trillion market cap
+        'description': "Reliance Industries Limited is India's largest private sector company, with businesses spanning oil & gas exploration, petroleum refining, petrochemicals, retail, digital services, and green energy. The conglomerate serves over 250 million customers across its retail and digital platforms.",
+        'founded': '1966',
+        'employees': '347,000',
+        'headquarters': 'Mumbai, Maharashtra',
+        'beta': Decimal('0.85'),
+        'avg_volume': 7500000,
     },
     {
         'symbol': 'TCS',
@@ -23,7 +29,13 @@ STOCK_DATA = [
         'exchange': 'NSE',
         'sector': 'Technology',
         'industry': 'IT Services',
-        'market_cap': Decimal('12000000000000')  # 12 trillion market cap
+        'market_cap': Decimal('12000000000000'),  # 12 trillion market cap
+        'description': "Tata Consultancy Services is a global leader in IT services, consulting, and business solutions. With operations in 55+ countries, TCS partners with leading enterprises to deliver digital transformation, cloud, AI, and cognitive computing services across industries.",
+        'founded': '1968',
+        'employees': '615,000',
+        'headquarters': 'Mumbai, Maharashtra',
+        'beta': Decimal('0.72'),
+        'avg_volume': 1800000,
     },
     {
         'symbol': 'HDFCBANK',
@@ -31,7 +43,13 @@ STOCK_DATA = [
         'exchange': 'NSE',
         'sector': 'Banking',
         'industry': 'Private Banks',
-        'market_cap': Decimal('10000000000000')  # 10 trillion market cap
+        'market_cap': Decimal('10000000000000'),  # 10 trillion market cap
+        'description': "HDFC Bank is India's largest private sector bank by assets, offering a wide range of banking and financial services to retail and wholesale customers. The bank has a network of over 8,000 branches across India and a digital-first approach to banking.",
+        'founded': '1994',
+        'employees': '177,000',
+        'headquarters': 'Mumbai, Maharashtra',
+        'beta': Decimal('0.91'),
+        'avg_volume': 8500000,
     },
     {
         'symbol': 'INFY',
@@ -39,7 +57,13 @@ STOCK_DATA = [
         'exchange': 'NSE',
         'sector': 'Technology',
         'industry': 'IT Services',
-        'market_cap': Decimal('8000000000000')   # 8 trillion market cap
+        'market_cap': Decimal('8000000000000'),   # 8 trillion market cap
+        'description': "Infosys is a global digital services and consulting company that enables clients across 50+ countries to navigate their digital transformation. The firm specializes in cloud, data, AI, and enterprise modernization services for Fortune 500 clients.",
+        'founded': '1981',
+        'employees': '343,000',
+        'headquarters': 'Bengaluru, Karnataka',
+        'beta': Decimal('0.88'),
+        'avg_volume': 6200000,
     },
     {
         'symbol': 'ICICIBANK',
@@ -47,7 +71,13 @@ STOCK_DATA = [
         'exchange': 'NSE',
         'sector': 'Banking',
         'industry': 'Private Banks',
-        'market_cap': Decimal('7000000000000')   # 7 trillion market cap
+        'market_cap': Decimal('7000000000000'),   # 7 trillion market cap
+        'description': "ICICI Bank is one of India's leading private sector banks, offering diversified financial services including retail banking, corporate banking, treasury, and digital banking. The bank serves over 70 million customers through its digital and physical channels.",
+        'founded': '1994',
+        'employees': '130,000',
+        'headquarters': 'Mumbai, Maharashtra',
+        'beta': Decimal('0.95'),
+        'avg_volume': 9100000,
     }
 ]
 
@@ -89,19 +119,29 @@ ACHIEVEMENT_DATA = [
 ]
 
 def create_stocks():
-    """Create stock objects"""
+    """Create stock objects, updating existing with new fields"""
     from api.models import Stock
-    
+
     stocks = []
+    # Fields that should be refreshed on existing stocks (PR 2 fundamentals)
+    update_fields = ['description', 'founded', 'employees', 'headquarters', 'beta', 'avg_volume']
     for stock_data in STOCK_DATA:
         stock, created = Stock.objects.get_or_create(
             symbol=stock_data['symbol'],
             defaults=stock_data
         )
+        if not created:
+            # Update existing stock with new PR 2 fields
+            for f in update_fields:
+                if f in stock_data and stock_data[f] is not None:
+                    setattr(stock, f, stock_data[f])
+            stock.save()
         stocks.append(stock)
         if created:
             print(f"✅ Created stock: {stock.symbol} - {stock.name}")
-    
+        else:
+            print(f"🔄 Updated stock: {stock.symbol} with new fundamentals")
+
     return stocks
 
 def create_portfolios(users):
@@ -455,17 +495,17 @@ def create_market_data(stocks):
 def create_technical_indicators(stocks):
     """Create technical indicators"""
     from api.models import TechnicalIndicator
-    
+
     indicators_created = 0
     created_indicators = []
     indicator_names = ['RSI', 'MACD', 'Moving Average', 'Bollinger Bands', 'Stochastic']
-    
+
     for stock in stocks:
         for indicator_name in indicator_names:
             value = Decimal('50.00') + (Decimal(str(hash(stock.symbol) % 50)))
             signal = 'Bullish' if value > 50 else 'Bearish' if value < 30 else 'Neutral'
             period = 14 if indicator_name == 'RSI' else 20 if indicator_name == 'Moving Average' else None
-            
+
             indicator, created = TechnicalIndicator.objects.get_or_create(
                 stock=stock,
                 indicator_name=indicator_name,
@@ -475,11 +515,233 @@ def create_technical_indicators(stocks):
                     'period': period
                 }
             )
-            
+
             if created:
                 indicators_created += 1
                 created_indicators.append(indicator)
                 print(f"   ✅ Created {indicator_name} indicator for: {stock.symbol}")
-    
+
     print(f"   📊 Created {indicators_created} technical indicators")
     return created_indicators
+
+
+# Stock news sample data (per symbol, 3-4 items each)
+STOCK_NEWS_DATA = {
+    'RELIANCE': [
+        {
+            'title': 'Reliance Jio announces 5G rollout in 50 more cities, takes total coverage to 85% of India',
+            'source': 'Economic Times',
+            'summary': 'Reliance Jio has expanded its 5G network to 50 additional cities, bringing standalone 5G coverage to 85% of the country. The telecom arm plans to complete pan-India coverage by end of FY25.',
+            'url': 'https://economictimes.indiatimes.com/industry/telecom',
+            'days_ago': 1,
+        },
+        {
+            'title': 'Reliance Retail Q3 net profit jumps 18% YoY to ₹2,700 crore on festive demand',
+            'source': 'Moneycontrol',
+            'summary': 'Reliance Retail Ventures reported strong Q3 earnings, with net profit rising 18% year-on-year driven by festive season demand and store network expansion to 18,800 outlets.',
+            'url': 'https://www.moneycontrol.com/news/business/earnings/',
+            'days_ago': 3,
+        },
+        {
+            'title': 'RIL AGM 2025: Mukesh Ambani to announce new energy giga-factories, Jio financial services roadmap',
+            'source': 'Business Standard',
+            'summary': 'Reliance Industries is expected to outline its new energy giga-factory timeline, Jio Financial Services roadmap, and retail IPO plans at the upcoming Annual General Meeting.',
+            'url': 'https://www.business-standard.com/companies/news',
+            'days_ago': 5,
+        },
+        {
+            'title': 'Reliance-BP sanction second deepwater gas project in KG-D6 block at $1.6B',
+            'source': 'Reuters',
+            'summary': 'Reliance Industries and BP have approved a second deepwater gas project in the KG-D6 block, with an investment of $1.6 billion. First gas is expected in 2026.',
+            'url': 'https://www.reuters.com/business/energy',
+            'days_ago': 7,
+        },
+    ],
+    'TCS': [
+        {
+            'title': 'TCS bags $1B multi-year deal from UK-based insurance major Aviva',
+            'source': 'Mint',
+            'summary': 'Tata Consultancy Services has won a $1 billion, 10-year contract from British insurer Aviva to manage its cloud transformation and digital infrastructure.',
+            'url': 'https://www.livemint.com/companies/tcs',
+            'days_ago': 1,
+        },
+        {
+            'title': 'TCS Q3 net profit rises 8% YoY to ₹11,735 crore; declares Rs 18 interim dividend',
+            'source': 'Moneycontrol',
+            'summary': 'TCS reported a net profit of ₹11,735 crore for Q3 FY25, up 8% year-on-year. The IT major declared an interim dividend of ₹18 per share. Revenue grew 5.6% YoY in constant currency terms.',
+            'url': 'https://www.moneycontrol.com/news/business/earnings/',
+            'days_ago': 4,
+        },
+        {
+            'title': 'TCS launches AI WisdomNext platform for enterprise GenAI adoption',
+            'source': 'Economic Times',
+            'summary': 'TCS has launched TCS AI WisdomNext, a platform that brings together multiple GenAI models, tools, and frameworks to help enterprises accelerate AI adoption at scale.',
+            'url': 'https://economictimes.indiatimes.com/tech/software',
+            'days_ago': 9,
+        },
+    ],
+    'HDFCBANK': [
+        {
+            'title': 'HDFC Bank Q3 net profit jumps 33% YoY to ₹16,372 crore on strong loan growth',
+            'source': 'Business Standard',
+            'summary': "HDFC Bank's net profit for Q3 FY25 rose 33% year-on-year to ₹16,372 crore, beating analyst estimates. Net interest income grew 7% as the bank's loan book expanded after the HDFC Ltd merger.",
+            'url': 'https://www.business-standard.com/companies/banking',
+            'days_ago': 2,
+        },
+        {
+            'title': 'HDFC Bank raises FD interest rates by up to 20 bps across tenors effective today',
+            'source': 'Economic Times',
+            'summary': 'HDFC Bank has increased fixed deposit interest rates by up to 20 basis points across various tenors with effect from today. Senior citizens will earn 50 bps extra.',
+            'url': 'https://economictimes.indiatimes.com/industry/banking/finance/banking',
+            'days_ago': 6,
+        },
+        {
+            'title': 'HDFC Bank gets RBI nod to raise ₹50,000 crore via infra bond issuance in FY26',
+            'source': 'Mint',
+            'summary': 'The Reserve Bank of India has approved HDFC Bank\'s plan to raise up to ₹50,000 crore through infrastructure bonds in FY26, supporting its long-term loan book growth.',
+            'url': 'https://www.livemint.com/industry/banking',
+            'days_ago': 10,
+        },
+    ],
+    'INFY': [
+        {
+            'title': 'Infosys partners with Nvidia to accelerate enterprise GenAI adoption globally',
+            'source': 'Reuters',
+            'summary': "Infosys has expanded its partnership with Nvidia to build generative AI solutions for enterprises. The collaboration will leverage Nvidia's AI Enterprise software stack with Infosys Topaz platform.",
+            'url': 'https://www.reuters.com/technology',
+            'days_ago': 2,
+        },
+        {
+            'title': 'Infosys Q3 net profit rises 11% YoY to ₹6,806 crore, raises FY25 revenue guidance',
+            'source': 'Moneycontrol',
+            'summary': "Infosys posted Q3 net profit of ₹6,806 crore, up 11% year-on-year. The IT major raised its FY25 revenue growth guidance to 3.75-4.5% in constant currency, citing strong deal momentum.",
+            'url': 'https://www.moneycontrol.com/news/business/earnings/',
+            'days_ago': 5,
+        },
+        {
+            'title': 'Infosys wins multi-year deal with US financial services firm Liberty Mutual',
+            'source': 'Economic Times',
+            'summary': 'Infosys has secured a multi-year digital transformation deal with US-based Liberty Mutual Insurance worth over $400 million, focusing on cloud migration and AI-led customer experience.',
+            'url': 'https://economictimes.indiatimes.com/tech/it',
+            'days_ago': 8,
+        },
+    ],
+    'ICICIBANK': [
+        {
+            'title': 'ICICI Bank Q3 net profit up 23% YoY to ₹11,792 crore on robust NII growth',
+            'source': 'Business Standard',
+            'summary': "ICICI Bank reported a 23% year-on-year jump in Q3 net profit to ₹11,792 crore, driven by strong net interest income growth and stable asset quality. GNPA fell to 2.16%.",
+            'url': 'https://www.business-standard.com/companies/banking',
+            'days_ago': 3,
+        },
+        {
+            'title': 'ICICI Bank raises ₹3,500 crore via infrastructure bonds at 7.67% coupon',
+            'source': 'Mint',
+            'summary': 'ICICI Bank has raised ₹3,500 crore through infrastructure bonds at a coupon rate of 7.67%. The bond issue received strong response from insurance companies and pension funds.',
+            'url': 'https://www.livemint.com/industry/banking',
+            'days_ago': 7,
+        },
+        {
+            'title': "ICICI Bank to deploy 50,000-strong salesforce for cross-selling wealth, insurance products",
+            'source': 'Economic Times',
+            'summary': "ICICI Bank plans to deploy a 50,000-strong sales team across branches to cross-sell wealth management and insurance products as it targets a 25% growth in non-interest income.",
+            'url': 'https://economictimes.indiatimes.com/industry/banking/finance/banking',
+            'days_ago': 11,
+        },
+    ],
+}
+
+
+# Indian market index sample data
+MARKET_INDEX_DATA = [
+    {
+        'name': 'NIFTY 50',
+        'value': Decimal('19674.25'),
+        'change_amount': Decimal('124.75'),
+        'change_percentage': Decimal('0.64'),
+    },
+    {
+        'name': 'SENSEX',
+        'value': Decimal('65982.48'),
+        'change_amount': Decimal('456.32'),
+        'change_percentage': Decimal('0.70'),
+    },
+    {
+        'name': 'BANK NIFTY',
+        'value': Decimal('44123.67'),
+        'change_amount': Decimal('-89.45'),
+        'change_percentage': Decimal('-0.20'),
+    },
+    {
+        'name': 'NIFTY IT',
+        'value': Decimal('33456.80'),
+        'change_amount': Decimal('178.45'),
+        'change_percentage': Decimal('0.54'),
+    },
+    {
+        'name': 'NIFTY AUTO',
+        'value': Decimal('18924.15'),
+        'change_amount': Decimal('-23.40'),
+        'change_percentage': Decimal('-0.12'),
+    },
+]
+
+
+def create_stock_news(stocks):
+    """Create stock-specific news items"""
+    from api.models import StockNews
+    from django.utils import timezone
+
+    news_created = 0
+    created_news = []
+    now = timezone.now()
+
+    for stock in stocks:
+        news_items = STOCK_NEWS_DATA.get(stock.symbol, [])
+        for item in news_items:
+            published_at = now - timedelta(days=item.get('days_ago', 1))
+            news_obj, created = StockNews.objects.get_or_create(
+                stock=stock,
+                title=item['title'],
+                defaults={
+                    'source': item['source'],
+                    'summary': item.get('summary', ''),
+                    'url': item.get('url', ''),
+                    'published_at': published_at,
+                }
+            )
+            if created:
+                news_created += 1
+                created_news.append(news_obj)
+                print(f"   📰 News for {stock.symbol}: {item['title'][:60]}...")
+
+    print(f"   📊 Created {news_created} stock news items")
+    return created_news
+
+
+def create_market_indices():
+    """Create Indian market index records"""
+    from api.models import MarketIndex
+    from django.utils import timezone
+
+    indices_created = 0
+    created_indices = []
+    now = timezone.now()
+
+    for index_data in MARKET_INDEX_DATA:
+        index, created = MarketIndex.objects.get_or_create(
+            name=index_data['name'],
+            defaults={
+                'value': index_data['value'],
+                'change_amount': index_data['change_amount'],
+                'change_percentage': index_data['change_percentage'],
+                'as_of': now,
+            }
+        )
+        if created:
+            indices_created += 1
+            created_indices.append(index)
+            print(f"   📈 Created index: {index.name} = {index.value}")
+
+    print(f"   📊 Created {indices_created} market indices")
+    return created_indices

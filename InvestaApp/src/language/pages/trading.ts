@@ -199,6 +199,19 @@ export const tradingTranslations = {
     week: 'Week',
     month: 'Month',
     year: 'Year',
+
+    // Empty states (PR 2)
+    noOrdersYet: 'No orders yet',
+    noNewsYet: 'No news available for this stock',
+    noTradesYet: 'No recent trades',
+    noFundamentals: 'No fundamental data available',
+    noCompanyInfo: 'No company information available yet',
+    stockNotFound: 'Stock not found',
+    noIndicatorsAvailable: 'No technical indicators available',
+    noIndicesAvailable: 'No market data available',
+    noMoversAvailable: 'No top movers data available',
+    noLeaderboardData: 'No leaderboard data available',
+    headquarters: 'Headquarters',
   },
   hi: {
     // Main Trading Screen
@@ -400,6 +413,19 @@ export const tradingTranslations = {
     week: 'सप्ताह',
     month: 'महीना',
     year: 'साल',
+
+    // Empty states (PR 2)
+    noOrdersYet: 'अभी तक कोई ऑर्डर नहीं',
+    noNewsYet: 'इस स्टॉक के लिए कोई समाचार उपलब्ध नहीं',
+    noTradesYet: 'हाल के कोई ट्रेड नहीं',
+    noFundamentals: 'कोई मौलिक डेटा उपलब्ध नहीं',
+    noCompanyInfo: 'कंपनी की जानकारी अभी उपलब्ध नहीं',
+    stockNotFound: 'स्टॉक नहीं मिला',
+    noIndicatorsAvailable: 'कोई तकनीकी संकेतक उपलब्ध नहीं',
+    noIndicesAvailable: 'कोई बाज़ार डेटा उपलब्ध नहीं',
+    noMoversAvailable: 'कोई टॉप मूवर्स डेटा उपलब्ध नहीं',
+    noLeaderboardData: 'कोई लीडरबोर्ड डेटा उपलब्ध नहीं',
+    headquarters: 'मुख्यालय',
   },
   ta: {
     // Main Trading Screen
@@ -601,6 +627,19 @@ export const tradingTranslations = {
     week: 'வாரம்',
     month: 'மாதம்',
     year: 'ஆண்டு',
+
+    // Empty states (PR 2)
+    noOrdersYet: 'இன்னும் ஆர்டர்கள் இல்லை',
+    noNewsYet: 'இந்த பங்குக்கு செய்திகள் இல்லை',
+    noTradesYet: 'சமீபத்திய வர்த்தகங்கள் இல்லை',
+    noFundamentals: 'அடிப்படை தரவு இல்லை',
+    noCompanyInfo: 'நிறுவன தகவல் இன்னும் இல்லை',
+    stockNotFound: 'பங்கு கிடைக்கவில்லை',
+    noIndicatorsAvailable: 'தொழில்நுட்ப குறிகாட்டிகள் இல்லை',
+    noIndicesAvailable: 'சந்தை தரவு இல்லை',
+    noMoversAvailable: 'டாப் மூவர்ஸ் தரவு இல்லை',
+    noLeaderboardData: 'லீடர்போர்டு தரவு இல்லை',
+    headquarters: 'தலைமையகம்',
   },
   te: {
     // Main Trading Screen
@@ -802,5 +841,18 @@ export const tradingTranslations = {
     week: 'వారం',
     month: 'నెల',
     year: 'సంవత్సరం',
+
+    // Empty states (PR 2)
+    noOrdersYet: 'ఇంకా ఆర్డర్లు లేవు',
+    noNewsYet: 'ఈ స్టాక్ కోసం వార్తలు అందుబాటులో లేవు',
+    noTradesYet: 'ఇటీవలి ట్రేడ్లు లేవు',
+    noFundamentals: 'ప్రాథమిక డేటా అందుబాటులో లేదు',
+    noCompanyInfo: 'కంపెనీ సమాచారం ఇంకా అందుబాటులో లేదు',
+    stockNotFound: 'స్టాక్ దొరకలేదు',
+    noIndicatorsAvailable: 'సాంకేతిక సూచికలు అందుబాటులో లేవు',
+    noIndicesAvailable: 'మార్కెట్ డేటా అందుబాటులో లేదు',
+    noMoversAvailable: 'టాప్ మూవర్స్ డేటా అందుబాటులో లేదు',
+    noLeaderboardData: 'లీడర్‌బోర్డ్ డేటా అందుబాటులో లేదు',
+    headquarters: 'ప్రధాన కార్యాలయం',
   },
 };

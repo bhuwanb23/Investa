@@ -20,7 +20,8 @@ from .trading import (
     OrderSerializer, OrderHistorySerializer, TradeSerializer,
     TradingPerformanceSerializer, TradingSessionSerializer,
     MarketDataSerializer, TechnicalIndicatorSerializer,
-    AchievementSerializer, UserAchievementSerializer, LeaderboardSerializer
+    AchievementSerializer, UserAchievementSerializer, LeaderboardSerializer,
+    StockNewsSerializer, MarketIndexSerializer, RecentTradeSerializer
 )
 from .notifications import NotificationSerializer
 from .progress import UserProgressSerializer, UserProgressSummarySerializer, ProgressStatsSerializer
@@ -52,6 +53,7 @@ __all__ = [
     'TradingPerformanceSerializer', 'TradingSessionSerializer',
     'MarketDataSerializer', 'TechnicalIndicatorSerializer',
     'AchievementSerializer', 'UserAchievementSerializer', 'LeaderboardSerializer',
+    'StockNewsSerializer', 'MarketIndexSerializer', 'RecentTradeSerializer',
     
     # Notification serializers
     'NotificationSerializer',

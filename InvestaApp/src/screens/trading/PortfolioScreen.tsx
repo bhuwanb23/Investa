@@ -11,14 +11,15 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { 
-  fetchMyPortfolio, 
-  fetchPortfolioHoldings, 
+import {
+  fetchMyPortfolio,
+  fetchPortfolioHoldings,
   fetchOrderHistory,
-  fetchStocks 
+  fetchStocks
 } from './utils/tradingApi';
 import MainHeader from '../../components/MainHeader';
 import { useTranslation } from '../../language';
+import { colorForSector } from './constants/palette';
 
 // Define navigation types
 type RootStackParamList = {
@@ -203,13 +204,11 @@ const PortfolioScreen = () => {
     
     return (
       <View style={styles.header}>
-        <MainHeader 
-          title={t.portfolio} 
-          iconName="wallet" 
-          showBackButton 
+        <MainHeader
+          title={t.portfolio}
+          iconName="wallet"
+          showBackButton
           onBackPress={() => navigation.navigate('Trading')}
-          rightIcon="refresh"
-          onRightPress={refreshPortfolio}
         />
         
         <View style={styles.portfolioSummary}>
@@ -343,12 +342,12 @@ const PortfolioScreen = () => {
       return acc;
     }, {});
     
-    const totalValue = Object.values(sectorAllocation).reduce((sum: any, sector: any) => sum + sector.value, 0);
-    const sectors = Object.entries(sectorAllocation).map(([sector, data]: [string, any]) => ({
+    const totalValue: number = Object.values(sectorAllocation).reduce((sum: number, sector: any) => sum + Number(sector.value ?? 0), 0);
+    const sectors = Object.entries(sectorAllocation).map(([sector, data]: [string, any], idx) => ({
       sector,
       percentage: totalValue > 0 ? Math.round((data.value / totalValue) * 100) : 0,
       count: data.count,
-      color: `hsl(${Math.random() * 360}, 70%, 60%)`
+      color: colorForSector(sector, idx)
     })).sort((a, b) => b.percentage - a.percentage);
     
     return (
@@ -359,8 +358,17 @@ const PortfolioScreen = () => {
         </View>
         <View style={styles.chartContent}>
           <View style={styles.pieChart}>
-            <Ionicons name="pie-chart-outline" size={48} color="#6B7280" />
-            <Text style={styles.pieChartText}>{t.chart}</Text>
+            {sectors.length > 0 ? (
+              <>
+                <Text style={styles.pieChartPercent}>{sectors[0]?.percentage ?? 0}%</Text>
+                <Text style={styles.pieChartText}>{sectors[0]?.sector ?? '—'}</Text>
+              </>
+            ) : (
+              <>
+                <Ionicons name="pie-chart-outline" size={32} color="#9CA3AF" />
+                <Text style={styles.pieChartText}>{t.noHoldingsYet}</Text>
+              </>
+            )}
           </View>
           <View style={styles.sectorList}>
             {sectors.length > 0 ? sectors.map((sector, index) => (
@@ -687,9 +695,14 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   pieChartText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
     marginTop: 4,
+  },
+  pieChartPercent: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#111827',
   },
   sectorList: {
     flex: 1,

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,181 +8,99 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import EmptyState from '../../../components/EmptyState';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 interface ChartSectionProps {
   selectedTimeframe: string;
   onTimeframeChange: (timeframe: string) => void;
-  selectedFilter?: string;
-  onFilterChange?: (filter: string) => void;
-  filterOptions?: string[];
   priceHistory?: any[];
 }
 
 const ChartSection: React.FC<ChartSectionProps> = ({
   selectedTimeframe,
   onTimeframeChange,
-  selectedFilter = 'All',
-  onFilterChange,
-  filterOptions = ['All', 'Bullish', 'Bearish', 'Volatile', 'This Week', 'This Month', 'This Year'],
   priceHistory = [],
 }) => {
   const timeframes = ['1D', '1W', '1M', '1Y'];
-  const [zoomLevel, setZoomLevel] = useState(1);
-  const [panOffset, setPanOffset] = useState(0);
-  const [isZoomed, setIsZoomed] = useState(false);
-  const scrollViewRef = useRef<ScrollView>(null);
 
-  // Generate candlestick data based on priceHistory if available, otherwise mock
-  const generateCandlestickData = () => {
-    if (priceHistory && priceHistory.length > 0) {
-      return priceHistory.map((item, i) => ({
-        open: item.open_price || item.price,
-        high: item.high_price || item.price * 1.01,
-        low: item.low_price || item.price * 0.99,
-        close: item.close_price || item.price,
-        volume: item.volume || 0,
-        timestamp: i,
-        isGreen: (item.close_price || item.price) >= (item.open_price || item.price),
-        date: new Date(item.timestamp || item.date),
-      }));
-    }
-
-    const data = [];
-    let basePoints = selectedTimeframe === '1D' ? 24 : 
-                     selectedTimeframe === '1W' ? 7 : 
-                     selectedTimeframe === '1M' ? 30 : 12;
-    
-    // Adjust data points based on filter
-    if (selectedFilter === 'This Week') {
-      basePoints = 7;
-    } else if (selectedFilter === 'This Month') {
-      basePoints = 30;
-    } else if (selectedFilter === 'This Year') {
-      basePoints = 365;
-    }
-    
-    // Apply zoom level to show more/less data
-    const actualPoints = Math.floor(basePoints * zoomLevel);
-    
-    let basePrice = 2456.80;
-    let trend = 0; // For creating trends based on filter
-    
-    // Set trend based on filter
-    if (selectedFilter === 'Bullish') {
-      trend = 1;
-    } else if (selectedFilter === 'Bearish') {
-      trend = -1;
-    } else if (selectedFilter === 'Volatile') {
-      trend = 0.5;
-    }
-    
-    for (let i = 0; i < actualPoints; i++) {
-      const variation = (Math.random() - 0.5) * 50;
-      const trendInfluence = trend * (i / actualPoints) * 100; // Gradual trend influence
-      const open = basePrice;
-      const close = basePrice + variation + trendInfluence;
-      const high = Math.max(open, close) + Math.random() * 20;
-      const low = Math.min(open, close) - Math.random() * 20;
-      const volume = Math.random() * 1000000;
-      
-      data.push({
+  // Map backend priceHistory to candlestick data points
+  const candlestickData = useMemo(() => {
+    if (!priceHistory || priceHistory.length === 0) return [];
+    return priceHistory.map((item: any, i: number) => {
+      const open = Number(item.open_price ?? item.price ?? 0);
+      const close = Number(item.close_price ?? item.price ?? 0);
+      const high = Number(item.high_price ?? Math.max(open, close));
+      const low = Number(item.low_price ?? Math.min(open, close));
+      return {
         open,
         high,
         low,
         close,
-        volume,
-        timestamp: i,
+        volume: Number(item.volume ?? 0),
+        date: item.date ? new Date(item.date) : new Date(),
         isGreen: close >= open,
-        date: new Date(Date.now() - (actualPoints - i) * 24 * 60 * 60 * 1000), // Backward date calculation
-      });
-      
-      basePrice = close;
-    }
-    return data;
-  };
+        index: i,
+      };
+    }).filter((c: any) => c.open > 0 || c.close > 0);
+  }, [priceHistory]);
 
-  const candlestickData = generateCandlestickData();
+  // Compute Y-axis range from real data
+  const yAxis = useMemo(() => {
+    if (candlestickData.length === 0) return { min: 0, max: 0, step: 0 };
+    const lows = candlestickData.map((c: any) => c.low);
+    const highs = candlestickData.map((c: any) => c.high);
+    const min = Math.min(...lows);
+    const max = Math.max(...highs);
+    const range = max - min;
+    const step = range / 5; // 5 grid lines
+    return { min, max, step };
+  }, [candlestickData]);
 
-  const handleZoomIn = () => {
-    const newZoom = Math.min(zoomLevel * 1.5, 5);
-    setZoomLevel(newZoom);
-    setIsZoomed(newZoom > 1);
-  };
-
-  const handleZoomOut = () => {
-    const newZoom = Math.max(zoomLevel / 1.5, 0.5);
-    setZoomLevel(newZoom);
-    setIsZoomed(newZoom > 1);
-  };
-
-  const handleReset = () => {
-    setZoomLevel(1);
-    setPanOffset(0);
-    setIsZoomed(false);
-    scrollViewRef.current?.scrollTo({ x: 0, animated: true });
-  };
+  const currentCandle = candlestickData[candlestickData.length - 1];
+  const firstCandle = candlestickData[0];
+  const totalChange = currentCandle && firstCandle
+    ? (currentCandle.close - firstCandle.open).toFixed(2)
+    : '0.00';
+  const totalChangePct = currentCandle && firstCandle && firstCandle.open > 0
+    ? (((currentCandle.close - firstCandle.open) / firstCandle.open) * 100).toFixed(2)
+    : '0.00';
 
   const renderCandlestick = (candle: any, index: number) => {
     const isGreen = candle.isGreen;
-    const bodyHeight = Math.abs(candle.close - candle.open) * 2;
+    const bodyHeight = Math.max(Math.abs(candle.close - candle.open) * 1.5, 2);
     const bodyTop = Math.min(candle.open, candle.close);
     const wickTop = candle.high;
     const wickBottom = candle.low;
-    
-    const candleWidth = Math.max((width - 120) / candlestickData.length, 8);
-    const xPosition = 60 + (index * candleWidth) + panOffset;
-    
+
+    const candleWidth = Math.max((width - 80) / Math.max(candlestickData.length, 1), 6);
+    const xPosition = index * candleWidth;
+    const yRange = yAxis.max - yAxis.min || 1;
+
     return (
       <View key={index} style={[styles.candlestickContainer, { left: xPosition, width: candleWidth - 2 }]}>
         {/* Wick */}
         <View style={[
           styles.candlestickWick,
           {
-            height: (wickTop - wickBottom) * 2,
+            height: ((wickTop - wickBottom) / yRange) * 240,
             backgroundColor: isGreen ? '#10B981' : '#EF4444',
-            top: (wickBottom - Math.min(...candlestickData.map(c => c.low))) * 2,
+            top: ((yAxis.max - wickTop) / yRange) * 240,
           }
         ]} />
-        
+
         {/* Body */}
         <View style={[
           styles.candlestickBody,
           {
             height: Math.max(bodyHeight, 2),
             backgroundColor: isGreen ? '#10B981' : '#EF4444',
-            top: (bodyTop - Math.min(...candlestickData.map(c => c.low))) * 2,
+            top: ((yAxis.max - bodyTop) / yRange) * 240,
           }
         ]} />
-        
-        {/* Date label for zoomed view */}
-        {isZoomed && index % Math.max(1, Math.floor(candlestickData.length / 10)) === 0 && (
-          <Text style={styles.dateLabel}>
-            {candle.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-          </Text>
-        )}
       </View>
     );
-  };
-
-  const getFilterDescription = () => {
-    switch (selectedFilter) {
-      case 'Bullish':
-        return '📈 Bullish Trend';
-      case 'Bearish':
-        return '📉 Bearish Trend';
-      case 'Volatile':
-        return '📊 High Volatility';
-      case 'This Week':
-        return '📅 This Week';
-      case 'This Month':
-        return '📅 This Month';
-      case 'This Year':
-        return '📅 This Year';
-      default:
-        return '📊 All Data';
-    }
   };
 
   return (
@@ -209,124 +127,82 @@ const ChartSection: React.FC<ChartSectionProps> = ({
             </TouchableOpacity>
           ))}
         </View>
-        
-        {/* Zoom Controls */}
-        <View style={styles.zoomControls}>
-          <TouchableOpacity style={styles.zoomButton} onPress={handleZoomOut}>
-            <Ionicons name="remove" size={16} color="#6B7280" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.zoomButton} onPress={handleZoomIn}>
-            <Ionicons name="add" size={16} color="#6B7280" />
-          </TouchableOpacity>
-          {isZoomed && (
-            <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-              <Ionicons name="refresh" size={16} color="#6B7280" />
-            </TouchableOpacity>
-          )}
-        </View>
       </View>
-      
-      {/* Filter Controls */}
-      <View style={styles.filterControls}>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterScrollContainer}
-        >
-          {filterOptions.map((filter) => (
-            <TouchableOpacity
-              key={filter}
-              style={[
-                styles.filterButton,
-                selectedFilter === filter && styles.activeFilterButton
-              ]}
-              onPress={() => onFilterChange?.(filter)}
-            >
-              <Text
-                style={[
-                  styles.filterButtonText,
-                  selectedFilter === filter && styles.activeFilterButtonText
-                ]}
-              >
-                {filter}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-      
+
       <View style={styles.chartContainer}>
-        {/* Filter Description */}
-        <View style={styles.filterInfo}>
-          <Text style={styles.filterText}>{getFilterDescription()}</Text>
-          <Text style={styles.dataPointsText}>{candlestickData.length} data points</Text>
-        </View>
-        
-        {/* Candlestick Chart */}
-        <ScrollView
-          ref={scrollViewRef}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.chartScrollContainer,
-            { width: Math.max(width - 32, candlestickData.length * 20) }
-          ]}
-          scrollEnabled={isZoomed}
-        >
-          <View style={styles.chartArea}>
-            {/* Dark Background */}
-            <View style={styles.chartBackground} />
-            
-            {/* Grid Lines */}
-            <View style={styles.chartGrid}>
-              {[0, 1, 2, 3, 4, 5].map((line) => (
-                <View key={line} style={[styles.gridLine, { top: `${line * 20}%` }]} />
-              ))}
-            </View>
-            
-            {/* Price Scale */}
-            <View style={styles.priceScale}>
-              {[0, 1, 2, 3, 4, 5].map((scale) => (
-                <Text key={scale} style={[styles.priceLabel, { top: `${scale * 20}%` }]}>
-                  ₹{(2500 - scale * 40).toFixed(0)}
-                </Text>
-              ))}
-            </View>
-            
-            {/* Candlesticks */}
-            <View style={styles.candlesticksContainer}>
-              {candlestickData.map((candle, index) => renderCandlestick(candle, index))}
-            </View>
-            
-            {/* Chart Info Overlay */}
+        {candlestickData.length === 0 ? (
+          <EmptyState
+            icon="bar-chart-outline"
+            title="No price history available"
+            subtitle="Price history will appear once trading data is available for this stock."
+          />
+        ) : (
+          <>
             <View style={styles.chartInfo}>
               <View style={styles.chartStats}>
                 <Text style={styles.chartStatLabel}>Current</Text>
                 <Text style={styles.chartStatValue}>
-                  ₹{candlestickData[candlestickData.length - 1]?.close.toFixed(2)}
+                  ₹{currentCandle?.close.toFixed(2) ?? '0.00'}
                 </Text>
               </View>
               <View style={styles.chartStats}>
                 <Text style={styles.chartStatLabel}>Change</Text>
                 <Text style={[
                   styles.chartStatValue,
-                  { 
-                    color: candlestickData[candlestickData.length - 1]?.isGreen ? '#10B981' : '#EF4444' 
+                  {
+                    color: currentCandle && currentCandle.close >= firstCandle.open
+                      ? '#10B981'
+                      : '#EF4444'
                   }
                 ]}>
-                  {candlestickData[candlestickData.length - 1]?.isGreen ? '+' : ''}
-                  {(candlestickData[candlestickData.length - 1]?.close - candlestickData[0]?.open).toFixed(2)}
+                  {currentCandle && currentCandle.close >= firstCandle.open ? '+' : ''}
+                  {totalChange} ({totalChangePct}%)
                 </Text>
               </View>
-              {isZoomed && (
-                <View style={styles.chartStats}>
-                  <Text style={styles.chartStatLabel}>Zoom</Text>
-                  <Text style={styles.chartStatValue}>{zoomLevel.toFixed(1)}x</Text>
-                </View>
-              )}
+              <View style={styles.chartStats}>
+                <Text style={styles.chartStatLabel}>Points</Text>
+                <Text style={styles.chartStatValue}>{candlestickData.length}</Text>
+              </View>
             </View>
-          </View>
-        </ScrollView>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={[
+                styles.chartScrollContainer,
+                { width: Math.max(width - 32, candlestickData.length * 14) }
+              ]}
+            >
+              <View style={styles.chartArea}>
+                <View style={styles.chartBackground} />
+
+                {/* Grid Lines */}
+                <View style={styles.chartGrid}>
+                  {[0, 1, 2, 3, 4, 5].map((line) => (
+                    <View key={line} style={[styles.gridLine, { top: `${line * 20}%` }]} />
+                  ))}
+                </View>
+
+                {/* Y-axis labels */}
+                <View style={styles.priceScale}>
+                  {[0, 1, 2, 3, 4, 5].map((scale) => {
+                    const value = yAxis.max - (yAxis.step * scale);
+                    return (
+                      <Text key={scale} style={[styles.priceLabel, { top: `${scale * 20}%` }]}>
+                        ₹{value.toFixed(0)}
+                      </Text>
+                    );
+                  })}
+                </View>
+
+                {/* Candlesticks */}
+                <View style={styles.candlesticksContainer}>
+                  {candlestickData.map((candle: any, index: number) => renderCandlestick(candle, index))}
+                </View>
+              </View>
+            </ScrollView>
+          </>
+        )}
       </View>
     </View>
   );
@@ -348,7 +224,7 @@ const styles = StyleSheet.create({
   },
   timeframeButtons: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 12,
   },
   timeframeButton: {
     paddingHorizontal: 12,
@@ -367,77 +243,16 @@ const styles = StyleSheet.create({
   activeTimeframeText: {
     color: '#FFFFFF',
   },
-  zoomControls: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  zoomButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  resetButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FEF3C7',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  filterControls: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
-  filterScrollContainer: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  filterButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-  },
-  activeFilterButton: {
-    backgroundColor: '#3B82F6',
-  },
-  filterButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  activeFilterButtonText: {
-    color: '#FFFFFF',
-  },
   chartContainer: {
-    height: 400,
+    minHeight: 320,
     paddingHorizontal: 16,
     paddingBottom: 16,
   },
-  filterInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-    paddingHorizontal: 4,
-  },
-  filterText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  dataPointsText: {
-    fontSize: 10,
-    color: '#9CA3AF',
-  },
   chartScrollContainer: {
-    height: 350,
+    height: 280,
   },
   chartArea: {
-    flex: 1,
+    height: 280,
     backgroundColor: '#1F2937',
     borderRadius: 12,
     borderWidth: 1,
@@ -471,30 +286,31 @@ const styles = StyleSheet.create({
   },
   priceScale: {
     position: 'absolute',
-    left: 8,
+    left: 4,
     top: 0,
     bottom: 0,
-    width: 40,
+    width: 44,
     zIndex: 2,
   },
   priceLabel: {
     position: 'absolute',
-    fontSize: 10,
+    fontSize: 9,
     color: '#D1D5DB',
     fontWeight: '500',
   },
   candlesticksContainer: {
     position: 'absolute',
-    top: 20,
+    top: 8,
     left: 50,
-    right: 20,
-    bottom: 40,
+    right: 8,
+    bottom: 8,
     zIndex: 3,
   },
   candlestickContainer: {
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
+    height: '100%',
   },
   candlestickWick: {
     position: 'absolute',
@@ -506,33 +322,24 @@ const styles = StyleSheet.create({
     width: '80%',
     borderRadius: 1,
   },
-  dateLabel: {
-    position: 'absolute',
-    top: '100%',
-    fontSize: 8,
-    color: '#9CA3AF',
-    marginTop: 4,
-  },
   chartInfo: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: 'rgba(31, 41, 55, 0.95)',
     borderRadius: 8,
-    padding: 12,
-    zIndex: 4,
-    borderWidth: 1,
-    borderColor: '#374151',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 8,
   },
   chartStats: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
+    alignItems: 'center',
+    gap: 4,
   },
   chartStatLabel: {
     fontSize: 10,
     color: '#9CA3AF',
-    marginRight: 8,
   },
   chartStatValue: {
     fontSize: 12,

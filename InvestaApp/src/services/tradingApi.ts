@@ -233,13 +233,13 @@ class TradingApiService {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (ordering) params.append('ordering', ordering);
-    
+
     const response = await api.get(`/stocks/${params.toString() ? '?' + params.toString() : ''}`);
     return response.data;
   }
 
-  async getStock(symbol: string): Promise<StockDetail> {
-    const response = await api.get(`/stocks/${symbol}/`);
+  async getStock(stockId: number): Promise<StockDetail> {
+    const response = await api.get(`/stocks/${stockId}/`);
     return response.data;
   }
 
@@ -253,9 +253,19 @@ class TradingApiService {
     return response.data;
   }
 
-  async getStockPriceHistory(symbol: string, days: number = 30): Promise<StockPrice[]> {
-    const response = await api.get(`/stocks/${symbol}/price_history/?days=${days}`);
+  async getStockPriceHistory(stockId: number, days: number = 30): Promise<StockPrice[]> {
+    const response = await api.get(`/stocks/${stockId}/price_history/?days=${days}`);
     return response.data;
+  }
+
+  async getStockNews(stockId: number): Promise<any[]> {
+    const response = await api.get(`/stocks/${stockId}/news/`);
+    return response.data?.results ?? [];
+  }
+
+  async getStockRecentTrades(stockId: number, limit: number = 5): Promise<any[]> {
+    const response = await api.get(`/stocks/${stockId}/recent_trades/?limit=${limit}`);
+    return response.data?.results ?? [];
   }
 
   // Watchlist endpoints
@@ -429,8 +439,13 @@ class TradingApiService {
       this.getTopMovers(),
       this.getMarketSummary()
     ]);
-    
+
     return { topMovers, summary };
+  }
+
+  async getMarketIndices(): Promise<any[]> {
+    const response = await api.get('/market-data/indices/');
+    return Array.isArray(response.data) ? response.data : (response.data?.results ?? []);
   }
 }
 

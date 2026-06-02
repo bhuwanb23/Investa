@@ -9,8 +9,8 @@
 
 | PR | Theme | Status | Items Fixed | PR Link |
 |----|-------|--------|-------------|---------|
-| 1 | Auth & Profile | ⬜ Not started | A1, A2, A6, A31, A32, A33 + login bundle | — |
-| 2 | Trading data integrity | ⬜ Not started | A14–A25 (12 items) | — |
+| 1 | Auth & Profile | ✅ Done | A1, A2, A6, A31, A32, A33 + login bundle | — |
+| 2 | Trading data integrity | ✅ Done | A14–A25 (12 items) | — |
 | 3 | Home & Profile data | ⬜ Not started | A7, A8 | — |
 | 4 | Stock & Lesson detail | ⬜ Not started | A9, A10, A11 (stub), A12, A13, A14, A23, A24, A25 | — |
 | 5 | Settings (Security / Privacy / 2FA) | ⬜ Not started | A3, A4, A5 | — |
