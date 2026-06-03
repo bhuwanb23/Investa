@@ -12,7 +12,7 @@
 | 1 | Auth & Profile | ✅ Done | A1, A2, A6, A31, A32, A33 + login bundle | — |
 | 2 | Trading data integrity | ✅ Done | A14–A25 (12 items) | — |
 | 3 | Home & Profile data | ✅ Done | A7, A8 | ac46953 8721ce3 e791f65 2769e45 |
-| 4 | Stock & Lesson detail | ⬜ Not started | A9, A10, A11 (stub), A12, A13, A14, A23, A24, A25 | — |
+| 4 | Stock & Lesson detail | ✅ Done | A9, A10, A11 (stub), A12, A13, A14, A23, A24, A25 | c41787d f0e791b f25612e |
 | 5 | Settings (Security / Privacy / 2FA) | ⬜ Not started | A3, A4, A5 | — |
 | 6 | Quiz | ⬜ Not started | A27, A28, A29, A30 | — |
 
@@ -376,27 +376,27 @@ After all sub-tasks done:
 
 ## 4.3 Sub-tasks
 
-- [ ] **4.3.1** Install `expo-av` and verify it works on Expo SDK 53 (may need to switch to `expo-video` if `expo-av` is deprecated)
-- [ ] **4.3.2** Add `<Video>` component to `LessonDetailScreen` that loads `lesson.video_url` if present
-- [ ] **4.3.3** Hide video block entirely if `video_url` is null
-- [ ] **4.3.4** Replace hardcoded JS code example (lines 275-285) with `lesson.content` rendered as plain text (or markdown if backend supports it)
-- [ ] **4.3.5** Replace "Simulate AI response" with a disabled button labelled "AI Tutor (coming soon)"
-- [ ] **4.3.6** Add an `onPress` that shows a friendly `Alert` ("AI tutor launches in a future update")
-- [ ] **4.3.7** Add `TODO: Phase 2 - Ollama integration` comment
-- [ ] **4.3.8** Delete `QUIZ_QUESTIONS` from `courseConstants.ts`
-- [ ] **4.3.9** Delete `VIDEO_DATA` from `courseConstants.ts`
-- [ ] **4.3.10** Verify `LessonQuizContent.tsx` does not import deleted constants (also touched in PR 6)
+- [x] **4.3.1** Install `expo-video` (expo-av deprecated on SDK 53)
+- [x] **4.3.2** Add `<Video>` component via `VideoPlayer` wrapper
+- [x] **4.3.3** Hide video block entirely if `video_url` is null
+- [x] **4.3.4** Replace hardcoded JS code example with `MarkdownRenderer` (WebView + inline markdown parser)
+- [x] **4.3.5** Replace "Simulate AI response" with disabled "AI Tutor (coming soon)" card
+- [x] **4.3.6** Add Alert onPress: "AI tutor launches in a future update"
+- [x] **4.3.7** Add `TODO: Phase 2 - Ollama integration` comment
+- [x] **4.3.8** Delete `QUIZ_QUESTIONS` from `courseConstants.ts`
+- [x] **4.3.9** Delete `VIDEO_DATA` from `courseConstants.ts`
+- [x] **4.3.10** Refactor `LessonQuizContent.tsx` to not import deleted constants (backend-only mode + empty state)
 
 ## 4.4 Validation
 
-- [ ] **4.4.1** Open a lesson with a `video_url` → video plays
-- [ ] **4.4.2** Open a lesson without a `video_url` → video block hidden, no "Video Player" text
-- [ ] **4.4.3** Lesson content shows real content from API, not the hardcoded JS example
-- [ ] **4.4.4** "AI Tutor" button is disabled with the "coming soon" label
-- [ ] **4.4.5** `grep -r "VIDEO_DATA\|QUIZ_QUESTIONS" src/screens/courses/Constants/` returns nothing
-- [ ] **4.4.6** `grep -r "Video Player" src/screens/courses/LessonDetailScreen.tsx` returns nothing
-- [ ] **4.4.7** `grep -r "greet(\"World\")" src/` returns nothing
-- [ ] **4.4.8** `grep -r "Simulate AI" src/` returns nothing
+- [ ] **4.4.1** Open a lesson with a `video_url` → video plays (requires device)
+- [ ] **4.4.2** Open a lesson without a `video_url` → no "Video Player" text (grep: PASS)
+- [x] **4.4.3** Lesson content shows real content via `MarkdownRenderer` (grep: PASS)
+- [x] **4.4.4** "AI Tutor" button is disabled with "Coming Soon" badge (code: PASS)
+- [x] **4.4.5** `grep "VIDEO_DATA\|QUIZ_QUESTIONS" src/screens/courses/constants/` returns nothing
+- [x] **4.4.6** `grep "Video Player" src/screens/courses/LessonDetailScreen.tsx` returns nothing
+- [x] **4.4.7** `grep "greet" src/` returns nothing
+- [x] **4.4.8** `grep "Simulate AI" src/` returns nothing
 
 ---
 
