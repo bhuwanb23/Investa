@@ -26,6 +26,7 @@ export const profileTranslations = {
     hoursLearned: 'Hours Learned',
     certificates: 'Certificates',
     modulesCompletedText: 'modules completed',
+    lessonsCompleted: 'Lessons Completed',
     
     // Quiz Performance
     quizPerformance: 'Quiz Performance',
@@ -82,6 +83,7 @@ export const profileTranslations = {
     hoursLearned: 'घंटे सीखे',
     certificates: 'प्रमाणपत्र',
     modulesCompletedText: 'मॉड्यूल पूरे',
+    lessonsCompleted: 'पाठ पूरे',
     
     // Quiz Performance
     quizPerformance: 'क्विज़ प्रदर्शन',
@@ -138,6 +140,7 @@ export const profileTranslations = {
     hoursLearned: 'கற்ற மணிநேரங்கள்',
     certificates: 'சான்றிதழ்கள்',
     modulesCompletedText: 'தொகுதிகள் முடிக்கப்பட்டன',
+    lessonsCompleted: 'பாடங்கள் முடிந்தன',
     
     // Quiz Performance
     quizPerformance: 'வினாடி வினா செயல்திறன்',
@@ -194,6 +197,7 @@ export const profileTranslations = {
     hoursLearned: 'నేర్చుకున్న గంటలు',
     certificates: 'సర్టిఫికేట్‌లు',
     modulesCompletedText: 'మాడ్యూల్‌లు పూర్తయ్యాయి',
+    lessonsCompleted: 'పాఠాలు పూర్తయ్యాయి',
     
     // Quiz Performance
     quizPerformance: 'క్విజ్ పనితీరు',

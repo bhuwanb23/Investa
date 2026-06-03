@@ -17,6 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useProfile } from '../../hooks';
 import { useTranslation } from '../../language';
 import { useLanguage } from '../../context/LanguageContext';
+import { progressApi, tradingApi, UserProgress, TradingPerformance } from '../../services';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -41,6 +42,9 @@ const ProfileScreen = () => {
   // Use the login-bundle profile as a fallback so the first render shows
   // real data instead of empty fields while /profiles/my_profile/ loads.
   const profile = profileFromHook || (user?.profile as any) || null;
+
+  const [myProgress, setMyProgress] = useState<UserProgress | null>(null);
+  const [myPerformance, setMyPerformance] = useState<TradingPerformance | null>(null);
 
   const handleLogout = async () => {
     try {
@@ -74,25 +78,12 @@ const ProfileScreen = () => {
   useEffect(() => {
     const t = setTimeout(() => setBootLoader(false), 800);
     if (user) {
-      console.log('🔐 ProfileScreen: User is authenticated, fetching profile...');
       fetchProfile();
-    } else {
-      console.log('🔐 ProfileScreen: User is not authenticated, skipping profile fetch');
+      progressApi.getMyProgress().then(setMyProgress).catch(() => {});
+      tradingApi.getMyPerformance().then(setMyPerformance).catch(() => {});
     }
     return () => clearTimeout(t);
   }, [fetchProfile, user]);
-  
-  // Debug logging for development
-  useEffect(() => {
-    if (__DEV__) {
-      console.log('🔐 ProfileScreen: Profile state:', { 
-        hasProfile: !!profile, 
-        isLoading, 
-        error,
-        profileKeys: profile ? Object.keys(profile) : 'N/A'
-      });
-    }
-  }, [profile, isLoading, error]);
 
   // Clear error when component unmounts
   useEffect(() => {
@@ -259,20 +250,22 @@ const ProfileScreen = () => {
             <View style={{ marginTop: 8 }}>
               <View style={styles.progressHeaderRow}>
                 <Text style={styles.progressTitle}>{t.modulesCompleted}</Text>
-                <Text style={[styles.progressTitle, { color: PRIMARY }]}>73%</Text>
+                <Text style={[styles.progressTitle, { color: PRIMARY }]}>
+                  {myProgress ? `${Math.round((myProgress.completed_lessons / Math.max(myProgress.total_lessons, 1)) * 100)}%` : '0%'}
+                </Text>
               </View>
               <View style={styles.progressTrack}>
-                <View style={[styles.progressFill, { width: '73%' }]} />
+                <View style={[styles.progressFill, { width: myProgress ? `${Math.round((myProgress.completed_lessons / Math.max(myProgress.total_lessons, 1)) * 100)}%` : '0%' }]} />
               </View>
-              <Text style={styles.smallMuted}>22 of 30 {t.modulesCompletedText}</Text>
+              <Text style={styles.smallMuted}>{myProgress?.completed_lessons ?? 0} of {myProgress?.total_lessons ?? 0} {t.modulesCompletedText}</Text>
             </View>
             <View style={styles.progressStatsRow}>
               <View style={styles.statBox}> 
-                <Text style={styles.statValue}>156</Text>
-                <Text style={styles.statLabel}>{t.hoursLearned}</Text>
+                <Text style={styles.statValue}>{myProgress?.completed_lessons ?? 0}</Text>
+                <Text style={styles.statLabel}>{t.lessonsCompleted || t.hoursLearned}</Text>
               </View>
               <View style={styles.statBox}> 
-                <Text style={styles.statValue}>12</Text>
+                <Text style={styles.statValue}>{myProgress?.completed_courses ?? 0}</Text>
                 <Text style={styles.statLabel}>{t.certificates}</Text>
               </View>
             </View>
@@ -283,7 +276,7 @@ const ProfileScreen = () => {
             <Text style={styles.cardTitle}>{t.quizPerformance}</Text>
             <View style={styles.quizTopRow}>
               <View>
-                <Text style={[styles.quizScore, { color: '#10b981' }]}>87%</Text>
+                <Text style={[styles.quizScore, { color: '#10b981' }]}>{myProgress ? `${Math.round(myProgress.average_quiz_score)}%` : '0%'}</Text>
                 <Text style={styles.quizScoreLabel}>{t.averageScore}</Text>
               </View>
               <View style={styles.quizIconsRow}>
@@ -300,15 +293,15 @@ const ProfileScreen = () => {
             </View>
             <View style={styles.kpiGrid3}>
               <View style={styles.quizStat}> 
-                <Text style={styles.quizStatValue}>45</Text>
+                <Text style={styles.quizStatValue}>{myProgress?.completed_quizzes ?? 0}</Text>
                 <Text style={styles.quizStatLabel}>{t.quizzesTaken}</Text>
               </View>
               <View style={styles.quizStat}> 
-                <Text style={styles.quizStatValue}>38</Text>
+                <Text style={styles.quizStatValue}>{myProgress ? Math.round(myProgress.completed_quizzes * (myProgress.average_quiz_score / 100)) : 0}</Text>
                 <Text style={styles.quizStatLabel}>{t.passed}</Text>
               </View>
               <View style={styles.quizStat}> 
-                <Text style={styles.quizStatValue}>7</Text>
+                <Text style={styles.quizStatValue}>{myProgress?.earned_badges ?? 0}</Text>
                 <Text style={styles.quizStatLabel}>{t.badgesEarned}</Text>
               </View>
             </View>
@@ -320,19 +313,21 @@ const ProfileScreen = () => {
             <View style={styles.tradingRow}>
               <View>
                 <Text style={styles.smallMuted}>{t.portfolioGrowth}</Text>
-                <Text style={[styles.tradeGrowth, { color: '#10b981' }]}>+24.7%</Text>
+                <Text style={[styles.tradeGrowth, { color: (myProgress?.portfolio_growth_percentage ?? 0) >= 0 ? '#10b981' : '#DC2626' }]}>
+                  {myProgress ? `${Number(myProgress.portfolio_growth_percentage) >= 0 ? '+' : ''}${Number(myProgress.portfolio_growth_percentage).toFixed(1)}%` : '0.0%'}
+                </Text>
               </View>
               <View style={styles.tradeIconBox}>
-                <Ionicons name="trending-up" size={18} color="#10b981" />
+                <Ionicons name="trending-up" size={18} color={(myProgress?.portfolio_growth_percentage ?? 0) >= 0 ? '#10b981' : '#DC2626'} />
               </View>
             </View>
             <View style={styles.progressStatsRow}>
               <View style={styles.statPill}> 
-                <Text style={styles.statValue}>127</Text>
+                <Text style={styles.statValue}>{myPerformance?.total_trades ?? myProgress?.total_trades ?? 0}</Text>
                 <Text style={styles.statLabel}>{t.tradesExecuted}</Text>
               </View>
               <View style={styles.statPill}> 
-                <Text style={styles.statValue}>78%</Text>
+                <Text style={styles.statValue}>{myProgress ? `${Math.round(myProgress.win_rate)}%` : '0%'}</Text>
                 <Text style={styles.statLabel}>{t.successRate}</Text>
               </View>
             </View>
