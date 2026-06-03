@@ -147,7 +147,7 @@ const LessonDetailScreen: React.FC = () => {
           </View>
         ) : lesson ? (
           <View>
-            {/* Video Player */}
+            {/* Lesson video */}
             <VideoPlayer videoUrl={lesson.video_url} title={lesson.title} />
 
             {/* AI Tutor (coming soon) — Phase 2 */}
