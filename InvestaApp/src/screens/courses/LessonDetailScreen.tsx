@@ -10,17 +10,17 @@ import {
   Modal,
   TextInput,
   Alert,
-  Dimensions,
-  Image,
 } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import type { MainStackParamList } from '../../navigation/AppNavigator';
 import MainHeader from '../../components/MainHeader';
 import { Ionicons } from '@expo/vector-icons';
-import { PAGE_BG, TEXT_DARK, TEXT_MUTED, BORDER, CARD_BG, PRIMARY, VIDEO_DATA } from './constants/courseConstants';
+import { PAGE_BG, TEXT_DARK, TEXT_MUTED, BORDER, CARD_BG, PRIMARY } from './constants/courseConstants';
 import { fetchLessonDetail, markLessonCompleted } from './utils/coursesApi';
 import { useTranslation } from '../../language';
+import VideoPlayer from './components/VideoPlayer';
+import MarkdownRenderer from './components/MarkdownRenderer';
 
 // Local-first lesson detail with backend when available
 type Language = { id: number; code: string; name: string; native_name: string };
@@ -30,8 +30,6 @@ type LessonDetail = { id: number; title: string; order: number; estimated_durati
 type ParamList = {
   LessonDetail: { lessonId: string; courseId?: string };
 };
-
-const { width } = Dimensions.get('window');
 
 const LessonDetailScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
@@ -50,9 +48,6 @@ const LessonDetailScreen: React.FC = () => {
   const [completed, setCompleted] = useState(false);
   const [showAskMeModal, setShowAskMeModal] = useState(false);
   const [question, setQuestion] = useState('');
-  const [showTranscript, setShowTranscript] = useState(false);
-  const [showCaptions, setShowCaptions] = useState(false);
-  const [currentVideoTime, setCurrentVideoTime] = useState(0);
 
   const load = useCallback(async () => {
     try {
@@ -132,81 +127,6 @@ const LessonDetailScreen: React.FC = () => {
     setQuestion('');
   };
 
-  const handleShare = () => {
-    Alert.alert('Share', `Sharing lesson: ${lesson?.title}`);
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const renderVideoPlayer = () => (
-    <View style={styles.videoContainer}>
-      <View style={styles.videoHeader}>
-        <Text style={styles.videoTitle}>{VIDEO_DATA.title}</Text>
-        <View style={styles.videoMeta}>
-          <Ionicons name="time" size={14} color={TEXT_MUTED} />
-          <Text style={styles.videoDuration}>{VIDEO_DATA.duration}</Text>
-        </View>
-      </View>
-      
-      <View style={styles.videoPlayer}>
-        <View style={styles.videoPlaceholder}>
-          <Ionicons name="play-circle" size={64} color={PRIMARY} />
-          <Text style={styles.videoPlaceholderText}>Video Player</Text>
-          <Text style={styles.videoDescription}>{VIDEO_DATA.description}</Text>
-        </View>
-        
-        <View style={styles.videoControls}>
-          <TouchableOpacity style={styles.controlButton} onPress={() => setShowCaptions(!showCaptions)}>
-            <Ionicons name={showCaptions ? "eye" : "eye-outline"} size={20} color={TEXT_DARK} />
-            <Text style={styles.controlText}>CC</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.controlButton} onPress={() => setShowTranscript(!showTranscript)}>
-            <Ionicons name="document-text" size={20} color={TEXT_DARK} />
-            <Text style={styles.controlText}>Transcript</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.controlButton} onPress={handleShare}>
-            <Ionicons name="share" size={20} color={TEXT_DARK} />
-            <Text style={styles.controlText}>Share</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {showCaptions && (
-        <View style={styles.captionsContainer}>
-          <Text style={styles.captionsTitle}>Captions</Text>
-          <ScrollView style={styles.captionsList} showsVerticalScrollIndicator={false}>
-            {VIDEO_DATA.captions.map((caption, index) => (
-              <TouchableOpacity key={index} style={styles.captionItem}>
-                <Text style={styles.captionTime}>{caption.time}</Text>
-                <Text style={styles.captionText}>{caption.text}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
-
-      {showTranscript && (
-        <View style={styles.transcriptContainer}>
-          <Text style={styles.transcriptTitle}>Full Transcript</Text>
-          <ScrollView style={styles.transcriptList} showsVerticalScrollIndicator={false}>
-            {VIDEO_DATA.transcript.map((item, index) => (
-              <View key={index} style={styles.transcriptItem}>
-                <Text style={styles.transcriptTime}>{item.time}</Text>
-                <Text style={styles.transcriptText}>{item.text}</Text>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
-      )}
-    </View>
-  );
-
   const renderAskMeSection = () => (
     <View style={styles.askMeContainer}>
       <View style={styles.askMeHeader}>
@@ -242,48 +162,14 @@ const LessonDetailScreen: React.FC = () => {
           </View>
         ) : lesson ? (
           <View>
-            {/* Video Section */}
-            {renderVideoPlayer()}
+            {/* Video Player */}
+            <VideoPlayer videoUrl={lesson.video_url} title={lesson.title} />
 
             {/* Ask Me Section */}
             {renderAskMeSection()}
 
-            {/* Content Section */}
-            <View style={styles.contentCard}>
-              <Text style={styles.contentText}>{lesson.content || 'No content available.'}</Text>
-            </View>
-
-            {/* Key Takeaways */}
-            <View style={styles.cardSection}>
-              <Text style={styles.sectionHeading}>{t.keyTakeaways || 'Key Takeaways'}</Text>
-              <View style={styles.bulletRow}>
-                <View style={styles.bulletDot} />
-                <Text style={styles.bulletText}>Functions are reusable blocks of code that perform specific tasks</Text>
-              </View>
-              <View style={styles.bulletRow}>
-                <View style={styles.bulletDot} />
-                <Text style={styles.bulletText}>They accept parameters (inputs) and can return values (outputs)</Text>
-              </View>
-              <View style={styles.bulletRow}>
-                <View style={styles.bulletDot} />
-                <Text style={styles.bulletText}>Functions make code more organized, readable, and maintainable</Text>
-              </View>
-            </View>
-
-            {/* Example Snippet */}
-            <View style={styles.cardSection}>
-              <Text style={styles.sectionHeading}>{t.example || 'Example'}</Text>
-              <View style={styles.codeBlock}>
-                <Text style={styles.codeLine}>{`// Function definition`}</Text>
-                <Text style={styles.codeLine}>{`function greet(name) {`}</Text>
-                <Text style={styles.codeLine}>{`  return "Hello, " + name + "!";`}</Text>
-                <Text style={styles.codeLine}>{`}`}</Text>
-                <Text style={styles.codeLine}>{``}</Text>
-                <Text style={styles.codeLine}>{`// Function call`}</Text>
-                <Text style={styles.codeLine}>{`const message = greet("World");`}</Text>
-                <Text style={styles.codeLine}>{`console.log(message); // "Hello, World!"`}</Text>
-              </View>
-            </View>
+            {/* Content (markdown rendered) */}
+            <MarkdownRenderer content={lesson.content || ''} />
 
             {/* Progress */}
             <View style={styles.cardSection}>
@@ -398,12 +284,6 @@ const styles = StyleSheet.create({
   errorText: { color: '#DC2626', marginBottom: 12 },
   retryBtn: { paddingHorizontal: 16, paddingVertical: 10, backgroundColor: PRIMARY, borderRadius: 10 },
   retryText: { color: '#fff', fontWeight: '700' },
-  hero: { backgroundColor: CARD_BG, borderWidth: 1, borderColor: BORDER, borderRadius: 14, padding: 14, marginBottom: 16 },
-  title: { color: TEXT_DARK, fontSize: 16, fontWeight: '900' },
-  meta: { color: TEXT_MUTED, fontSize: 12, fontWeight: '700', marginTop: 6 },
-  videoText: { color: TEXT_MUTED, marginTop: 6 },
-  contentCard: { backgroundColor: CARD_BG, borderWidth: 1, borderColor: BORDER, borderRadius: 14, padding: 14, marginBottom: 16, marginHorizontal: 12 },
-  contentText: { color: TEXT_DARK, fontSize: 14, lineHeight: 20 },
   primaryBtn: { 
     backgroundColor: PRIMARY, 
     paddingVertical: 12, 
@@ -419,11 +299,6 @@ const styles = StyleSheet.create({
   },
   cardSection: { backgroundColor: CARD_BG, borderWidth: 1, borderColor: BORDER, borderRadius: 14, padding: 14, marginBottom: 16, marginHorizontal: 12 },
   sectionHeading: { color: TEXT_DARK, fontWeight: '800', marginBottom: 8 },
-  bulletRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
-  bulletDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: PRIMARY, marginTop: 6, marginRight: 10 },
-  bulletText: { color: TEXT_DARK, flex: 1 },
-  codeBlock: { backgroundColor: '#0B1020', borderRadius: 10, padding: 12 },
-  codeLine: { color: '#E5E7EB', fontFamily: 'monospace' as any, fontSize: 12 },
   progressTrack: { height: 8, backgroundColor: '#E5E7EB', borderRadius: 999, overflow: 'hidden', marginTop: 8 },
   progressFillStrong: { height: '100%', backgroundColor: PRIMARY, borderRadius: 999 },
   smallMuted: { color: TEXT_MUTED, fontSize: 12, marginTop: 6 },
@@ -451,169 +326,6 @@ const styles = StyleSheet.create({
     color: TEXT_DARK, 
     fontWeight: '700',
     fontSize: 13,
-  },
-  secondaryBtn: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    gap: 6, 
-    backgroundColor: PRIMARY, 
-    borderRadius: 10, 
-    paddingHorizontal: 10, 
-    paddingVertical: 8,
-    flex: 1,
-    justifyContent: 'center',
-    minHeight: 40,
-  },
-  secondaryBtnText: { 
-    color: '#fff', 
-    fontWeight: '800',
-    fontSize: 13,
-  },
-  videoContainer: {
-    backgroundColor: CARD_BG,
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 16,
-    marginHorizontal: 12,
-  },
-  videoHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  videoTitle: {
-    color: TEXT_DARK,
-    fontSize: 16,
-    fontWeight: '900',
-  },
-  videoMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  videoDuration: {
-    color: TEXT_MUTED,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  videoPlayer: {
-    position: 'relative',
-    width: '100%',
-    height: 180,
-    backgroundColor: '#000',
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  videoPlaceholder: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.7)',
-  },
-  videoPlaceholderText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-    marginTop: 10,
-  },
-  videoDescription: {
-    color: TEXT_MUTED,
-    fontSize: 12,
-    marginTop: 6,
-    textAlign: 'center',
-  },
-  videoControls: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 10,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-  },
-  controlButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  controlText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  captionsContainer: {
-    backgroundColor: CARD_BG,
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 10,
-  },
-  captionsTitle: {
-    color: TEXT_DARK,
-    fontSize: 14,
-    fontWeight: '800',
-    marginBottom: 8,
-  },
-  captionsList: {
-    maxHeight: 150,
-  },
-  captionItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  captionTime: {
-    color: TEXT_MUTED,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  captionText: {
-    color: TEXT_DARK,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  transcriptContainer: {
-    backgroundColor: CARD_BG,
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 10,
-  },
-  transcriptTitle: {
-    color: TEXT_DARK,
-    fontSize: 14,
-    fontWeight: '800',
-    marginBottom: 8,
-  },
-  transcriptList: {
-    maxHeight: 150,
-  },
-  transcriptItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  transcriptTime: {
-    color: TEXT_MUTED,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  transcriptText: {
-    color: TEXT_DARK,
-    fontSize: 12,
-    fontWeight: '700',
   },
   askMeContainer: {
     backgroundColor: CARD_BG,
