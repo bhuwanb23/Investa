@@ -11,7 +11,7 @@
 |----|-------|--------|-------------|---------|
 | 1 | Auth & Profile | ✅ Done | A1, A2, A6, A31, A32, A33 + login bundle | — |
 | 2 | Trading data integrity | ✅ Done | A14–A25 (12 items) | — |
-| 3 | Home & Profile data | ⬜ Not started | A7, A8 | — |
+| 3 | Home & Profile data | ✅ Done | A7, A8 | ac46953 8721ce3 e791f65 2769e45 |
 | 4 | Stock & Lesson detail | ⬜ Not started | A9, A10, A11 (stub), A12, A13, A14, A23, A24, A25 | — |
 | 5 | Settings (Security / Privacy / 2FA) | ⬜ Not started | A3, A4, A5 | — |
 | 6 | Quiz | ⬜ Not started | A27, A28, A29, A30 | — |
