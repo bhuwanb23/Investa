@@ -7,8 +7,6 @@ import {
   ScrollView, 
   ActivityIndicator, 
   TouchableOpacity,
-  Modal,
-  TextInput,
   Alert,
 } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -46,8 +44,7 @@ const LessonDetailScreen: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [completing, setCompleting] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const [showAskMeModal, setShowAskMeModal] = useState(false);
-  const [question, setQuestion] = useState('');
+  // TODO: Phase 2 — replace with real Ollama/Gemini integration
 
   const load = useCallback(async () => {
     try {
@@ -108,37 +105,25 @@ const LessonDetailScreen: React.FC = () => {
     }
   };
 
-  const handleAskQuestion = () => {
-    if (!question.trim()) {
-      Alert.alert(t.pleaseEnterQuestion || 'Please enter a question');
-      return;
-    }
-    
-    // Simulate AI response
-    Alert.alert(
-      'AI Assistant',
-      `Here's an answer to your question: "${question}"\n\nThis is a sample AI response. In a real implementation, this would connect to an AI service to provide contextual answers based on the lesson content.`,
-      [
-        { text: 'Ask Another Question', onPress: () => setQuestion('') },
-        { text: 'Close', style: 'cancel' }
-      ]
-    );
-    setShowAskMeModal(false);
-    setQuestion('');
-  };
-
-  const renderAskMeSection = () => (
-    <View style={styles.askMeContainer}>
-      <View style={styles.askMeHeader}>
-        <Ionicons name="chatbubble-ellipses" size={24} color={PRIMARY} />
-        <Text style={styles.askMeTitle}>Ask Me Anything</Text>
+  const renderAiTutorStub = () => (
+    <View style={styles.aiTutorContainer}>
+      <View style={styles.aiTutorHeader}>
+        <Ionicons name="chatbubble-ellipses" size={24} color="#9CA3AF" />
+        <Text style={styles.aiTutorTitle}>AI Tutor</Text>
+        <View style={styles.comingSoonBadge}>
+          <Text style={styles.comingSoonBadgeText}>Coming Soon</Text>
+        </View>
       </View>
-      <Text style={styles.askMeDescription}>
-        Have questions about this lesson? Ask our AI assistant for help!
+      <Text style={styles.aiTutorDescription}>
+        Get personalized help with this lesson from our AI assistant.
       </Text>
-      <TouchableOpacity style={styles.askMeButton} onPress={() => setShowAskMeModal(true)}>
-        <Ionicons name="help-circle" size={20} color="#FFFFFF" />
-        <Text style={styles.askMeButtonText}>Ask a Question</Text>
+      <TouchableOpacity
+        style={styles.aiTutorButtonDisabled}
+        activeOpacity={1}
+        onPress={() => Alert.alert('AI Tutor', 'AI tutor launches in a future update.')}
+      >
+        <Ionicons name="help-circle" size={20} color="#9CA3AF" />
+        <Text style={styles.aiTutorButtonTextDisabled}>Ask a Question</Text>
       </TouchableOpacity>
     </View>
   );
@@ -165,8 +150,8 @@ const LessonDetailScreen: React.FC = () => {
             {/* Video Player */}
             <VideoPlayer videoUrl={lesson.video_url} title={lesson.title} />
 
-            {/* Ask Me Section */}
-            {renderAskMeSection()}
+            {/* AI Tutor (coming soon) — Phase 2 */}
+            {renderAiTutorStub()}
 
             {/* Content (markdown rendered) */}
             <MarkdownRenderer content={lesson.content || ''} />
@@ -222,56 +207,7 @@ const LessonDetailScreen: React.FC = () => {
         ) : null}
       </ScrollView>
 
-      {/* Ask Me Modal */}
-      <Modal
-        visible={showAskMeModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowAskMeModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Ask Me Anything</Text>
-              <TouchableOpacity onPress={() => setShowAskMeModal(false)}>
-                <Ionicons name="close" size={24} color={TEXT_DARK} />
-              </TouchableOpacity>
-            </View>
-            
-            <Text style={styles.modalDescription}>
-              Ask any question about this lesson and get instant help from our AI assistant.
-            </Text>
-            
-            <TextInput
-              style={styles.questionInput}
-              placeholder="Type your question here..."
-              value={question}
-              onChangeText={setQuestion}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
-            
-            <View style={styles.modalActions}>
-              <TouchableOpacity 
-                style={styles.cancelButton} 
-                onPress={() => setShowAskMeModal(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[styles.askButton, !question.trim() && styles.askButtonDisabled]} 
-                onPress={handleAskQuestion}
-                disabled={!question.trim()}
-              >
-                <Ionicons name="send" size={16} color="#FFFFFF" />
-                <Text style={styles.askButtonText}>Ask Question</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+
     </SafeAreaView>
   );
 };
@@ -327,7 +263,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 13,
   },
-  askMeContainer: {
+  aiTutorContainer: {
     backgroundColor: CARD_BG,
     borderWidth: 1,
     borderColor: BORDER,
@@ -335,35 +271,48 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 16,
     marginHorizontal: 12,
+    opacity: 0.7,
   },
-  askMeHeader: {
+  aiTutorHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
   },
-  askMeTitle: {
+  aiTutorTitle: {
     color: TEXT_DARK,
     fontSize: 16,
     fontWeight: '900',
     marginLeft: 10,
   },
-  askMeDescription: {
+  comingSoonBadge: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginLeft: 8,
+  },
+  comingSoonBadgeText: {
+    color: '#9CA3AF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  aiTutorDescription: {
     color: TEXT_MUTED,
     fontSize: 14,
     marginBottom: 16,
   },
-  askMeButton: {
+  aiTutorButtonDisabled: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: PRIMARY,
+    backgroundColor: '#F3F4F6',
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 14,
     alignSelf: 'flex-start',
     minHeight: 40,
   },
-  askMeButtonText: {
-    color: '#fff',
+  aiTutorButtonTextDisabled: {
+    color: '#9CA3AF',
     fontWeight: '800',
     marginLeft: 6,
     fontSize: 13,
@@ -408,78 +357,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     marginLeft: 6,
     fontSize: 13,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
-    width: '80%',
-    alignItems: 'center',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: 10,
-  },
-  modalTitle: {
-    color: TEXT_DARK,
-    fontSize: 20,
-    fontWeight: '900',
-  },
-  modalDescription: {
-    color: TEXT_MUTED,
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 15,
-  },
-  questionInput: {
-    width: '100%',
-    height: 100,
-    borderColor: '#E5E7EB',
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 15,
-    textAlignVertical: 'top',
-  },
-  modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-  },
-  cancelButton: {
-    backgroundColor: '#E5E7EB',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  cancelButtonText: {
-    color: TEXT_DARK,
-    fontWeight: '700',
-  },
-  askButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: PRIMARY,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  askButtonDisabled: {
-    backgroundColor: '#D1D5DB',
-  },
-  askButtonText: {
-    color: '#fff',
-    fontWeight: '700',
-    marginLeft: 8,
   },
 });
 
