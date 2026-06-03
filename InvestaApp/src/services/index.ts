@@ -33,6 +33,12 @@ export type {
   UserProgress, ProgressSummary, WeeklyActivity, ProgressStats
 } from './progressApi';
 
+// Courses API
+export { default as coursesApi } from './coursesApi';
+export type {
+  Course, CourseLesson, InProgressCourse
+} from './coursesApi';
+
 // Trading API
 export { default as tradingApi } from './tradingApi';
 export type {

@@ -1,4 +1,5 @@
 import api from './api';
+import { InProgressCourse } from './coursesApi';
 
 export interface UserProgress {
   id: number;
@@ -53,6 +54,7 @@ export interface ProgressSummary {
   portfolio_value: number;
   portfolio_growth_percentage: number;
   win_rate: number;
+  total_trades: number;
   total_badges: number;
   earned_badges: number;
   total_achievements: number;
@@ -177,6 +179,19 @@ export const progressApi = {
       return response.data;
     } catch (error) {
       console.error(`Error fetching progress ${id}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get courses the user has started but not completed
+   */
+  async getInProgressCourses(): Promise<InProgressCourse[]> {
+    try {
+      const response = await api.get('/progress/in_progress/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching in-progress courses:', error);
       throw error;
     }
   },
