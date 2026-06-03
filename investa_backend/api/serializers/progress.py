@@ -54,7 +54,8 @@ class UserProgressSummarySerializer(serializers.ModelSerializer):
             'quiz_completion_percentage', 'overall_progress_percentage',
             'current_streak_days', 'longest_streak_days', 'total_activity_days',
             'portfolio_value', 'portfolio_growth_percentage', 'win_rate',
-            'total_badges', 'earned_badges', 'total_achievements', 'earned_achievements',
+            'total_trades', 'total_badges', 'earned_badges', 'total_achievements', 'earned_achievements',
+            'completed_lessons', 'total_lessons',
             'updated_at'
         ]
         read_only_fields = fields

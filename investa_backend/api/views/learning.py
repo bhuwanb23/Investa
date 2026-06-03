@@ -74,6 +74,41 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def recommended(self, request):
+        """Get recommended courses for the user based on their current level"""
+        limit = int(request.query_params.get('limit', 5))
+
+        from ..models.progress import UserProgress as UP
+        try:
+            user_progress = UP.objects.get(user=request.user)
+            user_level = user_progress.current_level
+        except UP.DoesNotExist:
+            user_level = 1
+
+        if user_level <= 3:
+            difficulty = 'beginner'
+        elif user_level <= 6:
+            difficulty = 'intermediate'
+        else:
+            difficulty = 'advanced'
+
+        courses = list(Course.objects.filter(
+            is_active=True,
+            difficulty_level=difficulty
+        ).order_by('id')[:limit])
+
+        if len(courses) < limit:
+            extra = limit - len(courses)
+            existing_ids = [c.id for c in courses]
+            others = Course.objects.filter(
+                is_active=True
+            ).exclude(id__in=existing_ids).order_by('id')[:extra]
+            courses.extend(others)
+
+        serializer = CourseSerializer(courses, many=True)
+        return Response(serializer.data)
+
     @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def with_progress(self, request, pk=None):
         """Get course details with user progress"""

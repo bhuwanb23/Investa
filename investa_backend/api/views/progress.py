@@ -117,6 +117,59 @@ class UserProgressViewSet(viewsets.ReadOnlyModelViewSet):
         return completed_courses
     
     @action(detail=False, methods=['get'])
+    def in_progress(self, request):
+        """Get courses the user has started but not completed"""
+        from ..models.learning import Course, UserLessonProgress
+
+        course_ids = UserLessonProgress.objects.filter(
+            user=request.user
+        ).exclude(
+            status='locked'
+        ).values_list('lesson__course_id', flat=True).distinct()
+
+        result = []
+        for course_id in course_ids:
+            try:
+                course = Course.objects.get(id=course_id, is_active=True)
+            except Course.DoesNotExist:
+                continue
+
+            total = course.lessons.filter(is_active=True).count()
+            if total == 0:
+                continue
+
+            completed = UserLessonProgress.objects.filter(
+                user=request.user,
+                lesson__course=course,
+                status='completed'
+            ).count()
+
+            pct = round((completed / total) * 100)
+
+            if pct >= 100:
+                status_val = 'completed'
+            elif completed > 0:
+                status_val = 'in_progress'
+            else:
+                status_val = 'locked'
+
+            result.append({
+                'course_id': course.id,
+                'course_title': course.title,
+                'description': course.description,
+                'difficulty_level': course.difficulty_level,
+                'estimated_duration': course.estimated_duration,
+                'thumbnail': course.thumbnail,
+                'progress_percentage': pct,
+                'lessons_completed': completed,
+                'total_lessons': total,
+                'status': status_val,
+            })
+
+        result.sort(key=lambda x: x['progress_percentage'], reverse=True)
+        return Response(result)
+
+    @action(detail=False, methods=['get'])
     def weekly_activity(self, request):
         """Get weekly activity data for charts"""
         # Calculate weekly activity for the current user
