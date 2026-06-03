@@ -9,27 +9,18 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { QUIZ_QUESTIONS } from '../constants/courseConstants';
 
 const { width } = Dimensions.get('window');
-
-interface QuizQuestion {
-  id: number;
-  question: string;
-  options: string[];
-  correctAnswer: number;
-  explanation: string;
-}
 
 interface LessonQuizContentProps {
   questionIndex: number;
   totalQuestions: number;
-  question?: any; // Backend question data
-  userAnswer?: any; // User's answer data
+  question?: any;
+  userAnswer?: any;
   onAnswerSubmit?: (questionId: number, answerId: number | null, textAnswer?: string) => void;
   onNextQuestion: () => void;
   onCompleteQuiz: () => void;
-  quizAttempt?: any; // Quiz attempt data
+  quizAttempt?: any;
 }
 
 const LessonQuizContent: React.FC<LessonQuizContentProps> = ({
@@ -42,174 +33,68 @@ const LessonQuizContent: React.FC<LessonQuizContentProps> = ({
   onCompleteQuiz,
   quizAttempt,
 }) => {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
-  const [answers, setAnswers] = useState<{ [key: number]: number }>({});
-  const [quizCompleted, setQuizCompleted] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(60); // 60 seconds per question
+  const [timeLeft, setTimeLeft] = useState(60);
 
-  // Use backend question data if available, otherwise fall back to local data
   const isBackendQuiz = !!question;
-  const currentQuestion = isBackendQuiz ? question : QUIZ_QUESTIONS[currentQuestionIndex];
-  const effectiveIndex = isBackendQuiz ? questionIndex : currentQuestionIndex;
-  const effectiveTotal = isBackendQuiz ? totalQuestions : QUIZ_QUESTIONS.length;
-  const backendAnswers = isBackendQuiz ? (currentQuestion?.answers || []) : [];
-  const correctIndex = isBackendQuiz 
-    ? backendAnswers.findIndex((a: any) => !!a?.is_correct)
-    : (currentQuestion?.correctAnswer ?? -1);
-  const options: string[] = isBackendQuiz
-    ? backendAnswers.map((a: any) => a?.answer_text ?? '')
-    : (currentQuestion?.options || []);
+  const backendAnswers = question?.answers || [];
+  const correctIndex = backendAnswers.findIndex((a: any) => !!a?.is_correct);
+  const options: string[] = backendAnswers.map((a: any) => a?.answer_text ?? '');
 
   useEffect(() => {
-    if (quizCompleted) return;
+    setSelectedAnswer(null);
+    setShowExplanation(false);
+    setTimeLeft(60);
+  }, [questionIndex]);
 
+  useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          // Time's up, auto-submit
           if (selectedAnswer === null) {
-            handleAnswerSelect(-1); // No answer selected
+            handleAnswerSelect(-1);
           }
           return 60;
         }
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(timer);
-  }, [currentQuestionIndex, selectedAnswer, quizCompleted]);
+  }, [questionIndex, selectedAnswer]);
 
   const handleAnswerSelect = (answerIndex: number) => {
     setSelectedAnswer(answerIndex);
-    setAnswers(prev => ({ ...prev, [currentQuestionIndex]: answerIndex }));
-    
-    // If using backend quiz, submit answer immediately
-    if (isBackendQuiz && onAnswerSubmit && currentQuestion) {
-      const answerId = currentQuestion.answers?.[answerIndex]?.id || null;
-      onAnswerSubmit(currentQuestion.id, answerId);
+    if (onAnswerSubmit && question) {
+      const answerId = question.answers?.[answerIndex]?.id || null;
+      onAnswerSubmit(question.id, answerId);
     }
   };
 
-  const handleNextQuestion = () => {
+  const handleNext = () => {
     if (selectedAnswer === null) {
       Alert.alert('Please select an answer before continuing.');
       return;
     }
-
-    setShowExplanation(false);
-    setSelectedAnswer(null);
-    setTimeLeft(60);
-
-    if (isBackendQuiz) {
-      if (effectiveIndex < effectiveTotal - 1) {
-        onNextQuestion();
-      } else {
-        onCompleteQuiz();
-      }
+    if (questionIndex < totalQuestions - 1) {
+      onNextQuestion();
     } else {
-      if (currentQuestionIndex < QUIZ_QUESTIONS.length - 1) {
-        setCurrentQuestionIndex(prev => prev + 1);
-      } else {
-        setQuizCompleted(true);
-      }
+      onCompleteQuiz();
     }
   };
 
-  const handleRetakeQuiz = () => {
-    setCurrentQuestionIndex(0);
-    setSelectedAnswer(null);
-    setShowExplanation(false);
-    setAnswers({});
-    setQuizCompleted(false);
-    setTimeLeft(60);
-  };
-
-  const calculateScore = () => {
-    let correct = 0;
-    Object.keys(answers).forEach(questionIndex => {
-      const answer = answers[parseInt(questionIndex)];
-      const question = QUIZ_QUESTIONS[parseInt(questionIndex)];
-      if (answer === question.correctAnswer) {
-        correct++;
-      }
-    });
-    return { correct, total: QUIZ_QUESTIONS.length, percentage: Math.round((correct / QUIZ_QUESTIONS.length) * 100) };
-  };
-
-  const getScoreMessage = (percentage: number) => {
-    if (percentage >= 90) return { message: 'Excellent! You have a strong understanding of this topic.', color: '#10B981' };
-    if (percentage >= 70) return { message: 'Good job! You understand most of the concepts.', color: '#3B82F6' };
-    if (percentage >= 50) return { message: 'Not bad! Review the material to improve your understanding.', color: '#F59E0B' };
-    return { message: 'Keep practicing! Review the lesson and try again.', color: '#EF4444' };
-  };
-
-  if (quizCompleted) {
-    const score = calculateScore();
-    const scoreInfo = getScoreMessage(score.percentage);
-
+  if (!isBackendQuiz || !question) {
     return (
       <View style={styles.container}>
-        <View style={styles.resultsContainer}>
-          <View style={styles.scoreHeader}>
-            <Ionicons 
-              name={score.percentage >= 70 ? "trophy" : "school"} 
-              size={48} 
-              color={scoreInfo.color} 
-            />
-            <Text style={styles.quizCompleteText}>Quiz Complete!</Text>
-          </View>
-
-          <View style={styles.scoreCard}>
-            <Text style={styles.scoreText}>{score.correct}/{score.total}</Text>
-            <Text style={styles.percentageText}>{score.percentage}%</Text>
-            <Text style={[styles.scoreMessage, { color: scoreInfo.color }]}>
-              {scoreInfo.message}
-            </Text>
-          </View>
-
-          <View style={styles.answersReview}>
-            <Text style={styles.reviewTitle}>Question Review</Text>
-            {QUIZ_QUESTIONS.map((question, index) => {
-              const userAnswer = answers[index];
-              const isCorrect = userAnswer === question.correctAnswer;
-              
-              return (
-                <View key={question.id} style={styles.reviewItem}>
-                  <View style={styles.reviewHeader}>
-                    <Text style={styles.reviewQuestionNumber}>Q{index + 1}</Text>
-                    <Ionicons 
-                      name={isCorrect ? "checkmark-circle" : "close-circle"} 
-                      size={20} 
-                      color={isCorrect ? "#10B981" : "#EF4444"} 
-                    />
-                  </View>
-                  <Text style={styles.reviewQuestionText}>{question.question}</Text>
-                  <Text style={styles.reviewAnswer}>
-                    Your answer: {userAnswer !== undefined ? question.options[userAnswer] : 'Not answered'}
-                  </Text>
-                  {!isCorrect && (
-                    <Text style={styles.correctAnswer}>
-                      Correct: {question.options[question.correctAnswer]}
-                    </Text>
-                  )}
-                </View>
-              );
-            })}
-          </View>
-
-          <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.retakeButton} onPress={handleRetakeQuiz}>
-              <Ionicons name="refresh" size={20} color="#6B7280" />
-              <Text style={styles.retakeButtonText}>Retake Quiz</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.continueButton} onPress={onCompleteQuiz}>
-              <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
-              <Text style={styles.continueButtonText}>Continue Learning</Text>
-            </TouchableOpacity>
-          </View>
+        <View style={styles.emptyState}>
+          <Ionicons name="help-circle-outline" size={64} color="#D1D5DB" />
+          <Text style={styles.emptyStateTitle}>Quiz Unavailable</Text>
+          <Text style={styles.emptyStateText}>
+            This lesson does not have a quiz yet. Check back later.
+          </Text>
+          <TouchableOpacity style={styles.emptyStateButton} onPress={onCompleteQuiz}>
+            <Text style={styles.emptyStateButtonText}>Continue to Next Lesson</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -221,14 +106,14 @@ const LessonQuizContent: React.FC<LessonQuizContentProps> = ({
       <View style={styles.progressHeader}>
         <View style={styles.progressInfo}>
           <Text style={styles.progressText}>
-            Question {effectiveIndex + 1} of {effectiveTotal}
+            Question {questionIndex + 1} of {totalQuestions}
           </Text>
           <View style={styles.progressBar}>
-            <View 
+            <View
               style={[
-                styles.progressFill, 
-                { width: `${((effectiveIndex + 1) / Math.max(1, effectiveTotal)) * 100}%` }
-              ]} 
+                styles.progressFill,
+                { width: `${((questionIndex + 1) / Math.max(1, totalQuestions)) * 100}%` },
+              ]}
             />
           </View>
         </View>
@@ -240,7 +125,7 @@ const LessonQuizContent: React.FC<LessonQuizContentProps> = ({
 
       {/* Question */}
       <View style={styles.questionContainer}>
-        <Text style={styles.questionText}>{isBackendQuiz ? currentQuestion?.question_text : currentQuestion?.question}</Text>
+        <Text style={styles.questionText}>{question?.question_text || question?.question || ''}</Text>
       </View>
 
       {/* Answer Options */}
@@ -288,7 +173,9 @@ const LessonQuizContent: React.FC<LessonQuizContentProps> = ({
             <Ionicons name="bulb" size={20} color="#F59E0B" />
             <Text style={styles.explanationTitle}>Explanation</Text>
           </View>
-          <Text style={styles.explanationText}>{isBackendQuiz ? (currentQuestion?.explanation || 'No explanation provided.') : currentQuestion.explanation}</Text>
+          <Text style={styles.explanationText}>
+            {question?.explanation || 'No explanation provided.'}
+          </Text>
         </View>
       )}
 
@@ -300,9 +187,9 @@ const LessonQuizContent: React.FC<LessonQuizContentProps> = ({
             <Text style={styles.checkAnswerText}>Check Answer</Text>
           </TouchableOpacity>
         ) : selectedAnswer !== null && showExplanation ? (
-          <TouchableOpacity style={styles.nextButton} onPress={handleNextQuestion}>
+          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
             <Text style={styles.nextButtonText}>
-              {effectiveIndex < effectiveTotal - 1 ? 'Next Question' : 'Finish Quiz'}
+              {questionIndex < totalQuestions - 1 ? 'Next Question' : 'Finish Quiz'}
             </Text>
             <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
           </TouchableOpacity>
@@ -316,6 +203,38 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 48,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#111827',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  emptyStateButton: {
+    backgroundColor: '#4F46E5',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+  },
+  emptyStateButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 14,
   },
   progressHeader: {
     flexDirection: 'row',
@@ -496,135 +415,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  resultsContainer: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  scoreHeader: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  quizCompleteText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
-    marginTop: 12,
-  },
-  scoreCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  scoreText: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  percentageText: {
-    fontSize: 48,
-    fontWeight: '800',
-    color: '#4F46E5',
-    marginVertical: 8,
-  },
-  scoreMessage: {
-    fontSize: 16,
-    fontWeight: '500',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  answersReview: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  reviewTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 16,
-  },
-  reviewItem: {
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  reviewHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  reviewQuestionNumber: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  reviewQuestionText: {
-    fontSize: 14,
-    color: '#374151',
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  reviewAnswer: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  correctAnswer: {
-    fontSize: 12,
-    color: '#10B981',
-    fontWeight: '500',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  retakeButton: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 12,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  retakeButtonText: {
-    color: '#6B7280',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  continueButton: {
-    flex: 1,
-    backgroundColor: '#4F46E5',
-    borderRadius: 12,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  continueButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
 });
 
 export default LessonQuizContent;
-
-
