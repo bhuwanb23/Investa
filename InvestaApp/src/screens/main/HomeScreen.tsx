@@ -20,7 +20,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import LogoLoader from '../../components/LogoLoader';
 import { useTranslation } from '../../language';
-import { progressApi, ProgressSummary } from '../../services';
+import { progressApi, coursesApi, tradingApi, ProgressSummary, InProgressCourse, Course, MarketData, UserAchievement } from '../../services';
+import EmptyState from '../../components/EmptyState';
 
 const { width, height } = Dimensions.get('window');
 
@@ -47,6 +48,13 @@ const HomeScreen = () => {
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
 
+  const [learningPath, setLearningPath] = useState<InProgressCourse[]>([]);
+  const [portfolioSummary, setPortfolioSummary] = useState<ProgressSummary | null>(null);
+  const [achievements, setAchievements] = useState<UserAchievement[]>([]);
+  const [recommended, setRecommended] = useState<Course[]>([]);
+  const [trending, setTrending] = useState<MarketData[]>([]);
+  const [dataLoading, setDataLoading] = useState(false);
+
   // Animation refs
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -71,9 +79,32 @@ const HomeScreen = () => {
     }
   };
 
+  const fetchHomeData = async () => {
+    try {
+      setDataLoading(true);
+      const [inProgress, summary, achiev, rec, movers] = await Promise.all([
+        progressApi.getInProgressCourses(),
+        progressApi.getProgressSummary(),
+        tradingApi.getMyAchievements(),
+        coursesApi.getRecommendedCourses(5),
+        tradingApi.getTopMovers(),
+      ]);
+      setLearningPath(inProgress);
+      setPortfolioSummary(summary);
+      setAchievements(achiev);
+      setRecommended(rec);
+      setTrending(movers.top_gainers.slice(0, 4));
+    } catch (error) {
+      console.error('HomeScreen: Error fetching home data:', error);
+    } finally {
+      setDataLoading(false);
+    }
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => setShowBootLoader(false), 800);
     fetchProgress();
+    fetchHomeData();
 
     // Staggered entrance animations
     Animated.parallel([
@@ -186,71 +217,33 @@ const HomeScreen = () => {
     },
   ];
 
-  const learningPathItems = [
-    {
-      id: 1,
-      title: t.tradingFundamentals,
-      status: 'completed',
-      description: t.completed,
-      icon: 'checkmark',
-      color: '#059669',
-    },
-    {
-      id: 2,
-      title: t.technicalAnalysis,
-      status: 'in-progress',
-      description: t.inProgress,
-      icon: 'play',
-      color: '#0891B2',
-    },
-    {
-      id: 3,
-      title: t.riskManagement,
-      status: 'locked',
-      description: t.locked,
-      icon: 'lock-closed',
-      color: '#9CA3AF',
-    },
-  ];
+  const learningPathItems = learningPath.map(lp => ({
+    id: lp.course_id,
+    title: lp.course_title,
+    status: lp.status,
+    description: lp.status === 'completed' ? t.completed : lp.status === 'in_progress' ? `${lp.progress_percentage}% ${t.complete}` : t.locked,
+    icon: lp.status === 'completed' ? 'checkmark-circle' as const : lp.status === 'in_progress' ? 'play-circle' as const : 'lock-closed' as const,
+    color: lp.status === 'completed' ? '#059669' : lp.status === 'in_progress' ? '#0891B2' : '#9CA3AF',
+  }));
 
-  const portfolioData = {
-    totalValue: '$12,450',
-    profit: '+$1,250',
-    profitPercentage: '+12.5%',
-    totalTrades: 8,
+  const portfolioData = !portfolioSummary ? null : {
+    totalValue: portfolioSummary.portfolio_value ? `$${Number(portfolioSummary.portfolio_value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00',
+    profit: portfolioSummary.portfolio_growth_percentage
+      ? `${Number(portfolioSummary.portfolio_growth_percentage) >= 0 ? '+' : ''}$${Math.abs(Number(portfolioSummary.portfolio_growth_percentage)).toFixed(1)}`
+      : '+$0.0',
+    profitPercentage: portfolioSummary.portfolio_growth_percentage
+      ? `${Number(portfolioSummary.portfolio_growth_percentage) >= 0 ? '+' : ''}${Number(portfolioSummary.portfolio_growth_percentage).toFixed(1)}%`
+      : '0.0%',
+    totalTrades: portfolioSummary.total_trades ?? 0,
   };
 
-  const achievements = [
-    {
-      id: 1,
-      title: t.firstTrade,
-      icon: 'trophy',
-      bgColor: '#FEF3C7',
-      iconColor: '#D97706',
-    },
-    {
-      id: 2,
-      title: t.quizMaster,
-      icon: 'medal',
-      bgColor: '#DBEAFE',
-      iconColor: '#2563EB',
-    },
-    {
-      id: 3,
-      title: t.dayStreak,
-      icon: 'star',
-      bgColor: '#DCFCE7',
-      iconColor: '#16A34A',
-    },
-    {
-      id: 4,
-      title: t.expertLevel,
-      icon: 'diamond',
-      bgColor: '#F3E8FF',
-      iconColor: '#7C3AED',
-    },
-  ];
-
+  const mappedAchievements = achievements.map(a => ({
+    id: a.id,
+    title: a.achievement?.name || a.id.toString(),
+    icon: (a.achievement?.icon_name || 'trophy') as any,
+    bgColor: '#FEF3C7',
+    iconColor: '#D97706',
+  }));
   // New sample content
   const dailyTip = {
     title: t.dailyTip,
@@ -258,18 +251,20 @@ const HomeScreen = () => {
     message: t.tipMessage,
   };
 
-  const recommendedCourses = [
-    { id: 'rc1', title: t.marketBasics, level: t.beginner, progress: 0.3, color: '#3B82F6' },
-    { id: 'rc2', title: t.readingCandlesticks, level: t.intermediate, progress: 0.55, color: '#10B981' },
-    { id: 'rc3', title: t.optionsEssentials, level: t.advanced, progress: 0.1, color: '#7C3AED' },
-  ];
+  const recommendedCourses = recommended.map(c => ({
+    id: c.id.toString(),
+    title: c.title,
+    level: c.difficulty_level.charAt(0).toUpperCase() + c.difficulty_level.slice(1),
+    progress: 0,
+    color: c.difficulty_level === 'beginner' ? '#3B82F6' : c.difficulty_level === 'intermediate' ? '#10B981' : '#7C3AED',
+  }));
 
-  const trendingStocks = [
-    { symbol: 'AAPL', name: t.apple, change: '+1.8%', up: true },
-    { symbol: 'TSLA', name: t.tesla, change: '-0.7%', up: false },
-    { symbol: 'NVDA', name: t.nvidia, change: '+2.4%', up: true },
-    { symbol: 'AMZN', name: t.amazon, change: '+0.9%', up: true },
-  ];
+  const trendingStocks = trending.map(s => ({
+    symbol: (s as any).stock?.symbol || 'N/A',
+    name: (s as any).stock?.name || 'N/A',
+    change: `${s.change_percentage >= 0 ? '+' : ''}${s.change_percentage.toFixed(1)}%`,
+    up: s.change_percentage >= 0,
+  }));
 
   const renderWelcomeSection = () => (
     <Animated.View 
@@ -293,7 +288,7 @@ const HomeScreen = () => {
             style={styles.profileImage}
           />
           <View style={styles.welcomeText}>
-            <Text style={styles.welcomeTitle}>{t.welcomeBack.replace('{username}', user?.username || 'Sarah')}</Text>
+            <Text style={styles.welcomeTitle}>{t.welcomeBack.replace('{username}', user?.first_name || user?.username || '')}</Text>
             <Text style={styles.welcomeSubtitle}>{t.readyToLevelUp}</Text>
           </View>
         </View>
@@ -398,7 +393,9 @@ const HomeScreen = () => {
     </View>
   );
 
-  const renderLearningPath = () => (
+  const renderLearningPath = () => {
+    if (learningPathItems.length === 0 && !dataLoading) return null;
+    return (
     <View style={styles.learningPathSection}>
       <Text style={styles.sectionTitle}>{t.learningPath}</Text>
       <View style={styles.learningPathList}>
@@ -445,32 +442,38 @@ const HomeScreen = () => {
         ))}
       </View>
     </View>
-  );
+    );
+  };
 
-  const renderPortfolioSnapshot = () => (
+  const renderPortfolioSnapshot = () => {
+    if (!portfolioData && !dataLoading) return null;
+    return (
     <View style={styles.portfolioSection}>
       <View style={styles.portfolioHeader}>
         <Text style={styles.sectionTitle}>{t.simulatedPortfolio}</Text>
-        <Text style={styles.portfolioProfit}>{portfolioData.profitPercentage}</Text>
+        <Text style={styles.portfolioProfit}>{portfolioData?.profitPercentage ?? '0.0%'}</Text>
       </View>
       <View style={styles.portfolioStats}>
         <View style={styles.portfolioStat}>
-          <Text style={styles.portfolioValue}>{portfolioData.totalValue}</Text>
+          <Text style={styles.portfolioValue}>{portfolioData?.totalValue ?? '$0.00'}</Text>
           <Text style={styles.portfolioLabel}>{t.totalValue}</Text>
         </View>
         <View style={styles.portfolioStat}>
-          <Text style={styles.portfolioProfitValue}>{portfolioData.profit}</Text>
+          <Text style={styles.portfolioProfitValue}>{portfolioData?.profit ?? '+$0.0'}</Text>
           <Text style={styles.portfolioLabel}>{t.profit}</Text>
         </View>
         <View style={styles.portfolioStat}>
-          <Text style={styles.portfolioValue}>{portfolioData.totalTrades}</Text>
+          <Text style={styles.portfolioValue}>{portfolioData?.totalTrades ?? 0}</Text>
           <Text style={styles.portfolioLabel}>{t.trades}</Text>
         </View>
       </View>
     </View>
-  );
+    );
+  };
 
-  const renderAchievements = () => (
+  const renderAchievements = () => {
+    if (mappedAchievements.length === 0 && !dataLoading) return null;
+    return (
     <View style={styles.achievementsSection}>
       <Text style={styles.sectionTitle}>{t.yourAchievements}</Text>
       <View style={styles.achievementsContainer}>
@@ -480,7 +483,7 @@ const HomeScreen = () => {
           contentContainerStyle={styles.achievementsScrollContainer}
           nestedScrollEnabled={true}
         >
-          {achievements.map((achievement, index) => (
+          {mappedAchievements.map((achievement, index) => (
             <Animated.View 
               key={achievement.id} 
               style={[
@@ -507,7 +510,8 @@ const HomeScreen = () => {
         </ScrollView>
       </View>
     </View>
-  );
+    );
+  };
 
   const renderDailyTip = () => (
     <Animated.View 
@@ -536,7 +540,9 @@ const HomeScreen = () => {
     </Animated.View>
   );
 
-  const renderRecommended = () => (
+  const renderRecommended = () => {
+    if (recommendedCourses.length === 0 && !dataLoading) return null;
+    return (
     <View style={styles.recommendedSection}>
       <Text style={styles.sectionTitle}>{t.recommendedForYou}</Text>
       <ScrollView 
@@ -578,9 +584,12 @@ const HomeScreen = () => {
         ))}
       </ScrollView>
     </View>
-  );
+    );
+  };
 
-  const renderMarket = () => (
+  const renderMarket = () => {
+    if (trendingStocks.length === 0 && !dataLoading) return null;
+    return (
     <View style={styles.marketSection}>
       <Text style={styles.sectionTitle}>{t.marketSnapshot}</Text>
       <View style={styles.marketList}>
@@ -612,7 +621,8 @@ const HomeScreen = () => {
         ))}
       </View>
     </View>
-  );
+    );
+  };
 
   const renderCTA = () => (
     <Animated.View
