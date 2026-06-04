@@ -39,6 +39,18 @@ export type {
   Course, CourseLesson, InProgressCourse
 } from './coursesApi';
 
+// Security API
+export { default as securityApi } from './securityApi';
+export type {
+  SecuritySettingsData, UserSessionData, TwoFactorSetupResponse
+} from './securityApi';
+
+// Privacy API
+export { default as privacyApi } from './privacyApi';
+export type {
+  PrivacySettingsData
+} from './privacyApi';
+
 // Trading API
 export { default as tradingApi } from './tradingApi';
 export type {
