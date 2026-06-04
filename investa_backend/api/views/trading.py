@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status, permissions, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, F, Sum, Count, Avg
+from django.db.models import Sum, Avg
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
@@ -21,7 +21,7 @@ def _create_notification(user, title, message, notif_type):
         notification_type=notif_type
     )
 from ..serializers.trading import (
-    StockSerializer, StockDetailSerializer, StockPriceSerializer, UserWatchlistSerializer,
+    StockSerializer, StockDetailSerializer, StockPriceSerializer, UserWatchlistSerializer, StockWatchlistSerializer,
     PortfolioSerializer, PortfolioSummarySerializer, PortfolioHoldingSerializer,
     OrderSerializer, OrderHistorySerializer, TradeSerializer,
     TradingPerformanceSerializer, TradingSessionSerializer,
