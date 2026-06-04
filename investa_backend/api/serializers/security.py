@@ -48,7 +48,7 @@ class TwoFactorSetupSerializer(serializers.Serializer):
 
 
 class TwoFactorVerifySerializer(serializers.Serializer):
-    code = serializers.CharField(required=True, min_length=6, max_length=6)
+    code = serializers.CharField(required=True, min_length=6, max_length=8)
 
 
 class TwoFactorDisableSerializer(serializers.Serializer):
