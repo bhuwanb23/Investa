@@ -139,10 +139,7 @@ class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        try:
-            Token.objects.filter(user=request.user).delete()
-        except Exception:
-            pass
+        Token.objects.filter(user=request.user).delete()
         return Response({'detail': 'Logged out'})
 
 
