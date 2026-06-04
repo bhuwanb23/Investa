@@ -67,7 +67,7 @@ export async function markLessonCompleted(lessonId: number): Promise<void> {
 // Quiz API functions
 export const fetchQuizForLesson = async (lessonId: number) => {
   try {
-    const response = await api.get(`quiz/${lessonId}/for_lesson/`);
+    const response = await api.get(`quiz/for_lesson/?lesson_id=${lessonId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching quiz for lesson:', error);
@@ -77,7 +77,7 @@ export const fetchQuizForLesson = async (lessonId: number) => {
 
 export const fetchQuizzesForLesson = async (lessonId: number) => {
   try {
-    const response = await api.get(`quiz/${lessonId}/list_for_lesson/`);
+    const response = await api.get(`quiz/list_for_lesson/?lesson_id=${lessonId}`);
     const data = response.data;
     if (Array.isArray(data)) return data;
     if (data && Array.isArray(data.results)) return data.results;

@@ -256,11 +256,14 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = QuizSerializer
     permission_classes = [permissions.IsAuthenticated]
     
-    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
-    def for_lesson(self, request, pk=None):
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def for_lesson(self, request):
         """Get the first active quiz for a specific lesson"""
+        lesson_id = request.query_params.get('lesson_id')
+        if not lesson_id:
+            return Response({'detail': 'lesson_id query parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            lesson = Lesson.objects.get(id=pk)
+            lesson = Lesson.objects.get(id=lesson_id)
         except Lesson.DoesNotExist:
             return Response({'detail': 'Lesson not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -315,11 +318,14 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(quiz)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
-    def list_for_lesson(self, request, pk=None):
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def list_for_lesson(self, request):
         """List all active quizzes for a specific lesson"""
+        lesson_id = request.query_params.get('lesson_id')
+        if not lesson_id:
+            return Response({'detail': 'lesson_id query parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            lesson = Lesson.objects.get(id=pk)
+            lesson = Lesson.objects.get(id=lesson_id)
         except Lesson.DoesNotExist:
             return Response({'detail': 'Lesson not found'}, status=status.HTTP_404_NOT_FOUND)
 
