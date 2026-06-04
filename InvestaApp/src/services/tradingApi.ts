@@ -270,33 +270,33 @@ class TradingApiService {
 
   // Watchlist endpoints
   async getMyWatchlist(): Promise<StockDetail[]> {
-    const response = await api.get('/watchlist/my_watchlist/');
+    const response = await api.get('watchlist/my_watchlist/');
     return response.data;
   }
 
   async addToWatchlist(stockId: number): Promise<UserWatchlist> {
-    const response = await api.post('/watchlist/add_stock/', { stock_id: stockId });
+    const response = await api.post('watchlist/add_stock/', { stock_id: stockId });
     return response.data;
   }
 
   async removeFromWatchlist(watchlistId: number): Promise<void> {
-    await api.delete(`/watchlist/${watchlistId}/`);
+    await api.delete(`watchlist/${watchlistId}/`);
   }
 
   // Portfolio endpoints
   async getMyPortfolio(): Promise<Portfolio> {
-    const response = await api.get('/portfolio/my_portfolio/');
+    const response = await api.get('portfolio/my_portfolio/');
     return response.data;
   }
 
   async getPortfolioHoldings(): Promise<PortfolioHolding[]> {
-    const response = await api.get('/portfolio/holdings/');
+    const response = await api.get('portfolio/holdings/');
     return response.data.holdings;
   }
 
   // Order endpoints
   async createOrder(orderData: Partial<Order>): Promise<Order> {
-    const response = await api.post('/orders/', orderData);
+    const response = await api.post('orders/', orderData);
     return response.data;
   }
 
@@ -305,56 +305,56 @@ class TradingApiService {
     if (status) params.append('status', status);
     if (side) params.append('side', side);
     
-    const response = await api.get(`/orders/order_history/${params.toString() ? '?' + params.toString() : ''}`);
+    const response = await api.get(`orders/order_history/${params.toString() ? '?' + params.toString() : ''}`);
     return response.data;
   }
 
   async cancelOrder(orderId: number): Promise<Order> {
-    const response = await api.post(`/orders/${orderId}/cancel_order/`);
+    const response = await api.post(`orders/${orderId}/cancel_order/`);
     return response.data;
   }
 
   // Trade endpoints
   async getTrades(): Promise<Trade[]> {
-    const response = await api.get('/trades/');
+    const response = await api.get('trades/');
     return response.data;
   }
 
   async getTradeSummary(): Promise<TradeSummary> {
-    const response = await api.get('/trades/trade_summary/');
+    const response = await api.get('trades/trade_summary/');
     return response.data;
   }
 
   // Trading Performance endpoints
   async getMyPerformance(): Promise<TradingPerformance> {
-    const response = await api.get('/trading-performance/my_performance/');
+    const response = await api.get('trading-performance/my_performance/');
     return response.data;
   }
 
   async getLeaderboard(timeframe: string = 'all'): Promise<LeaderboardEntry[]> {
-    const response = await api.get(`/trading-performance/leaderboard/?timeframe=${timeframe}`);
+    const response = await api.get(`trading-performance/leaderboard/?timeframe=${timeframe}`);
     return response.data;
   }
 
   // Market Data endpoints
   async getTopMovers(): Promise<TopMovers> {
-    const response = await api.get('/market-data/top_movers/');
+    const response = await api.get('market-data/top_movers/');
     return response.data;
   }
 
   async getMarketSummary(): Promise<MarketSummary> {
-    const response = await api.get('/market-data/market_summary/');
+    const response = await api.get('market-data/market_summary/');
     return response.data;
   }
 
   // Achievement endpoints
   async getMyAchievements(): Promise<UserAchievement[]> {
-    const response = await api.get('/achievements/my_achievements/');
+    const response = await api.get('achievements/my_achievements/');
     return response.data;
   }
 
   async getAvailableAchievements(): Promise<Achievement[]> {
-    const response = await api.get('/achievements/available_achievements/');
+    const response = await api.get('achievements/available_achievements/');
     return response.data;
   }
 
@@ -444,7 +444,7 @@ class TradingApiService {
   }
 
   async getMarketIndices(): Promise<any[]> {
-    const response = await api.get('/market-data/indices/');
+    const response = await api.get('market-data/indices/');
     return Array.isArray(response.data) ? response.data : (response.data?.results ?? []);
   }
 }

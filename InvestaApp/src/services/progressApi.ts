@@ -110,7 +110,7 @@ export const progressApi = {
    */
   async getMyProgress(): Promise<UserProgress> {
     try {
-      const response = await api.get('/progress/my_progress/');
+      const response = await api.get('progress/my_progress/');
       return response.data;
     } catch (error) {
       console.error('Error fetching user progress:', error);
@@ -123,7 +123,7 @@ export const progressApi = {
    */
   async getProgressSummary(): Promise<ProgressSummary> {
     try {
-      const response = await api.get('/progress/summary/');
+      const response = await api.get('progress/summary/');
       return response.data;
     } catch (error) {
       console.error('Error fetching progress summary:', error);
@@ -136,7 +136,7 @@ export const progressApi = {
    */
   async getProgressStats(): Promise<ProgressStats> {
     try {
-      const response = await api.get('/progress/stats/');
+      const response = await api.get('progress/stats/');
       return response.data;
     } catch (error) {
       console.error('Error fetching progress stats:', error);
@@ -149,7 +149,7 @@ export const progressApi = {
    */
   async refreshProgress(): Promise<UserProgress> {
     try {
-      const response = await api.post('/progress/refresh/');
+      const response = await api.post('progress/refresh/');
       return response.data;
     } catch (error) {
       console.error('Error refreshing progress:', error);
@@ -162,7 +162,7 @@ export const progressApi = {
    */
   async getWeeklyActivity(): Promise<WeeklyActivity[]> {
     try {
-      const response = await api.get('/progress/weekly_activity/');
+      const response = await api.get('progress/weekly_activity/');
       return response.data;
     } catch (error) {
       console.error('Error fetching weekly activity:', error);
@@ -175,7 +175,7 @@ export const progressApi = {
    */
   async getProgressById(id: number): Promise<UserProgress> {
     try {
-      const response = await api.get(`/progress/${id}/`);
+      const response = await api.get(`progress/${id}/`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching progress ${id}:`, error);
@@ -188,7 +188,7 @@ export const progressApi = {
    */
   async getInProgressCourses(): Promise<InProgressCourse[]> {
     try {
-      const response = await api.get('/progress/in_progress/');
+      const response = await api.get('progress/in_progress/');
       return response.data;
     } catch (error) {
       console.error('Error fetching in-progress courses:', error);
@@ -201,7 +201,7 @@ export const progressApi = {
    */
   async listAllProgress(): Promise<UserProgress[]> {
     try {
-      const response = await api.get('/progress/');
+      const response = await api.get('progress/');
       return response.data.results || response.data;
     } catch (error) {
       console.error('Error listing all progress:', error);
