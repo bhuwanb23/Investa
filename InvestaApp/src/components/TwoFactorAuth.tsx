@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,23 +9,46 @@ import {
   Alert,
   TextInput,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import QRCode from 'react-native-qrcode-svg';
 import MainHeader from './MainHeader';
 import { useTranslation } from '../language';
+import { securityApi } from '../services';
 
 const TwoFactorAuth = ({ navigation, route }: any) => {
+  const [loading, setLoading] = useState(true);
   const [isEnabled, setIsEnabled] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
+  const [showDisableModal, setShowDisableModal] = useState(false);
+  const [setupData, setSetupData] = useState<any>(null);
   const [verificationCode, setVerificationCode] = useState('');
+  const [disablePassword, setDisablePassword] = useState('');
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [showBackupCodes, setShowBackupCodes] = useState(false);
-  const [recoveryEmail, setRecoveryEmail] = useState('alex.johnson@email.com');
-  
+  const [setupStep, setSetupStep] = useState<'qr' | 'codes'>('qr');
+  const [recoveryEmail, setRecoveryEmail] = useState('');
+
   const { t } = useTranslation();
-  
-  // Debug log to verify language is working
-  console.log('TwoFactorAuth - Selected Language:', t.language);
+
+  const loadSettings = useCallback(async () => {
+    try {
+      const response = await securityApi.getSettings();
+      if (response.success && response.data) {
+        setIsEnabled(response.data.two_factor_enabled ?? false);
+        setRecoveryEmail(response.data.recovery_email ?? '');
+      }
+    } catch (err: any) {
+      console.log('Could not load 2FA settings:', err?.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
 
   const handleBack = () => {
     navigation.goBack();
@@ -33,86 +56,109 @@ const TwoFactorAuth = ({ navigation, route }: any) => {
 
   const handleToggle2FA = () => {
     if (!isEnabled) {
-      setShowSetupModal(true);
+      handleSetup2FA();
     } else {
-      Alert.alert(
-        t.disable2FA,
-        t.disable2FAMessage,
-        [
-          { text: t.cancel, style: 'cancel' },
-          { 
-            text: t.disable, 
-            style: 'destructive',
-            onPress: () => {
-              setIsEnabled(false);
-              setBackupCodes([]);
-            }
-          }
-        ]
-      );
+      setShowDisableModal(true);
     }
   };
 
-  const handleSetup2FA = () => {
-    if (verificationCode.length === 6) {
-      // Generate backup codes
-      const codes = Array.from({ length: 8 }, () => 
-        Math.random().toString(36).substring(2, 8).toUpperCase()
-      );
-      setBackupCodes(codes);
-      setIsEnabled(true);
-      setShowSetupModal(false);
+  const handleSetup2FA = async () => {
+    try {
+      setSetupStep('qr');
       setVerificationCode('');
-      setShowBackupCodes(true);
-    } else {
-      Alert.alert(t.error, t.invalidCode);
+      const response = await securityApi.setup2FA();
+      if (response.success && response.data) {
+        setSetupData(response.data);
+        setShowSetupModal(true);
+      }
+    } catch (err: any) {
+      Alert.alert(t.error, err?.message || 'Failed to start 2FA setup');
     }
   };
 
-  const handleResendCode = () => {
-    Alert.alert(t.codeSent, t.codeSentMessage);
+  const handleVerify2FA = async () => {
+    if (verificationCode.length !== 6) {
+      Alert.alert(t.error, t.invalidCode);
+      return;
+    }
+    try {
+      const response = await securityApi.verify2FA(verificationCode);
+      if (response.success && response.data?.two_factor_enabled) {
+        setIsEnabled(true);
+        setSetupStep('codes');
+        if (setupData?.backup_codes) {
+          setBackupCodes(setupData.backup_codes);
+        }
+        setShowBackupCodes(true);
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.code?.[0] || err?.response?.data?.detail || err?.message || 'Invalid code';
+      Alert.alert(t.error, msg);
+    }
+  };
+
+  const handleDisable2FA = async () => {
+    if (!disablePassword) {
+      Alert.alert(t.error, 'Password is required');
+      return;
+    }
+    try {
+      const response = await securityApi.disable2FA(disablePassword);
+      if (response.success) {
+        setIsEnabled(false);
+        setBackupCodes([]);
+        setShowDisableModal(false);
+        setDisablePassword('');
+        Alert.alert(t.success, '2FA disabled successfully');
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.password?.[0] || err?.response?.data?.detail || err?.message || 'Failed to disable 2FA';
+      Alert.alert(t.error, msg);
+    }
   };
 
   const handleUpdateRecoveryEmail = () => {
-    Alert.alert(
-      t.updateRecoveryEmail,
-      t.updateRecoveryEmailMessage,
-      [
-        { text: t.cancel, style: 'cancel' },
-        { 
-          text: t.updateButton, 
-          onPress: () => console.log('Updating recovery email...')
-        }
-      ]
-    );
+    Alert.prompt
+      ? Alert.prompt('Update Recovery Email', 'Enter new recovery email:', [
+          { text: t.cancel, style: 'cancel' },
+          { text: 'Save', onPress: async (email?: string) => {
+            if (email) {
+              try {
+                await securityApi.updateSettings({ recovery_email: email });
+                setRecoveryEmail(email);
+                Alert.alert(t.success, 'Recovery email updated');
+              } catch (err: any) {
+                Alert.alert(t.error, err?.message || 'Failed to update');
+              }
+            }
+          }}
+        ])
+      : Alert.alert('Update Recovery Email', 'Use the settings screen to update your email.');
   };
 
-  const handleDownloadBackupCodes = () => {
-    Alert.alert(
-      t.downloadBackupCodesTitle,
-      t.downloadBackupCodesMessage,
-      [
-        { text: t.cancel, style: 'cancel' },
-        { text: t.download, onPress: () => console.log('Downloading backup codes...') }
-      ]
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <MainHeader title={t.title} iconName="key" showBackButton onBackPress={handleBack} />
+        <ActivityIndicator size="large" color="#4F46E5" style={{ marginTop: 40 }} />
+      </View>
     );
-  };
+  }
 
   return (
     <View style={styles.container}>
       <MainHeader title={t.title} iconName="key" showBackButton onBackPress={handleBack} />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
-          
           {/* 2FA Status */}
           <View style={styles.section}>
             <View style={styles.statusCard}>
               <View style={styles.statusHeader}>
                 <View style={[styles.statusIcon, { backgroundColor: isEnabled ? '#DCFCE7' : '#FEE2E2' }]}>
-                  <Ionicons 
-                    name={isEnabled ? 'shield-checkmark' : 'shield-outline'} 
-                    size={24} 
-                    color={isEnabled ? '#10B981' : '#EF4444'} 
+                  <Ionicons
+                    name={isEnabled ? 'shield-checkmark' : 'shield-outline'}
+                    size={24}
+                    color={isEnabled ? '#10B981' : '#EF4444'}
                   />
                 </View>
                 <View style={styles.statusText}>
@@ -120,10 +166,7 @@ const TwoFactorAuth = ({ navigation, route }: any) => {
                     {isEnabled ? t.enabled : t.disabled}
                   </Text>
                   <Text style={styles.statusDescription}>
-                    {isEnabled 
-                      ? t.enabledDescription
-                      : t.disabledDescription
-                    }
+                    {isEnabled ? t.enabledDescription : t.disabledDescription}
                   </Text>
                 </View>
               </View>
@@ -151,7 +194,7 @@ const TwoFactorAuth = ({ navigation, route }: any) => {
                   </Text>
                 </View>
               </View>
-              
+
               <View style={styles.stepItem}>
                 <View style={[styles.stepNumber, { backgroundColor: '#FEF3C7' }]}>
                   <Text style={[styles.stepNumberText, { color: '#D97706' }]}>2</Text>
@@ -163,7 +206,7 @@ const TwoFactorAuth = ({ navigation, route }: any) => {
                   </Text>
                 </View>
               </View>
-              
+
               <View style={styles.stepItem}>
                 <View style={[styles.stepNumber, { backgroundColor: '#DCFCE7' }]}>
                   <Text style={[styles.stepNumberText, { color: '#10B981' }]}>3</Text>
@@ -188,7 +231,7 @@ const TwoFactorAuth = ({ navigation, route }: any) => {
                 </View>
                 <View style={styles.settingText}>
                   <Text style={styles.settingLabel}>{t.recoveryEmail}</Text>
-                  <Text style={styles.settingDescription}>{recoveryEmail}</Text>
+                  <Text style={styles.settingDescription}>{recoveryEmail || 'Not set'}</Text>
                 </View>
               </View>
               <TouchableOpacity onPress={handleUpdateRecoveryEmail}>
@@ -215,11 +258,6 @@ const TwoFactorAuth = ({ navigation, route }: any) => {
                   <Text style={styles.linkText}>{t.view}</Text>
                 </TouchableOpacity>
               </View>
-              
-              <TouchableOpacity style={styles.secondaryButton} onPress={handleDownloadBackupCodes}>
-                <Ionicons name="download" size={16} color="#6B7280" />
-                <Text style={styles.secondaryButtonText}>{t.downloadBackupCodes}</Text>
-              </TouchableOpacity>
             </View>
           )}
 
@@ -242,39 +280,102 @@ const TwoFactorAuth = ({ navigation, route }: any) => {
                 <Ionicons name="close" size={24} color="#6B7280" />
               </TouchableOpacity>
             </View>
-            
-            <View style={styles.qrSection}>
-              <View style={styles.qrPlaceholder}>
-                <Ionicons name="qr-code" size={64} color="#9CA3AF" />
-                <Text style={styles.qrText}>{t.qrCodePlaceholder}</Text>
-                <Text style={styles.qrDescription}>{t.qrCodeDescription}</Text>
-              </View>
-            </View>
-            
-            <View style={styles.verificationSection}>
-              <Text style={styles.verificationLabel}>{t.enterVerificationCode}</Text>
-              <TextInput
-                style={styles.verificationInput}
-                value={verificationCode}
-                onChangeText={setVerificationCode}
-                placeholder="000000"
-                keyboardType="numeric"
-                maxLength={6}
-                textAlign="center"
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
-            
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.secondaryButton} onPress={handleResendCode}>
-                <Text style={styles.secondaryButtonText}>{t.resendCode}</Text>
+
+            {setupStep === 'qr' && (
+              <>
+                <View style={styles.qrSection}>
+                  {setupData?.uri ? (
+                    <QRCode
+                      value={setupData.uri}
+                      size={200}
+                      backgroundColor="#FFFFFF"
+                      color="#111827"
+                    />
+                  ) : (
+                    <View style={styles.qrPlaceholder}>
+                      <Ionicons name="qr-code" size={64} color="#9CA3AF" />
+                      <Text style={styles.qrText}>Generating QR...</Text>
+                    </View>
+                  )}
+                  <Text style={styles.qrDescription}>
+                    {t.qrCodeDescription}
+                  </Text>
+                  {setupData?.secret && (
+                    <Text style={styles.secretText}>
+                      Secret: {setupData.secret}
+                    </Text>
+                  )}
+                </View>
+
+                <View style={styles.verificationSection}>
+                  <Text style={styles.verificationLabel}>{t.enterVerificationCode}</Text>
+                  <TextInput
+                    style={styles.verificationInput}
+                    value={verificationCode}
+                    onChangeText={setVerificationCode}
+                    placeholder="000000"
+                    keyboardType="numeric"
+                    maxLength={6}
+                    textAlign="center"
+                    placeholderTextColor="#9CA3AF"
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.primaryButton, verificationCode.length !== 6 ? styles.disabledButton : null]}
+                  onPress={handleVerify2FA}
+                  disabled={verificationCode.length !== 6}
+                >
+                  <Text style={styles.primaryButtonText}>{t.enable2FA}</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Disable 2FA Modal */}
+      <Modal
+        visible={showDisableModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowDisableModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t.disable2FA}</Text>
+              <TouchableOpacity onPress={() => { setShowDisableModal(false); setDisablePassword(''); }}>
+                <Ionicons name="close" size={24} color="#6B7280" />
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.primaryButton, !verificationCode || verificationCode.length !== 6 ? styles.disabledButton : null]} 
-                onPress={handleSetup2FA}
-                disabled={!verificationCode || verificationCode.length !== 6}
+            </View>
+
+            <Text style={styles.backupDescription}>
+              Enter your password to disable two-factor authentication.
+            </Text>
+
+            <TextInput
+              style={styles.passwordInput}
+              value={disablePassword}
+              onChangeText={setDisablePassword}
+              placeholder="Enter your password"
+              secureTextEntry
+              placeholderTextColor="#9CA3AF"
+            />
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.secondaryButton}
+                onPress={() => { setShowDisableModal(false); setDisablePassword(''); }}
               >
-                <Text style={styles.primaryButtonText}>{t.enable2FA}</Text>
+                <Text style={styles.secondaryButtonText}>{t.cancel}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.dangerButton, !disablePassword ? styles.disabledButton : null]}
+                onPress={handleDisable2FA}
+                disabled={!disablePassword}
+              >
+                <Text style={styles.dangerButtonText}>Disable</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -296,11 +397,11 @@ const TwoFactorAuth = ({ navigation, route }: any) => {
                 <Ionicons name="close" size={24} color="#6B7280" />
               </TouchableOpacity>
             </View>
-            
+
             <Text style={styles.backupDescription}>
               {t.backupCodesModalDescription}
             </Text>
-            
+
             <View style={styles.codesGrid}>
               {backupCodes.map((code, index) => (
                 <View key={index} style={styles.codeItem}>
@@ -308,7 +409,7 @@ const TwoFactorAuth = ({ navigation, route }: any) => {
                 </View>
               ))}
             </View>
-            
+
             <TouchableOpacity style={styles.primaryButton} onPress={() => setShowBackupCodes(false)}>
               <Text style={styles.primaryButtonText}>{t.savedCodes}</Text>
             </TouchableOpacity>
@@ -452,13 +553,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   secondaryButton: {
-    flexDirection: 'row',
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#F3F4F6',
     borderRadius: 8,
     padding: 12,
-    gap: 8,
   },
   secondaryButtonText: {
     color: '#6B7280',
@@ -478,6 +578,18 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     backgroundColor: '#9CA3AF',
+  },
+  dangerButton: {
+    flex: 1,
+    backgroundColor: '#EF4444',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  dangerButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
   bottomSpacing: {
     height: 20,
@@ -533,6 +645,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6B7280',
     textAlign: 'center',
+    marginTop: 12,
+    lineHeight: 16,
+  },
+  secretText: {
+    fontSize: 10,
+    color: '#9CA3AF',
+    marginTop: 8,
+    fontFamily: 'monospace',
   },
   verificationSection: {
     marginBottom: 20,
@@ -558,6 +678,16 @@ const styles = StyleSheet.create({
   modalActions: {
     flexDirection: 'row',
     gap: 12,
+  },
+  passwordInput: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    padding: 14,
+    fontSize: 14,
+    color: '#111827',
+    backgroundColor: '#FFFFFF',
+    marginBottom: 20,
   },
   backupDescription: {
     fontSize: 14,
