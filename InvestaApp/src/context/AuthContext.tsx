@@ -138,13 +138,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
+      await authApi.logout();
+    } catch (error) {
+      console.warn('Backend logout call failed (proceeding with local cleanup):', error);
+    }
+    try {
       await AsyncStorage.removeItem('authToken');
       await AsyncStorage.removeItem('user');
       delete api.defaults.headers.common['Authorization'];
       setToken(null);
       setUser(null);
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Logout cleanup error:', error);
       throw error;
     }
   };
