@@ -7,7 +7,7 @@ from .auth import UserSerializer
 
 class SecuritySettingsSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    
+
     class Meta:
         model = SecuritySettings
         fields = '__all__'
@@ -16,7 +16,7 @@ class SecuritySettingsSerializer(serializers.ModelSerializer):
 
 class SecuritySettingsUpdateSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    
+
     class Meta:
         model = SecuritySettings
         fields = '__all__'
@@ -32,13 +32,38 @@ class UserSessionSerializer(serializers.ModelSerializer):
         read_only_fields = ['user', 'created_at', 'last_activity']
 
 
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True, write_only=True)
+    new_password = serializers.CharField(required=True, write_only=True, min_length=8, max_length=128)
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
+
+
+class TwoFactorSetupSerializer(serializers.Serializer):
+    secret = serializers.CharField(read_only=True)
+    uri = serializers.CharField(read_only=True)
+    backup_codes = serializers.ListField(child=serializers.CharField(), read_only=True)
+
+
+class TwoFactorVerifySerializer(serializers.Serializer):
+    code = serializers.CharField(required=True, min_length=6, max_length=6)
+
+
+class TwoFactorDisableSerializer(serializers.Serializer):
+    password = serializers.CharField(required=True, write_only=True)
+
+
+class DeleteAccountSerializer(serializers.Serializer):
+    password = serializers.CharField(required=True, write_only=True)
+
+
 class ForgotPasswordRequestSerializer(serializers.Serializer):
-    """Step 1 of password reset: user supplies their email."""
     email = serializers.EmailField(required=True)
 
 
 class PasswordResetRequestSerializer(serializers.Serializer):
-    """Step 2 of password reset: user supplies the token and a new password."""
     token = serializers.CharField(required=True, min_length=10, max_length=128)
     new_password = serializers.CharField(required=True, write_only=True, min_length=8, max_length=128)
     confirm_password = serializers.CharField(required=True, write_only=True, min_length=8, max_length=128)

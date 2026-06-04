@@ -5,6 +5,11 @@ from .security import (
     SecuritySettingsSerializer,
     SecuritySettingsUpdateSerializer,
     UserSessionSerializer,
+    ChangePasswordSerializer,
+    TwoFactorSetupSerializer,
+    TwoFactorVerifySerializer,
+    TwoFactorDisableSerializer,
+    DeleteAccountSerializer,
     ForgotPasswordRequestSerializer,
     PasswordResetRequestSerializer,
 )
@@ -36,6 +41,8 @@ __all__ = [
     
     # Security serializers
     'SecuritySettingsSerializer', 'SecuritySettingsUpdateSerializer', 'UserSessionSerializer',
+    'ChangePasswordSerializer', 'TwoFactorSetupSerializer', 'TwoFactorVerifySerializer',
+    'TwoFactorDisableSerializer', 'DeleteAccountSerializer',
     'ForgotPasswordRequestSerializer', 'PasswordResetRequestSerializer',
     
     # Privacy serializers
