@@ -65,6 +65,14 @@ class AnswerSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at', 'updated_at']
 
 
+class QuizAnswerSerializer(serializers.ModelSerializer):
+    """Answer serializer for quiz context — excludes is_correct"""
+    class Meta:
+        model = Answer
+        fields = ['id', 'answer_text', 'order']
+        read_only_fields = fields
+
+
 class QuestionSerializer(serializers.ModelSerializer):
     answers = AnswerSerializer(many=True, read_only=True)
     
@@ -74,8 +82,18 @@ class QuestionSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at', 'updated_at']
 
 
+class QuizQuestionSerializer(serializers.ModelSerializer):
+    """Question serializer for quiz context — hides correct answers"""
+    answers = QuizAnswerSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Question
+        fields = ['id', 'question_text', 'question_type', 'points', 'order', 'explanation', 'answers']
+        read_only_fields = fields
+
+
 class QuizSerializer(serializers.ModelSerializer):
-    questions = QuestionSerializer(many=True, read_only=True)
+    questions = QuizQuestionSerializer(many=True, read_only=True)
     question_count = serializers.ReadOnlyField()
     
     class Meta:
@@ -86,7 +104,7 @@ class QuizSerializer(serializers.ModelSerializer):
 
 class UserQuizAnswerSerializer(serializers.ModelSerializer):
     question = QuestionSerializer(read_only=True)
-    selected_answer = AnswerSerializer(read_only=True)
+    selected_answer = QuizAnswerSerializer(read_only=True)
     
     class Meta:
         model = UserQuizAnswer
