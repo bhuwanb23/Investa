@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { authApi, api } from '../services';
+import { authApi, api, setOnUnauthorized } from '../services';
 
 export interface User {
   id: number;
@@ -156,6 +156,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     checkAuthStatus();
+    setOnUnauthorized(() => {
+      setToken(null);
+      setUser(null);
+    });
+    return () => setOnUnauthorized(null);
   }, []);
 
   const value: AuthContextType = {

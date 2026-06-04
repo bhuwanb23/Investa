@@ -169,6 +169,12 @@ async function retryWithAlternateBaseUrls(error: AxiosError) {
   });
 }
 
+// Global callback for auth expiry — set by AuthContext
+let _onUnauthorized: (() => void) | null = null;
+export const setOnUnauthorized = (cb: (() => void) | null) => {
+  _onUnauthorized = cb;
+};
+
 // Response interceptor to handle common errors
 api.interceptors.response.use(
   (response: AxiosResponse) => {
@@ -197,18 +203,13 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 401) {
-      // Token expired or invalid - clear storage and redirect to login (skipped in dev)
-      if (!__DEV__) {
-        try {
-          await AsyncStorage.removeItem('authToken');
-          await AsyncStorage.removeItem('user');
-          console.log('🔐 Token expired, cleared storage');
-        } catch (storageError) {
-          console.error('Error clearing storage:', storageError);
-        }
-      } else {
-        console.log('🔐 Development mode: Ignoring 401 error for token clearing');
+      try {
+        await AsyncStorage.removeItem('authToken');
+        await AsyncStorage.removeItem('user');
+      } catch (storageError) {
+        console.error('Error clearing storage:', storageError);
       }
+      _onUnauthorized?.();
     }
     return Promise.reject(error);
   }

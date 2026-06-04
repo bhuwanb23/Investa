@@ -1,5 +1,5 @@
 // Base API
-export { default as api, handleApiError } from './api';
+export { default as api, handleApiError, setOnUnauthorized } from './api';
 export type { ApiResponse, ApiError } from './api';
 
 // Auth API
