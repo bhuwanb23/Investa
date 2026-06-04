@@ -10,7 +10,12 @@ class SecuritySettingsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SecuritySettings
-        fields = '__all__'
+        fields = [
+            'id', 'user', 'biometric_enabled', 'session_timeout',
+            'login_notifications', 'suspicious_activity_alerts',
+            'two_factor_enabled', 'recovery_email',
+            'last_password_change', 'created_at', 'updated_at',
+        ]
         read_only_fields = ['user', 'created_at', 'updated_at', 'last_password_change']
 
 
@@ -19,8 +24,12 @@ class SecuritySettingsUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SecuritySettings
-        fields = '__all__'
-        read_only_fields = ['user', 'created_at', 'updated_at', 'last_password_change']
+        fields = [
+            'id', 'user', 'biometric_enabled', 'session_timeout',
+            'login_notifications', 'suspicious_activity_alerts',
+            'recovery_email',
+        ]
+        read_only_fields = ['user']
 
 
 class UserSessionSerializer(serializers.ModelSerializer):
@@ -29,7 +38,7 @@ class UserSessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserSession
         fields = '__all__'
-        read_only_fields = ['user', 'created_at', 'last_activity']
+        read_only_fields = ['user', 'session_key', 'created_at', 'last_activity']
 
 
 class ChangePasswordSerializer(serializers.Serializer):
