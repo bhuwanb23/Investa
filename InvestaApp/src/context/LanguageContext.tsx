@@ -1,4 +1,7 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const LANGUAGE_KEY = '@investa_language';
 
 interface LanguageContextType {
   selectedLanguage: string;
@@ -14,9 +17,20 @@ interface LanguageProviderProps {
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
 
+  useEffect(() => {
+    AsyncStorage.getItem(LANGUAGE_KEY).then(saved => {
+      if (saved) setSelectedLanguage(saved);
+    });
+  }, []);
+
+  const setLanguage = async (language: string) => {
+    setSelectedLanguage(language);
+    await AsyncStorage.setItem(LANGUAGE_KEY, language);
+  };
+
   const value = {
     selectedLanguage,
-    setSelectedLanguage,
+    setSelectedLanguage: setLanguage,
   };
 
   return (
