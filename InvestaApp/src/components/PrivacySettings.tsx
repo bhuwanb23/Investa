@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,58 +7,114 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  TextInput,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MainHeader from './MainHeader';
 import { useTranslation } from '../language';
+import { privacyApi } from '../services';
 
 const PrivacySettings = ({ navigation, route }: any) => {
+  const [loading, setLoading] = useState(true);
   const [profileVisibility, setProfileVisibility] = useState(true);
   const [activityVisibility, setActivityVisibility] = useState(false);
   const [dataSharing, setDataSharing] = useState(true);
   const [locationSharing, setLocationSharing] = useState(false);
-  
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+
   const { t } = useTranslation();
-  
-  // Debug log to verify language is working
-  console.log('PrivacySettings - Selected Language:', t.language);
+
+  const loadSettings = useCallback(async () => {
+    try {
+      const response = await privacyApi.getSettings();
+      if (response.success && response.data) {
+        const s = response.data;
+        setProfileVisibility(s.profile_visibility ?? true);
+        setActivityVisibility(s.activity_visibility ?? false);
+        setDataSharing(s.data_sharing ?? true);
+        setLocationSharing(s.location_sharing ?? false);
+      }
+    } catch (err: any) {
+      console.log('Could not load privacy settings:', err?.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
+  const saveSetting = useCallback(async (key: string, value: any) => {
+    try {
+      await privacyApi.updateSettings({ [key]: value });
+    } catch (err: any) {
+      console.log('Failed to save privacy setting:', err?.message);
+    }
+  }, []);
 
   const handleBack = () => {
     navigation.goBack();
   };
 
-  const handleDataExport = () => {
-    Alert.alert(
-      t.exportData,
-      t.exportDataMessage,
-      [
-        { text: t.cancel, style: 'cancel' },
-        { text: t.export, onPress: () => console.log('Exporting data...') }
-      ]
-    );
+  const handleDataExport = async () => {
+    try {
+      const response = await privacyApi.exportData();
+      if (response.success && response.data) {
+        const json = JSON.stringify(response.data, null, 2);
+        console.log('Exported data:', json.substring(0, 200) + '...');
+        Alert.alert(
+          'Data Export',
+          'Your data has been exported. Check the console for the full payload.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (err: any) {
+      Alert.alert(t.error, err?.message || 'Failed to export data');
+    }
   };
 
   const handleDeleteAccount = () => {
-    Alert.alert(
-      t.deleteAccountTitle,
-      t.deleteAccountMessage,
-      [
-        { text: t.cancel, style: 'cancel' },
-        { 
-          text: t.delete, 
-          style: 'destructive',
-          onPress: () => console.log('Deleting account...') 
-        }
-      ]
-    );
+    setShowDeleteModal(true);
   };
+
+  const confirmDeleteAccount = async () => {
+    if (!deletePassword) {
+      Alert.alert(t.error, 'Password is required');
+      return;
+    }
+    try {
+      await privacyApi.deleteAccount(deletePassword);
+      setShowDeleteModal(false);
+      Alert.alert(
+        'Account Deleted',
+        'Your account has been permanently deleted.',
+        [{ text: 'OK', onPress: () => navigation.navigate('Auth') }]
+      );
+    } catch (err: any) {
+      const msg = err?.response?.data?.password?.[0] || err?.response?.data?.detail || err?.message || 'Failed to delete account';
+      Alert.alert(t.error, msg);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <MainHeader title={t.title} iconName="shield" showBackButton onBackPress={handleBack} />
+        <ActivityIndicator size="large" color="#4F46E5" style={{ marginTop: 40 }} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <MainHeader title={t.title} iconName="shield" showBackButton onBackPress={handleBack} />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
-          
+
           {/* Profile Privacy */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t.profilePrivacy}</Text>
@@ -74,12 +130,12 @@ const PrivacySettings = ({ navigation, route }: any) => {
               </View>
               <Switch
                 value={profileVisibility}
-                onValueChange={setProfileVisibility}
+                onValueChange={(val) => { setProfileVisibility(val); saveSetting('profile_visibility', val); }}
                 trackColor={{ false: '#E5E7EB', true: '#DBEAFE' }}
                 thumbColor={profileVisibility ? '#2563EB' : '#9CA3AF'}
               />
             </View>
-            
+
             <View style={styles.settingItem}>
               <View style={styles.settingLeft}>
                 <View style={[styles.settingIcon, { backgroundColor: '#FEF3C7' }]}>
@@ -92,7 +148,7 @@ const PrivacySettings = ({ navigation, route }: any) => {
               </View>
               <Switch
                 value={activityVisibility}
-                onValueChange={setActivityVisibility}
+                onValueChange={(val) => { setActivityVisibility(val); saveSetting('activity_visibility', val); }}
                 trackColor={{ false: '#E5E7EB', true: '#FEF3C7' }}
                 thumbColor={activityVisibility ? '#D97706' : '#9CA3AF'}
               />
@@ -114,12 +170,12 @@ const PrivacySettings = ({ navigation, route }: any) => {
               </View>
               <Switch
                 value={dataSharing}
-                onValueChange={setDataSharing}
+                onValueChange={(val) => { setDataSharing(val); saveSetting('data_sharing', val); }}
                 trackColor={{ false: '#E5E7EB', true: '#DCFCE7' }}
                 thumbColor={dataSharing ? '#10B981' : '#9CA3AF'}
               />
             </View>
-            
+
             <View style={styles.settingItem}>
               <View style={styles.settingLeft}>
                 <View style={[styles.settingIcon, { backgroundColor: '#FEE2E2' }]}>
@@ -132,7 +188,7 @@ const PrivacySettings = ({ navigation, route }: any) => {
               </View>
               <Switch
                 value={locationSharing}
-                onValueChange={setLocationSharing}
+                onValueChange={(val) => { setLocationSharing(val); saveSetting('location_sharing', val); }}
                 trackColor={{ false: '#E5E7EB', true: '#FEE2E2' }}
                 thumbColor={locationSharing ? '#EF4444' : '#9CA3AF'}
               />
@@ -172,6 +228,55 @@ const PrivacySettings = ({ navigation, route }: any) => {
           <View style={styles.bottomSpacing} />
         </View>
       </ScrollView>
+
+      {/* Delete Account Modal */}
+      <Modal
+        visible={showDeleteModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => { setShowDeleteModal(false); setDeletePassword(''); }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t.deleteAccount}</Text>
+              <TouchableOpacity onPress={() => { setShowDeleteModal(false); setDeletePassword(''); }}>
+                <Ionicons name="close" size={24} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.deleteWarning}>
+              This action is permanent and cannot be undone. All your data will be deleted.
+            </Text>
+
+            <Text style={styles.inputLabel}>Enter your password to confirm</Text>
+            <TextInput
+              style={styles.passwordInput}
+              value={deletePassword}
+              onChangeText={setDeletePassword}
+              placeholder="Enter your password"
+              secureTextEntry
+              placeholderTextColor="#9CA3AF"
+            />
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.secondaryButton}
+                onPress={() => { setShowDeleteModal(false); setDeletePassword(''); }}
+              >
+                <Text style={styles.secondaryButtonText}>{t.cancel}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.dangerButton, !deletePassword ? styles.disabledButton : null]}
+                onPress={confirmDeleteAccount}
+                disabled={!deletePassword}
+              >
+                <Text style={styles.dangerButtonText}>Delete Forever</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -266,14 +371,91 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     lineHeight: 16,
   },
-  dangerButton: {
-    borderColor: '#FEE2E2',
-  },
   dangerText: {
     color: '#EF4444',
   },
+  dangerButton: {
+    flex: 1,
+    backgroundColor: '#EF4444',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  dangerButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  disabledButton: {
+    backgroundColor: '#9CA3AF',
+  },
   bottomSpacing: {
     height: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  deleteWarning: {
+    fontSize: 14,
+    color: '#EF4444',
+    lineHeight: 20,
+    marginBottom: 20,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  passwordInput: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    padding: 14,
+    fontSize: 14,
+    color: '#111827',
+    backgroundColor: '#FFFFFF',
+    marginBottom: 20,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  secondaryButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    padding: 12,
+  },
+  secondaryButtonText: {
+    color: '#6B7280',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 
