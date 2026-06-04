@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,12 +8,15 @@ import {
   Switch,
   Alert,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MainHeader from './MainHeader';
 import { useTranslation } from '../language';
+import { securityApi, authApi } from '../services';
 
 const SecuritySettings = ({ navigation, route }: any) => {
+  const [loading, setLoading] = useState(true);
   const [biometricEnabled, setBiometricEnabled] = useState(true);
   const [sessionTimeout, setSessionTimeout] = useState('30');
   const [loginNotifications, setLoginNotifications] = useState(true);
@@ -21,47 +24,71 @@ const SecuritySettings = ({ navigation, route }: any) => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   const { t } = useTranslation();
-  
-  // Debug log to verify language is working
-  console.log('SecuritySettings - Selected Language:', t.language);
+
+  const loadSettings = useCallback(async () => {
+    try {
+      const response = await securityApi.getSettings();
+      if (response.success && response.data) {
+        const s = response.data;
+        setBiometricEnabled(s.biometric_enabled ?? true);
+        setSessionTimeout(String(s.session_timeout ?? 30));
+        setLoginNotifications(s.login_notifications ?? true);
+        setSuspiciousActivity(s.suspicious_activity_alerts ?? true);
+      }
+    } catch (err: any) {
+      console.log('Could not load security settings:', err?.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
+  const saveSetting = useCallback(async (key: string, value: any) => {
+    try {
+      await securityApi.updateSettings({ [key]: value });
+    } catch (err: any) {
+      console.log('Failed to save setting:', err?.message);
+    }
+  }, []);
 
   const handleBack = () => {
     navigation.goBack();
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
       Alert.alert(t.error, t.fillAllFields);
       return;
     }
-    
     if (newPassword !== confirmPassword) {
       Alert.alert(t.error, t.passwordsDoNotMatch);
       return;
     }
-    
     if (newPassword.length < 8) {
       Alert.alert(t.error, t.passwordTooShort);
       return;
     }
-    
-    Alert.alert(
-      t.success,
-      t.passwordChangedSuccessfully,
-      [{ text: t.ok, onPress: () => {
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-      }}]
-    );
+    try {
+      await securityApi.changePassword(currentPassword, newPassword);
+      Alert.alert(t.success, t.passwordChangedSuccessfully, [
+        { text: t.ok, onPress: () => { setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); } }
+      ]);
+    } catch (err: any) {
+      const msg = err?.response?.data?.old_password?.[0] || err?.response?.data?.new_password?.[0] || err?.message || 'An error occurred';
+      Alert.alert(t.error, msg);
+    }
   };
 
   const handleSessionTimeoutChange = (value: string) => {
     const numValue = parseInt(value);
     if (numValue >= 5 && numValue <= 120) {
       setSessionTimeout(value);
+      saveSetting('session_timeout', numValue);
     }
   };
 
@@ -71,22 +98,40 @@ const SecuritySettings = ({ navigation, route }: any) => {
       t.logoutAllDevicesMessage,
       [
         { text: t.cancel, style: 'cancel' },
-        { text: t.logoutAll, style: 'destructive', onPress: () => console.log('Logging out all devices...') }
+        {
+          text: t.logoutAll,
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await securityApi.logoutAllDevices();
+              Alert.alert(t.success, 'Logged out from all other devices');
+            } catch (err: any) {
+              Alert.alert(t.error, err?.message || 'Failed to logout all devices');
+            }
+          }
+        }
       ]
     );
   };
 
   const handleViewActiveSessions = () => {
-    // Navigate to active sessions screen
-    console.log('Viewing active sessions...');
+    console.log('TODO: navigate to active sessions screen');
   };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <MainHeader title={t.title} iconName="lock-closed" showBackButton onBackPress={handleBack} />
+        <ActivityIndicator size="large" color="#4F46E5" style={{ marginTop: 40 }} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <MainHeader title={t.title} iconName="lock-closed" showBackButton onBackPress={handleBack} />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
-          
           {/* Authentication */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t.authentication}</Text>
@@ -102,12 +147,12 @@ const SecuritySettings = ({ navigation, route }: any) => {
               </View>
               <Switch
                 value={biometricEnabled}
-                onValueChange={setBiometricEnabled}
+                onValueChange={(val) => { setBiometricEnabled(val); saveSetting('biometric_enabled', val); }}
                 trackColor={{ false: '#E5E7EB', true: '#DCFCE7' }}
                 thumbColor={biometricEnabled ? '#10B981' : '#9CA3AF'}
               />
             </View>
-            
+
             <View style={styles.settingItem}>
               <View style={styles.settingLeft}>
                 <View style={[styles.settingIcon, { backgroundColor: '#FEF3C7' }]}>
@@ -144,12 +189,12 @@ const SecuritySettings = ({ navigation, route }: any) => {
               </View>
               <Switch
                 value={loginNotifications}
-                onValueChange={setLoginNotifications}
+                onValueChange={(val) => { setLoginNotifications(val); saveSetting('login_notifications', val); }}
                 trackColor={{ false: '#E5E7EB', true: '#DBEAFE' }}
                 thumbColor={loginNotifications ? '#2563EB' : '#9CA3AF'}
               />
             </View>
-            
+
             <View style={styles.settingItem}>
               <View style={styles.settingLeft}>
                 <View style={[styles.settingIcon, { backgroundColor: '#FEE2E2' }]}>
@@ -162,7 +207,7 @@ const SecuritySettings = ({ navigation, route }: any) => {
               </View>
               <Switch
                 value={suspiciousActivity}
-                onValueChange={setSuspiciousActivity}
+                onValueChange={(val) => { setSuspiciousActivity(val); saveSetting('suspicious_activity_alerts', val); }}
                 trackColor={{ false: '#E5E7EB', true: '#FEE2E2' }}
                 thumbColor={suspiciousActivity ? '#EF4444' : '#9CA3AF'}
               />
@@ -183,7 +228,7 @@ const SecuritySettings = ({ navigation, route }: any) => {
                 placeholderTextColor="#9CA3AF"
               />
             </View>
-            
+
             <View style={styles.passwordInput}>
               <Text style={styles.inputLabel}>{t.newPassword}</Text>
               <TextInput
@@ -195,7 +240,7 @@ const SecuritySettings = ({ navigation, route }: any) => {
                 placeholderTextColor="#9CA3AF"
               />
             </View>
-            
+
             <View style={styles.passwordInput}>
               <Text style={styles.inputLabel}>{t.confirmNewPassword}</Text>
               <TextInput
@@ -207,7 +252,7 @@ const SecuritySettings = ({ navigation, route }: any) => {
                 placeholderTextColor="#9CA3AF"
               />
             </View>
-            
+
             <TouchableOpacity style={styles.primaryButton} onPress={handleChangePassword}>
               <Text style={styles.primaryButtonText}>{t.changePasswordButton}</Text>
             </TouchableOpacity>
@@ -226,7 +271,7 @@ const SecuritySettings = ({ navigation, route }: any) => {
               </View>
               <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
             </TouchableOpacity>
-            
+
             <TouchableOpacity style={[styles.actionButton, styles.dangerButton]} onPress={handleLogoutAllDevices}>
               <View style={[styles.actionIcon, { backgroundColor: '#FEE2E2' }]}>
                 <Ionicons name="log-out" size={16} color="#EF4444" />
