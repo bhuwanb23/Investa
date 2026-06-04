@@ -132,6 +132,7 @@ export const tradingTranslations = {
     orderFailed: 'Order Failed',
     unableToPlaceOrder: 'Unable to place order now.',
     unableToPlaceOrderNow: 'Unable to place order now.',
+    unableToLoadStock: 'Unable to load stock data',
     
     // Stock Detail Screen
     tradingMetrics: 'Trading Metrics',
@@ -346,6 +347,7 @@ export const tradingTranslations = {
     orderFailed: 'ऑर्डर असफल',
     unableToPlaceOrder: 'अभी ऑर्डर देने में असमर्थ।',
     unableToPlaceOrderNow: 'अभी ऑर्डर देने में असमर्थ।',
+    unableToLoadStock: 'Unable to load stock data',
     
     // Stock Detail Screen
     tradingMetrics: 'ट्रेडिंग मेट्रिक्स',
@@ -560,6 +562,7 @@ export const tradingTranslations = {
     orderFailed: 'ஆர்டர் தோல்வி',
     unableToPlaceOrder: 'இப்போது ஆர்டர் வைக்க முடியவில்லை.',
     unableToPlaceOrderNow: 'இப்போது ஆர்டர் வைக்க முடியவில்லை.',
+    unableToLoadStock: 'Unable to load stock data',
     
     // Stock Detail Screen
     tradingMetrics: 'வர்த்தக அளவீடுகள்',
@@ -774,6 +777,7 @@ export const tradingTranslations = {
     orderFailed: 'ఆర్డర్ విఫలం',
     unableToPlaceOrder: 'ఇప్పుడు ఆర్డర్ ఇవ్వలేకపోయాము.',
     unableToPlaceOrderNow: 'ఇప్పుడు ఆర్డర్ ఇవ్వలేకపోయాము.',
+    unableToLoadStock: 'Unable to load stock data',
     
     // Stock Detail Screen
     tradingMetrics: 'వర్తక మెట్రిక్‌లు',
