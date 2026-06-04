@@ -36,3 +36,17 @@ export const CHART_TYPES = {
   CANDLESTICK: 'CANDLESTICK',
   BAR: 'BAR',
 } as const;
+
+export const LEADERBOARD_DATA = [
+  { rank: 1, username: '@trader_pro', totalValue: '985,420', totalReturn: '+156.3%' },
+  { rank: 2, username: '@stock_guru', totalValue: '724,150', totalReturn: '+112.8%' },
+  { rank: 3, username: '@investa_king', totalValue: '512,380', totalReturn: '+89.2%' },
+  { rank: 4, username: '@market_wiz', totalValue: '423,750', totalReturn: '+67.5%' },
+  { rank: 5, username: '@bull_rider', totalValue: '356,290', totalReturn: '+54.1%' },
+  { rank: 6, username: '@value_hunter', totalValue: '298,640', totalReturn: '+48.3%' },
+  { rank: 7, username: '@dividend_queen', totalValue: '267,810', totalReturn: '+42.7%' },
+  { rank: 8, username: '@swing_trader', totalValue: '234,560', totalReturn: '+38.9%' },
+  { rank: 9, username: '@option_player', totalValue: '198,430', totalReturn: '+32.4%' },
+  { rank: 10, username: '@day_trader', totalValue: '176,520', totalReturn: '+28.6%' },
+  { rank: 47, username: '@traderpro_alex', totalValue: '125,840', totalReturn: '+24.8%', isCurrentUser: true },
+];
