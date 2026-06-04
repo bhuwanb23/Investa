@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,19 +21,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-wco$)rsf4z@e9+il$)6%n7v=m(jk$6_@k278pw8d%5f5h@c@ae'
+SECRET_KEY = os.environ.get(
+    'INVESTA_SECRET_KEY',
+    'django-insecure-wco$)rsf4z@e9+il$)6%n7v=m(jk$6_@k278pw8d%5f5h@c@ae'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('INVESTA_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '10.0.2.2',
-    '192.168.31.67',
-    '0.0.0.0',
-    '*',
-]
+ALLOWED_HOSTS = os.environ.get(
+    'INVESTA_ALLOWED_HOSTS',
+    'localhost,127.0.0.1,10.0.2.2,0.0.0.0,*'
+).split(',')
 
 
 # Application definition
@@ -150,23 +150,22 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
 }
 
-# CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:19006",
-    "http://127.0.0.1:19006",
-    "http://localhost:8081",
-    "http://127.0.0.1:8081",
-    "http://192.168.31.67:19006",
-    "http://192.168.31.67:3000",
-    "http://192.168.31.67:8081",
-]
+# CORS settings — read from env or fall back to dev defaults
+_cors_origins = os.environ.get('INVESTA_CORS_ORIGINS', None)
+if _cors_origins:
+    CORS_ALLOWED_ORIGINS = _cors_origins.split(',')
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:19006",
+        "http://127.0.0.1:19006",
+        "http://localhost:8081",
+        "http://127.0.0.1:8081",
+    ]
 
 CORS_ALLOW_CREDENTIALS = True
-
-# Additional CORS settings for development
-CORS_ALLOW_ALL_ORIGINS = True  # Only for development!
+CORS_ALLOW_ALL_ORIGINS = os.environ.get('INVESTA_CORS_ALLOW_ALL', 'True') == 'True'
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
