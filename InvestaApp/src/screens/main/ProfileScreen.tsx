@@ -97,7 +97,7 @@ const ProfileScreen = () => {
   };
 
   const handleResetPassword = () => {
-    (navigation as any).navigate('ForgotPassword');
+    (navigation as any).navigate('SecuritySettings');
   };
 
   // Boot splash
