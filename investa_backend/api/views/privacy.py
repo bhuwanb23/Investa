@@ -1,6 +1,4 @@
-import json
 from django.http import JsonResponse
-from django.db import transaction
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -70,9 +68,9 @@ class PrivacySettingsViewSet(viewsets.ModelViewSet):
         except PrivacySettings.DoesNotExist:
             data['privacy_settings'] = None
 
-        data['trading'] = list(user.trades.values('id', 'symbol', 'type', 'amount', 'price', 'created_at'))
-        data['watchlist'] = list(user.watchlist.values('id', 'symbol', 'name'))
-        data['courses'] = list(user.enrolled_courses.values('id', 'course__title', 'progress', 'completed'))
+        data['trading'] = list(user.trades.values('id', 'stock__symbol', 'side', 'quantity', 'price', 'total_amount', 'commission', 'net_amount', 'executed_at'))
+        data['watchlist'] = list(user.watchlist.values('id', 'stock__symbol', 'stock__name', 'added_at'))
+        data['courses'] = list(user.lesson_progress.values('id', 'lesson__course__title', 'progress', 'status', 'completed_at'))
 
         return JsonResponse(data, safe=False)
 
