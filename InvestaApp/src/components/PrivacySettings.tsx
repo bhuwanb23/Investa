@@ -15,8 +15,10 @@ import { Ionicons } from '@expo/vector-icons';
 import MainHeader from './MainHeader';
 import { useTranslation } from '../language';
 import { privacyApi } from '../services';
+import { useAuth } from '../context/AuthContext';
 
 const PrivacySettings = ({ navigation, route }: any) => {
+  const { logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [profileVisibility, setProfileVisibility] = useState(true);
   const [activityVisibility, setActivityVisibility] = useState(false);
@@ -92,7 +94,7 @@ const PrivacySettings = ({ navigation, route }: any) => {
       Alert.alert(
         'Account Deleted',
         'Your account has been permanently deleted.',
-        [{ text: 'OK', onPress: () => navigation.navigate('Auth') }]
+        [{ text: 'OK', onPress: () => logout() }]
       );
     } catch (err: any) {
       const msg = err?.response?.data?.password?.[0] || err?.response?.data?.detail || err?.message || 'Failed to delete account';
