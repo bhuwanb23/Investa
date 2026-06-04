@@ -267,7 +267,7 @@ const PrivacySettings = ({ navigation, route }: any) => {
                 <Text style={styles.secondaryButtonText}>{t.cancel}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.dangerButton, !deletePassword ? styles.disabledButton : null]}
+                style={[styles.dangerModalButton, !deletePassword ? styles.disabledButton : null]}
                 onPress={confirmDeleteAccount}
                 disabled={!deletePassword}
               >
@@ -375,6 +375,9 @@ const styles = StyleSheet.create({
     color: '#EF4444',
   },
   dangerButton: {
+    borderColor: '#FEE2E2',
+  },
+  dangerModalButton: {
     flex: 1,
     backgroundColor: '#EF4444',
     borderRadius: 8,
