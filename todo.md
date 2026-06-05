@@ -13,8 +13,8 @@
 | 2 | Trading data integrity | ✅ Done | A14–A25 (12 items) | — |
 | 3 | Home & Profile data | ✅ Done | A7, A8 | ac46953 8721ce3 e791f65 2769e45 |
 | 4 | Stock & Lesson detail | ✅ Done | A9, A10, A11 (stub), A12, A13, A14, A23, A24, A25 | c41787d f0e791b f25612e |
-| 5 | Settings (Security / Privacy / 2FA) | ⬜ Not started | A3, A4, A5 | — |
-| 6 | Quiz | ⬜ Not started | A27, A28, A29, A30 | — |
+| 5 | Settings (Security / Privacy / 2FA) | ✅ Done | A3, A4, A5 | e72309a e261ba0 3199c95 fe6856a ... |
+| 6 | Audit fixes (post-PR 5) | ✅ Done | A1–A10, B1–B6, C1, C4, C5, D1–D7 | 5e1164c 3f37c7d 19abf6b 19520c9 c654e21 99dfa6d ba64c80 daf54fc 92212b0 |
 
 Legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⚠️ Blocked
 
