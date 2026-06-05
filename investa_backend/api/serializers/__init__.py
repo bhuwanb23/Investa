@@ -13,7 +13,7 @@ from .security import (
     ForgotPasswordRequestSerializer,
     PasswordResetRequestSerializer,
 )
-from .privacy import PrivacySettingsSerializer, PrivacySettingsUpdateSerializer
+from .privacy import PrivacySettingsSerializer
 from .learning import (
     LearningProgressSerializer, BadgeSerializer, UserBadgeSerializer,
     CourseSerializer, LessonSerializer, UserLessonProgressSerializer,
@@ -46,7 +46,7 @@ __all__ = [
     'ForgotPasswordRequestSerializer', 'PasswordResetRequestSerializer',
     
     # Privacy serializers
-    'PrivacySettingsSerializer', 'PrivacySettingsUpdateSerializer',
+    'PrivacySettingsSerializer',
     
     # Learning serializers
     'LearningProgressSerializer', 'BadgeSerializer', 'UserBadgeSerializer',

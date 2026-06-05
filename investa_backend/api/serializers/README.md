@@ -96,11 +96,6 @@ serializers/
   - **Read-only**: `user`, `created_at`, `updated_at`
   - **Usage**: Privacy settings display
 
-- **`PrivacySettingsUpdateSerializer`**: Privacy settings update
-  - **Fields**: All PrivacySettings fields
-  - **Read-only**: `user`, `created_at`, `updated_at`
-  - **Usage**: Privacy settings update endpoints
-
 ### `learning.py` - Learning Serializers
 **Purpose**: Handle learning progress and achievement data
 

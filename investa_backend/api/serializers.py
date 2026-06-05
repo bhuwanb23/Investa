@@ -8,7 +8,7 @@ from .serializers.security import (
     SecuritySettingsSerializer, SecuritySettingsUpdateSerializer, UserSessionSerializer
 )
 from .serializers.privacy import (
-    PrivacySettingsSerializer, PrivacySettingsUpdateSerializer
+    PrivacySettingsSerializer
 )
 from .serializers.learning import (
     LearningProgressSerializer, BadgeSerializer, UserBadgeSerializer
@@ -35,7 +35,6 @@ __all__ = [
     
     # Privacy serializers
     'PrivacySettingsSerializer',
-    'PrivacySettingsUpdateSerializer',
     
     # Learning serializers
     'LearningProgressSerializer',
