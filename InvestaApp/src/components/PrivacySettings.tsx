@@ -40,7 +40,7 @@ const PrivacySettings = ({ navigation, route }: any) => {
         setLocationSharing(s.location_sharing ?? false);
       }
     } catch (err: any) {
-      console.log('Could not load privacy settings:', err?.message);
+      // Could not load privacy settings
     } finally {
       setLoading(false);
     }
@@ -54,7 +54,7 @@ const PrivacySettings = ({ navigation, route }: any) => {
     try {
       await privacyApi.updateSettings({ [key]: value });
     } catch (err: any) {
-      console.log('Failed to save privacy setting:', err?.message);
+      // Failed to save privacy setting
     }
   }, []);
 
@@ -67,10 +67,9 @@ const PrivacySettings = ({ navigation, route }: any) => {
       const response = await privacyApi.exportData();
       if (response.success && response.data) {
         const json = JSON.stringify(response.data, null, 2);
-        console.log('Exported data:', json.substring(0, 200) + '...');
         Alert.alert(
           'Data Export',
-          'Your data has been exported. Check the console for the full payload.',
+          'Your data has been exported successfully.',
           [{ text: 'OK' }]
         );
       }

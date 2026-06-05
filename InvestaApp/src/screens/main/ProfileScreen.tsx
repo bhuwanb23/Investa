@@ -69,7 +69,7 @@ const ProfileScreen = () => {
         (navigation as any).navigate('TwoFactorAuth');
         break;
       default:
-        console.log('Unknown setting type:', settingType);
+        break;
     }
   };
 

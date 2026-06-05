@@ -10,7 +10,6 @@ const DownloadsScreen: React.FC = () => {
   const { t } = useTranslation();
   
   // Debug log to verify language is working
-  console.log('DownloadsScreen - Selected Language:', t.language);
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={{ paddingBottom: 16 }} stickyHeaderIndices={[0]}>

@@ -40,7 +40,7 @@ const TwoFactorAuth = ({ navigation, route }: any) => {
         setRecoveryEmail(response.data.recovery_email ?? '');
       }
     } catch (err: any) {
-      console.log('Could not load 2FA settings:', err?.message);
+      // Could not load 2FA settings
     } finally {
       setLoading(false);
     }

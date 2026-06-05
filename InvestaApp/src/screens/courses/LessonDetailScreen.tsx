@@ -35,7 +35,6 @@ const LessonDetailScreen: React.FC = () => {
   const { t } = useTranslation();
   
   // Debug log to verify language is working
-  console.log('LessonDetailScreen - Selected Language:', t.language);
   
   const lessonId = Number(route.params?.lessonId);
   const courseId = route.params?.courseId;

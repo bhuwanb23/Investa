@@ -10,7 +10,6 @@ const FeedbackScreen: React.FC = () => {
   const { t } = useTranslation();
   
   // Debug log to verify language is working
-  console.log('FeedbackScreen - Selected Language:', t.language);
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={{ paddingBottom: 16 }} stickyHeaderIndices={[0]}>

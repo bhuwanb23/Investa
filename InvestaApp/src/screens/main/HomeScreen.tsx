@@ -40,7 +40,6 @@ type NavigationProp = {
 
 const HomeScreen = () => {
   // Remove debug log
-  // console.log('HomeScreen - Selected Language:', t.language);
   const navigation = useNavigation<NavigationProp>();
   const { user, logout } = useAuth();
   const [showBootLoader, setShowBootLoader] = useState(true);

@@ -349,26 +349,7 @@ const AuthStackNavigator = () => {
 const AppNavigator = () => {
   const { user, isLoading } = useAuth();
 
-  // Monitor user state changes
-  React.useEffect(() => {
-    console.log('🧭 AppNavigator: User state changed:', { 
-      user: user ? `ID: ${user.id}, Email: ${user.email}` : 'null', 
-      isLoading,
-      userType: typeof user,
-      userKeys: user ? Object.keys(user) : 'N/A',
-      timestamp: new Date().toISOString()
-    });
-  }, [user, isLoading]);
-
-  console.log('🧭 AppNavigator - Auth state:', { 
-    user: user ? `ID: ${user.id}, Email: ${user.email}` : 'null', 
-    isLoading,
-    userType: typeof user,
-    userKeys: user ? Object.keys(user) : 'N/A'
-  });
-
   if (isLoading) {
-    console.log('⏳ AppNavigator - Showing loading screen');
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#2196F3" />
@@ -376,8 +357,6 @@ const AppNavigator = () => {
     );
   }
 
-  console.log('🎯 AppNavigator - Rendering navigator, user:', user ? 'logged in' : 'not logged in');
-  
   return user ? <MainStackNavigator /> : <AuthStackNavigator />;
 };
 

@@ -38,7 +38,7 @@ const SecuritySettings = ({ navigation, route }: any) => {
         setSuspiciousActivity(s.suspicious_activity_alerts ?? true);
       }
     } catch (err: any) {
-      console.log('Could not load security settings:', err?.message);
+      // Could not load security settings
     } finally {
       setLoading(false);
     }
@@ -52,7 +52,7 @@ const SecuritySettings = ({ navigation, route }: any) => {
     try {
       await securityApi.updateSettings({ [key]: value });
     } catch (err: any) {
-      console.log('Failed to save setting:', err?.message);
+      // Failed to save setting
     }
   }, []);
 
@@ -115,7 +115,7 @@ const SecuritySettings = ({ navigation, route }: any) => {
   };
 
   const handleViewActiveSessions = () => {
-    console.log('TODO: navigate to active sessions screen');
+    // TODO: navigate to active sessions screen
   };
 
   if (loading) {

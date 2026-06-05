@@ -46,7 +46,6 @@ const MarketWatchlistScreen = () => {
   } = useTradingData();
   
   // Debug log to verify language is working
-  console.log('MarketWatchlistScreen - Selected Language:', t.language);
 
   const handleStockPress = (stock: any) => {
     navigation.navigate('StockDetail', {

@@ -46,7 +46,6 @@ const PortfolioScreen = () => {
   const tabs = [t.holdings, t.orderHistory, t.leaderboard];
   
   // Debug log to verify language is working
-  console.log('PortfolioScreen - Selected Language:', t.language);
 
   const handleBack = () => {
     navigation.goBack();
@@ -116,7 +115,7 @@ const PortfolioScreen = () => {
         total_cost: Number(holding.total_cost) || 0
       }));
     
-    console.log('PortfolioScreen: Generated holdings from orders:', finalHoldings);
+    // Generated holdings from orders
     return finalHoldings;
   };
 
@@ -135,10 +134,7 @@ const PortfolioScreen = () => {
         
         if (!mounted) return;
         
-        console.log('PortfolioScreen: Portfolio data:', portfolioRes);
-        console.log('PortfolioScreen: Holdings data:', holdingsRes);
-        console.log('PortfolioScreen: Orders data:', ordersRes);
-        console.log('PortfolioScreen: Stocks data:', stocksRes);
+        // Portfolio data loaded
         
         setPortfolioData(portfolioRes);
         setHoldings(holdingsRes);
@@ -193,14 +189,7 @@ const PortfolioScreen = () => {
     const totalReturns = totalValue - totalInvested;
     const returnPercentage = totalInvested > 0 ? ((totalReturns / totalInvested) * 100).toFixed(1) : '0.0';
     
-    console.log('PortfolioScreen: Portfolio calculations:', {
-      totalInvested,
-      totalValue,
-      totalReturns,
-      returnPercentage,
-      ordersCount: orders.length,
-      holdingsCount: holdings.length
-    });
+    // Portfolio calculations complete
     
     return (
       <View style={styles.header}>

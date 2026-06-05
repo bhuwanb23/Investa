@@ -37,7 +37,6 @@ const OrderHistoryScreen = () => {
   const filters = [t.all, t.buy, t.sell, t.thisWeek, t.thisMonth];
   
   // Debug log to verify language is working
-  console.log('OrderHistoryScreen - Selected Language:', t.language);
 
   const handleBack = () => {
     navigation.navigate('Trading');
@@ -64,7 +63,7 @@ const OrderHistoryScreen = () => {
         setLoading(true);
         const data = await fetchOrderHistory();
         if (!mounted) return;
-        console.log('OrderHistory: Received orders data:', data);
+        // Received orders data
         setOrders(data);
       } catch (error) {
         console.error('OrderHistory: Error fetching orders:', error);

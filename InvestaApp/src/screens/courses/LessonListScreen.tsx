@@ -26,13 +26,6 @@ const LessonListScreen: React.FC = () => {
  
   // Transform backend lessons to frontend format with proper unlocking logic
   const transformLessonsWithUnlocking = (lessons: any[]) => {
-    console.log('🔄 Starting lesson transformation...');
-    console.log('📊 Raw lessons from backend:', lessons.map(l => ({ 
-      id: l.id, 
-      title: l.title, 
-      user_progress: l.user_progress 
-    })));
-    
     const transformed = lessons.map((l: any) => {
       // CRITICAL: Only mark as completed if the backend explicitly says it's completed
       const backendStatus = l.user_progress?.status;
@@ -46,17 +39,8 @@ const LessonListScreen: React.FC = () => {
         progress: isActuallyCompleted ? 100 : (l.user_progress?.progress || 0),
       };
       
-      console.log(`🔍 Lesson ${l.id}: Backend status="${backendStatus}", IsCompleted=${isActuallyCompleted}, Final state="${lessonData.state}"`);
-      
       return lessonData;
     });
-    
-    console.log('📊 After initial transformation:', transformed.map(l => ({ 
-      id: l.id, 
-      title: l.title, 
-      state: l.state, 
-      progress: l.progress 
-    })));
     
     // Apply lesson unlocking logic - only unlock the next lesson when previous is completed
     for (let i = 0; i < transformed.length; i++) {
@@ -64,36 +48,23 @@ const LessonListScreen: React.FC = () => {
       
       // If lesson already has progress data from backend, preserve it
       if (lesson.state === 'completed' || lesson.state === 'progress') {
-        console.log(`✅ Lesson ${lesson.id} (${lesson.title}): Preserving backend status: ${lesson.state}`);
         continue;
       }
       
       // First lesson is always available
       if (i === 0) {
         lesson.state = 'available';
-        console.log(`🔓 Lesson ${lesson.id} (${lesson.title}): First lesson, always available`);
         continue;
       }
       
       // For subsequent lessons, check if previous lesson is completed
       const previousLesson = transformed[i - 1];
       if (previousLesson.state === 'completed') {
-        // Only unlock this lesson if the previous one is completed
         lesson.state = 'available';
-        console.log(`🔓 Unlocked lesson ${lesson.id} (${lesson.title}) because previous lesson ${previousLesson.id} is completed`);
       } else {
-        // Lock this lesson if previous is not completed
         lesson.state = 'locked';
-        console.log(`🔒 Locked lesson ${lesson.id} (${lesson.title}) because previous lesson ${previousLesson.id} is not completed`);
       }
     }
-    
-    console.log('📊 Final transformed lessons:', transformed.map(l => ({ 
-      id: l.id, 
-      title: l.title, 
-      state: l.state, 
-      progress: l.progress 
-    })));
     
     return transformed;
   };
@@ -107,18 +78,14 @@ const LessonListScreen: React.FC = () => {
       { id: 4, title: 'Lesson 4', user_progress: { status: 'available', progress: 0 } },
     ];
     
-    console.log('🧪 Testing lesson transformation logic...');
     const result = transformLessonsWithUnlocking(testLessons);
-    console.log('🧪 Test result:', result.map(l => ({ id: l.id, state: l.state })));
     
     // Expected: Lesson 1: available, Lesson 2: completed, Lesson 3: available, Lesson 4: locked
     const expected = ['available', 'completed', 'available', 'locked'];
     const actual = result.map(l => l.state);
     
-    if (JSON.stringify(expected) === JSON.stringify(actual)) {
-      console.log('✅ Test passed! Lesson transformation logic is working correctly.');
-    } else {
-      console.log('❌ Test failed! Expected:', expected, 'Got:', actual);
+    if (JSON.stringify(expected) !== JSON.stringify(actual)) {
+      // Test failed - log error
     }
   };
 
@@ -133,21 +100,11 @@ const LessonListScreen: React.FC = () => {
       if (courseIdParam) {
         try {
           setLoading(true);
-          console.log('🔄 Loading course data for courseId:', courseIdParam);
           const courseData = await fetchCourseDetailWithProgress(Number(courseIdParam));
           setCourse(courseData);
           
-          console.log('📊 Raw course data from backend:', courseData);
-          console.log('📊 Lessons from backend:', courseData.lessons?.map((l: any) => ({
-            id: l.id,
-            title: l.title,
-            user_progress: l.user_progress
-          })));
-          
           // Transform backend lessons to frontend format with proper unlocking logic
           const transformedLessons = transformLessonsWithUnlocking(courseData.lessons || []);
-          
-          console.log('📊 Final transformed lessons:', transformedLessons.map(l => ({ id: l.id, state: l.state, progress: l.progress })));
           setLessons(transformedLessons);
         } catch (error) {
           console.error('Error loading course data:', error);
@@ -178,27 +135,15 @@ const LessonListScreen: React.FC = () => {
     
     if (!Number.isFinite(completedId) || completedId <= 0) return;
     
-    console.log(`🚨 LESSON COMPLETION TRIGGERED: Lesson ${completedId} was completed, refreshing data from backend`);
-    
     // Refresh course data from backend to get latest progress
     const refreshCourseData = async () => {
       if (courseIdParam) {
         try {
-          console.log('🔄 Refreshing course data from backend...');
           const courseData = await fetchCourseDetailWithProgress(Number(courseIdParam));
           setCourse(courseData);
           
-          console.log('🔄 Raw refreshed course data:', courseData);
-          console.log('🔄 Lessons from refreshed data:', courseData.lessons?.map((l: any) => ({
-            id: l.id,
-            title: l.title,
-            user_progress: l.user_progress
-          })));
-          
           // Transform backend lessons to frontend format with proper unlocking logic
           const transformedLessons = transformLessonsWithUnlocking(courseData.lessons || []);
-          
-          console.log('🔄 Final refreshed lessons:', transformedLessons.map(l => ({ id: l.id, state: l.state, progress: l.progress })));
           setLessons(transformedLessons);
           
         } catch (error) {

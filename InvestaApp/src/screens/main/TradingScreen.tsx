@@ -64,7 +64,6 @@ const TradingScreen = () => {
   const [bootLoader, setBootLoader] = useState(true);
 
   // Debug log to verify language is working
-  console.log('TradingScreen - Selected Language:', t.language);
 
   // Fetch real data on component mount
   useEffect(() => {

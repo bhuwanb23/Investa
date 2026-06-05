@@ -13,7 +13,6 @@ const CourseBookmarksScreen: React.FC = () => {
 	const { t } = useTranslation();
 	
 	// Debug log to verify language is working
-	console.log('CourseBookmarksScreen - Selected Language:', t.language);
 	
 	const [filter, setFilter] = useState<'recent' | 'relevant'>('recent');
 

@@ -31,7 +31,6 @@ const ProgressScreen = () => {
   const { t } = useTranslation();
   
   // Debug log to verify language is working
-  console.log('ProgressScreen - Selected Language:', t.language);
 
   // Fetch progress data on component mount
   useEffect(() => {

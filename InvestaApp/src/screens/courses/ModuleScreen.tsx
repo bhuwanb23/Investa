@@ -24,7 +24,6 @@ const ModuleScreen: React.FC = () => {
   const { t } = useTranslation();
   
   // Debug log to verify language is working
-  console.log('ModuleScreen - Selected Language:', t.language);
   
   const courseIdParam = route.params?.courseId;
   const courseParam = route.params?.course;
@@ -45,11 +44,9 @@ const ModuleScreen: React.FC = () => {
       if (courseIdParam) {
         try {
           setLoading(true);
-          console.log('🔄 Loading course data for ModuleScreen, courseId:', courseIdParam);
           const courseData = await fetchCourseDetailWithProgress(Number(courseIdParam));
           setCourse(courseData);
           setLessons(courseData.lessons || []);
-          console.log('📊 Course data loaded for ModuleScreen:', courseData);
         } catch (error) {
           console.error('Error loading course data in ModuleScreen:', error);
           // Keep the courseParam as fallback

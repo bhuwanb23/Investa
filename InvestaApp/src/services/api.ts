@@ -57,9 +57,6 @@ function resolveLanHost(): string | null {
 }
 
 // Helpful runtime log to confirm the base URL being used (dev only)
-if (__DEV__) {
-  console.log('🔗 API base URL:', CONFIG.API.BASE_URL);
-}
 
 // Request interceptor to add auth token
 api.interceptors.request.use(
@@ -71,14 +68,6 @@ api.interceptors.request.use(
     }
 
     // Logging for development
-    if (__DEV__) {
-      console.log('🔐 API Request - URL:', config.url);
-      if (token) {
-        console.log('🔐 API Request - Token injected successfully');
-      } else {
-        console.log('🔐 API Request - No token found in storage');
-      }
-    }
     return config;
   },
   (error) => {
@@ -139,7 +128,6 @@ async function retryWithAlternateBaseUrls(error: AxiosError) {
   if (currentBase) tried.add(currentBase);
   const nextBase = candidates.find((b) => !tried.has(b));
   if (!nextBase) {
-    if (__DEV__) console.log('🔁 API Fallback: no more base URLs to try');
     throw error;
   }
 
@@ -158,9 +146,7 @@ async function retryWithAlternateBaseUrls(error: AxiosError) {
 
   const newUrl = joinUrl(nextBase, path);
 
-  if (__DEV__) {
-    console.log('🔁 API Fallback: retrying with base', nextBase, '->', newUrl);
-  }
+  // Fallback retry with alternate base URL
 
   return api.request({
     ...originalConfig,
@@ -178,20 +164,10 @@ export const setOnUnauthorized = (cb: (() => void) | null) => {
 // Response interceptor to handle common errors
 api.interceptors.response.use(
   (response: AxiosResponse) => {
-    if (__DEV__) {
-      console.log('🔐 API Response - Status:', response.status);
-      console.log('🔐 API Response - URL:', response.config.url);
-    }
     return response;
   },
   async (error: AxiosError) => {
-    if (__DEV__) {
-      console.log('🔐 API Error - Status:', error.response?.status);
-      console.log('🔐 API Error - URL:', error.config?.url);
-      console.log('🔐 API Error - Message:', error.message);
-      console.log('🔐 API Error - Response:', error.response?.data);
-      console.log('🔐 API Error - Headers sent:', error.config?.headers);
-    }
+    // API Error logging removed for production
 
     // Retry on network errors in development
     if (!error.response && (error.code === 'ERR_NETWORK' || (error.message || '').toLowerCase().includes('network error'))) {

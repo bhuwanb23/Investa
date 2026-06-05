@@ -39,7 +39,6 @@ const LeaderboardScreen = () => {
   const timeframes = [t.weekly, t.monthly, t.allTime];
   
   // Debug log to verify language is working
-  console.log('LeaderboardScreen - Selected Language:', t.language);
 
   // Data now comes from hook
 

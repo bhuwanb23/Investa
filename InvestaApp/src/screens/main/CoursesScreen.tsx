@@ -17,7 +17,6 @@ const CoursesScreen = () => {
   const { t } = useTranslation();
   
   // Debug log to verify language is working
-  console.log('CoursesScreen - Selected Language:', t.language);
   
   // Courses from backend
   const [courses, setCourses] = useState<ApiCourse[]>([]);
