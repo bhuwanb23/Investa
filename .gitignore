@@ -1,0 +1,37 @@
+# Dependencies
+InvestaApp/node_modules/
+investa_backend/venv/
+
+# Build outputs
+*.pyc
+__pycache__/
+*.egg-info/
+dist/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+*.env.local
+
+# Database
+*.sqlite3
+
+# React Native / Expo
+InvestaApp/.expo/
+InvestaApp/web-build/
+
+# Django
+investa_backend/staticfiles/
+investa_backend/media/
+
+# Misc
+*.log
+.tmp/
