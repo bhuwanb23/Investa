@@ -1,11 +1,9 @@
 export { default as MainHeader } from './MainHeader';
-export { default as AuthDebug } from './AuthDebug';
 export { default as EmptyState } from './EmptyState';
 export { default as SearchBar } from './SearchBar';
 export { default as ProgressBar } from './ProgressBar';
 export { default as PrivacySettings } from './PrivacySettings';
 export { default as SecuritySettings } from './SecuritySettings';
 export { default as TwoFactorAuth } from './TwoFactorAuth';
-export { default as ApiTest } from './ApiTest';
 export { default as LogoLoader } from './LogoLoader';
 export { default as LanguageSelector } from './LanguageSelector';

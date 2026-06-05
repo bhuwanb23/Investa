@@ -129,20 +129,6 @@ export const authApi = {
       throw handleApiError(error);
     }
   },
-
-  // Test authentication
-  testAuth: async (): Promise<ApiResponse<any>> => {
-    try {
-      const response = await api.get('auth/me/');
-      return {
-        data: response.data,
-        success: true,
-        message: 'Authentication test successful',
-      };
-    } catch (error) {
-      throw handleApiError(error);
-    }
-  },
 };
 
 export default authApi;
