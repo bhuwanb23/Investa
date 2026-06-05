@@ -13,12 +13,35 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { MainStackParamList } from '../../navigation/AppNavigator';
-import { SCORE_MESSAGES, SCORE_COLORS, getScoreLevel } from './constants/quizData';
 import QuizHeader from './components/QuizHeader';
 import api from '../../services/api';
 
 type QuizResultScreenNavigationProp = StackNavigationProp<MainStackParamList, 'QuizResult'>;
 type QuizResultScreenRouteProp = RouteProp<MainStackParamList, 'QuizResult'>;
+
+const SCORE_MESSAGES: Record<string, string> = {
+  excellent: 'Excellent! Outstanding performance!',
+  great: 'Great job! You have solid knowledge!',
+  good: 'Good work! Keep learning to improve!',
+  needsImprovement: 'Keep practicing! Review the basics!',
+  poor: 'Don\'t worry! Learning takes time!',
+};
+
+const SCORE_COLORS: Record<string, string> = {
+  excellent: '#10B981',
+  great: '#3B82F6',
+  good: '#F59E0B',
+  needsImprovement: '#EF4444',
+  poor: '#DC2626',
+};
+
+const getScoreLevel = (score: number) => {
+  if (score >= 90) return 'excellent';
+  if (score >= 80) return 'great';
+  if (score >= 70) return 'good';
+  if (score >= 60) return 'needsImprovement';
+  return 'poor';
+};
 
 const QuizResultScreen = () => {
   const navigation = useNavigation<any>();

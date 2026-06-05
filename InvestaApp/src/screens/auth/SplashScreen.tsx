@@ -43,10 +43,9 @@ const SplashScreen = () => {
       }),
     ]).start();
 
-    // Navigate after animation
+    // Let auth state drive navigation via AppNavigator
     const timer = setTimeout(() => {
       if (isLoading) return;
-      navigation.replace(user ? 'Home' : 'Onboarding');
     }, 3000);
 
     return () => clearTimeout(timer);

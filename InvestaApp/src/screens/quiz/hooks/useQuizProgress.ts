@@ -1,5 +1,19 @@
 import { useState, useCallback } from 'react';
-import { QuizQuestion, QuizResult } from '../constants/quizData';
+export interface QuizQuestion {
+  id: number;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+}
+
+export interface QuizResult {
+  score: number;
+  totalQuestions: number;
+  correctAnswers: number;
+  timeTaken: number;
+  quizId: string;
+}
 
 interface UseQuizProgressProps {
   questions: QuizQuestion[];

@@ -134,7 +134,7 @@ const ProfileScreen = () => {
           <MainHeader title={t.profile} iconName="person" />
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{t.pleaseLogin}</Text>
-            <Pressable style={styles.retryButton} onPress={() => navigation.navigate('Login' as never)}>
+            <Pressable style={styles.retryButton} onPress={() => logout()}>
               <Text style={styles.retryButtonText}>{t.goToLogin}</Text>
             </Pressable>
           </View>

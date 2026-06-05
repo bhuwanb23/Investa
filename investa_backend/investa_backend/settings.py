@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,17 +22,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    'INVESTA_SECRET_KEY',
-    'django-insecure-wco$)rsf4z@e9+il$)6%n7v=m(jk$6_@k278pw8d%5f5h@c@ae'
-)
+SECRET_KEY = os.environ.get('INVESTA_SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured('INVESTA_SECRET_KEY environment variable is required')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('INVESTA_DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.environ.get(
     'INVESTA_ALLOWED_HOSTS',
-    'localhost,127.0.0.1,10.0.2.2,0.0.0.0,*'
+    'localhost,127.0.0.1,10.0.2.2'
 ).split(',')
 
 
@@ -144,7 +144,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
@@ -165,7 +165,7 @@ else:
     ]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = os.environ.get('INVESTA_CORS_ALLOW_ALL', 'True') == 'True'
+CORS_ALLOW_ALL_ORIGINS = os.environ.get('INVESTA_CORS_ALLOW_ALL', 'False') == 'True'
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',

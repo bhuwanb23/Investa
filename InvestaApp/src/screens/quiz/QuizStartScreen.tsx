@@ -11,9 +11,50 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { MainStackParamList } from '../../navigation/AppNavigator';
-import { QUIZ_TOPICS, QUIZ_SETTINGS } from './constants/quizData';
 import QuizHeader from './components/QuizHeader';
-import QuizTopicCard from './components/QuizTopicCard';
+import QuizTopicCard, { QuizTopic } from './components/QuizTopicCard';
+
+const QUIZ_TOPICS: QuizTopic[] = [
+  {
+    id: '1',
+    title: 'Stock Market Basics',
+    description: 'Fundamental concepts and terminology',
+    icon: 'business',
+    color: '#10B981',
+    bgColor: '#ECFDF5',
+    questions: 10,
+    timeLimit: 15,
+    difficulty: 'Beginner',
+  },
+  {
+    id: '2',
+    title: 'Risk Management',
+    description: 'Understanding financial risks',
+    icon: 'shield-halved',
+    color: '#F59E0B',
+    bgColor: '#FFFBEB',
+    questions: 10,
+    timeLimit: 15,
+    difficulty: 'Intermediate',
+  },
+  {
+    id: '3',
+    title: 'Trading Strategies',
+    description: 'Market strategies & analysis',
+    icon: 'chart-line',
+    color: '#8B5CF6',
+    bgColor: '#F3E8FF',
+    questions: 10,
+    timeLimit: 15,
+    difficulty: 'Advanced',
+  },
+];
+
+const QUIZ_SETTINGS = {
+  maxAttemptsPerDay: 5,
+  showExplanations: true,
+  allowRetakes: true,
+};
 
 type QuizStartScreenNavigationProp = StackNavigationProp<MainStackParamList, 'QuizStart'>;
 

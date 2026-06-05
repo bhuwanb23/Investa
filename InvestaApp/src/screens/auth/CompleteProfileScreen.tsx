@@ -76,7 +76,7 @@ const CompleteProfileScreen: React.FC = () => {
 
     if (ok) {
       await checkAuthStatus();
-      navigation.reset({ index: 0, routes: [{ name: 'Home' }] } as never);
+      // AppNavigator will swap to MainStack on auth state change
     }
   };
 

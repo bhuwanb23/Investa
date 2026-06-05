@@ -37,6 +37,20 @@ export const CHART_TYPES = {
   BAR: 'BAR',
 } as const;
 
+export interface MarketIndex {
+  name: string;
+  value: string;
+  change: string;
+  changePercent: string;
+  isPositive: boolean;
+}
+
+export const MARKET_INDICES: MarketIndex[] = [
+  { name: 'NIFTY 50', value: '22,147.30', change: '+186.20', changePercent: '+0.85%', isPositive: true },
+  { name: 'SENSEX', value: '73,012.80', change: '+512.45', changePercent: '+0.71%', isPositive: true },
+  { name: 'BANK NIFTY', value: '46,834.55', change: '-124.30', changePercent: '-0.26%', isPositive: false },
+];
+
 export const LEADERBOARD_DATA = [
   { rank: 1, username: '@trader_pro', totalValue: '985,420', totalReturn: '+156.3%' },
   { rank: 2, username: '@stock_guru', totalValue: '724,150', totalReturn: '+112.8%' },

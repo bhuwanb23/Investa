@@ -41,7 +41,7 @@ const QuizQuestionScreen = () => {
       try {
         setLoading(true);
         // 1. Fetch quiz details from backend
-        const response = await api.get(`/quizzes/${quizId}/`);
+        const response = await api.get(`/quiz/${quizId}/`);
         const quizData = response.data;
         setQuestions(quizData.questions || []);
         
@@ -185,7 +185,7 @@ const QuizQuestionScreen = () => {
   const handleHint = () => {
     Alert.alert(
       "Hint",
-      currentQuestion?.explanation || "Read the question carefully and eliminate obviously wrong answers first.",
+      "Read the question carefully and eliminate obviously wrong answers first.",
       [{ text: "OK" }]
     );
   };

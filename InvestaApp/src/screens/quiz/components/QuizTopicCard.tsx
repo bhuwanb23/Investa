@@ -1,7 +1,17 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { QuizTopic } from '../constants/quizData';
+export interface QuizTopic {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  color: string;
+  bgColor: string;
+  questions: number;
+  timeLimit: number;
+  difficulty: string;
+}
 
 interface QuizTopicCardProps {
   topic: QuizTopic;
