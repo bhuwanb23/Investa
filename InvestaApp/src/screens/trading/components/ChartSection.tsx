@@ -4,13 +4,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
   ScrollView,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import EmptyState from '../../../components/EmptyState';
-
-const { width } = Dimensions.get('window');
 
 interface ChartSectionProps {
   selectedTimeframe: string;
@@ -23,6 +21,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
   onTimeframeChange,
   priceHistory = [],
 }) => {
+  const { width } = useWindowDimensions();
   const timeframes = ['1D', '1W', '1M', '1Y'];
 
   // Map backend priceHistory to candlestick data points
@@ -129,7 +128,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
         </View>
       </View>
 
-      <View style={styles.chartContainer}>
+      <View style={[styles.chartContainer, { minWidth: width - 32 }]}>
         {candlestickData.length === 0 ? (
           <EmptyState
             icon="bar-chart-outline"
@@ -259,7 +258,6 @@ const styles = StyleSheet.create({
     borderColor: '#374151',
     position: 'relative',
     overflow: 'hidden',
-    minWidth: width - 32,
   },
   chartBackground: {
     position: 'absolute',

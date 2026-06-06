@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Share, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Share } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import CertificateCard from './components/CertificateCard';
@@ -10,8 +10,6 @@ import api from '../../services/api';
 import { MainStackParamList } from '../../navigation/AppNavigator';
 
 type CertificateScreenRouteProp = RouteProp<MainStackParamList, 'Certificate'>;
-
-const { width } = Dimensions.get('window');
 
 const CertificateScreen: React.FC = () => {
 	const navigation = useNavigation<any>();

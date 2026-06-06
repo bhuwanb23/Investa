@@ -1,13 +1,12 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { View, StyleSheet, Animated, Easing, Dimensions } from 'react-native';
-
-const { width, height } = Dimensions.get('window');
+import { View, StyleSheet, Animated, Easing, useWindowDimensions } from 'react-native';
 
 type Piece = { left: number; delay: number; duration: number; color: string; size: number };
 
 const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFA726', '#AB47BC'];
 
 const CertificateConfetti: React.FC<{ count?: number } > = ({ count = 18 }) => {
+	const { width, height } = useWindowDimensions();
 	const pieces = useMemo<Piece[]>(() =>
 		Array.from({ length: count }).map(() => ({
 			left: Math.random() * width,
@@ -29,6 +28,7 @@ const CertificateConfetti: React.FC<{ count?: number } > = ({ count = 18 }) => {
 };
 
 const Faller: React.FC<Piece> = ({ left, delay, duration, color, size }) => {
+	const { height } = useWindowDimensions();
 	const translateY = useRef(new Animated.Value(-50)).current;
 	const rotate = useRef(new Animated.Value(0)).current;
 

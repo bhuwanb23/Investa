@@ -6,13 +6,13 @@ import {
   ScrollView,
   FlatList,
   TouchableOpacity,
-  Dimensions,
   Alert,
   Image,
   StatusBar,
   Animated,
   Easing,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MainHeader from '../../components/MainHeader';
@@ -22,8 +22,6 @@ import LogoLoader from '../../components/LogoLoader';
 import { useTranslation } from '../../language';
 import { progressApi, coursesApi, tradingApi, ProgressSummary, InProgressCourse, Course, MarketData, UserAchievement } from '../../services';
 import EmptyState from '../../components/EmptyState';
-
-const { width, height } = Dimensions.get('window');
 
 // Define navigation types
 type RootStackParamList = {
@@ -39,7 +37,7 @@ type NavigationProp = {
 };
 
 const HomeScreen = () => {
-  // Remove debug log
+  const { width } = useWindowDimensions();
   const navigation = useNavigation<NavigationProp>();
   const { user, logout } = useAuth();
   const [showBootLoader, setShowBootLoader] = useState(true);
@@ -374,7 +372,7 @@ const HomeScreen = () => {
             }}
           >
             <TouchableOpacity
-              style={styles.quickAccessCard}
+              style={[styles.quickAccessCard, { width: Platform.OS === 'ios' ? (width - 48) / 2 : (width - 40) / 2 }]}
               onPress={item.onPress}
               activeOpacity={0.7}
               pressRetentionOffset={{ top: 20, left: 20, bottom: 20, right: 20 }}
@@ -893,7 +891,6 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   quickAccessCard: {
-    width: Platform.OS === 'ios' ? (width - 48) / 2 : (width - 40) / 2,
     backgroundColor: 'white',
     borderRadius: 20,
     padding: Platform.OS === 'ios' ? 18 : 16,

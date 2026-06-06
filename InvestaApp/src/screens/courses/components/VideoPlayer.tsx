@@ -1,10 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import { CARD_BG, TEXT_DARK, TEXT_MUTED, BORDER, PRIMARY } from '../constants/courseConstants';
-
-const { width } = Dimensions.get('window');
 
 interface VideoPlayerProps {
   videoUrl?: string | null;

@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
-  Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,8 +14,6 @@ import MainHeader from '../../components/MainHeader';
 import SearchBar from '../../components/SearchBar';
 import EmptyState from '../../components/EmptyState';
 import LogoLoader from '../../components/LogoLoader';
-
-const { width } = Dimensions.get('window');
 
 const BookmarksScreen = () => {
   const navigation = useNavigation();

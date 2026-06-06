@@ -6,7 +6,6 @@ import {
   SafeAreaView,
   ScrollView,
   Alert,
-  Dimensions,
   ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect, RouteProp } from '@react-navigation/native';
@@ -27,8 +26,6 @@ import {
   fetchStockNews,
   fetchStockRecentTrades,
 } from './utils/tradingApi';
-
-const { width } = Dimensions.get('window');
 
 // Define navigation types
 type RootStackParamList = {

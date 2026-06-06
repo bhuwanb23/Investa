@@ -6,11 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
-const { width } = Dimensions.get('window');
 
 interface LessonQuizContentProps {
   questionIndex: number;

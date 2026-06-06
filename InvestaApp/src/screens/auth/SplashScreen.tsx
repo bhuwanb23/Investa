@@ -3,15 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  Dimensions,
   Animated,
   Image,
   SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
-
-const { width, height } = Dimensions.get('window');
 
 const SplashScreen = () => {
   const navigation = useNavigation<any>();
