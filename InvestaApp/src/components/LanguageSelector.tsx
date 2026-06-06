@@ -9,7 +9,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { supportedLanguages, translations, TranslationKey } from '../language';
+import { supportedLanguages, useTranslation } from '../language';
 import { useLanguage } from '../context/LanguageContext';
 
 const PRIMARY = '#4f46e5';
@@ -27,8 +27,8 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   const { selectedLanguage, setSelectedLanguage } = useLanguage();
   const [isModalVisible, setIsModalVisible] = useState(false);
 
+  const { t } = useTranslation();
   const selectedLang = supportedLanguages.find(lang => lang.code === selectedLanguage) || supportedLanguages[0];
-  const t = translations[selectedLanguage as keyof typeof translations] || translations.en;
 
   const handleLanguageSelect = (languageCode: string) => {
     setSelectedLanguage(languageCode);

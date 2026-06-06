@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import storage from '../services/storage';
+import i18n from '../i18n';
 
 const LANGUAGE_KEY = '@investa_language';
 
@@ -18,14 +19,18 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   const [selectedLanguage, setSelectedLanguage] = useState('en');
 
   useEffect(() => {
-    storage.getItem(LANGUAGE_KEY).then(saved => {
-      if (saved) setSelectedLanguage(saved);
+    storage.getItem(LANGUAGE_KEY).then((saved: string | null) => {
+      if (saved) {
+        setSelectedLanguage(saved);
+        i18n.changeLanguage(saved);
+      }
     });
   }, []);
 
   const setLanguage = async (language: string) => {
     setSelectedLanguage(language);
     await storage.setItem(LANGUAGE_KEY, language);
+    i18n.changeLanguage(language);
   };
 
   const value = {
