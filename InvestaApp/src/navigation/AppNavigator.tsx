@@ -2,7 +2,7 @@ import React from 'react';
 // import { useTheme } from '@react-navigation/native';
 import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
 // Auth Screens
@@ -134,7 +134,7 @@ const MainStackNavigator = () => {
         headerTitleStyle: {
           fontWeight: '800',
         },
-        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        cardStyleInterpolator: Platform.OS === 'ios' ? CardStyleInterpolators.forHorizontalIOS : undefined,
       }}
     >
       <MainStack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
@@ -245,7 +245,7 @@ const MainStackNavigator = () => {
         options={{ 
           title: 'Market Watchlist', 
           headerShown: false,
-          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+          cardStyleInterpolator: Platform.OS === 'ios' ? CardStyleInterpolators.forHorizontalIOS : undefined,
         }}
       />
       <MainStack.Screen 
@@ -254,7 +254,7 @@ const MainStackNavigator = () => {
         options={{ 
           title: 'Stock Details', 
           headerShown: false,
-          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+          cardStyleInterpolator: Platform.OS === 'ios' ? CardStyleInterpolators.forHorizontalIOS : undefined,
         }}
       />
       <MainStack.Screen 
@@ -263,7 +263,7 @@ const MainStackNavigator = () => {
         options={{ 
           title: 'Place Order', 
           headerShown: false,
-          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+          cardStyleInterpolator: Platform.OS === 'ios' ? CardStyleInterpolators.forHorizontalIOS : undefined,
         }}
       />
       <MainStack.Screen 
@@ -272,7 +272,7 @@ const MainStackNavigator = () => {
         options={{ 
           title: 'Portfolio', 
           headerShown: false,
-          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+          cardStyleInterpolator: Platform.OS === 'ios' ? CardStyleInterpolators.forHorizontalIOS : undefined,
         }}
       />
       <MainStack.Screen 
@@ -281,7 +281,7 @@ const MainStackNavigator = () => {
         options={{ 
           title: 'Order History', 
           headerShown: false,
-          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+          cardStyleInterpolator: Platform.OS === 'ios' ? CardStyleInterpolators.forHorizontalIOS : undefined,
         }}
       />
       <MainStack.Screen 
@@ -290,7 +290,7 @@ const MainStackNavigator = () => {
         options={{ 
           title: 'Leaderboard', 
           headerShown: false,
-          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+          cardStyleInterpolator: Platform.OS === 'ios' ? CardStyleInterpolators.forHorizontalIOS : undefined,
         }}
       />
       <MainStack.Screen 
