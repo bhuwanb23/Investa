@@ -55,6 +55,10 @@ import NotificationsScreen from '../screens/main/NotificationsScreen';
 // Bookmark Screen
 import BookmarksScreen from '../screens/main/BookmarksScreen';
 
+// AI Settings / News
+import AISettingsScreen from '../screens/settings/AISettingsScreen';
+import NewsFeedScreen from '../screens/news/NewsFeedScreen';
+
 export type AuthStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
@@ -108,6 +112,8 @@ export type MainStackParamList = {
   SecuritySettings: undefined;
   TwoFactorAuth: undefined;
   EditProfile: undefined;
+  AISettings: undefined;
+  NewsFeed: undefined;
 };
 
 const AuthStack = createStackNavigator<AuthStackParamList>();
@@ -286,6 +292,16 @@ const MainStackNavigator = () => {
           headerShown: false,
           cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
         }}
+      />
+      <MainStack.Screen 
+        name="AISettings" 
+        component={AISettingsScreen}
+        options={{ title: 'AI Settings', headerShown: false }}
+      />
+      <MainStack.Screen 
+        name="NewsFeed" 
+        component={NewsFeedScreen}
+        options={{ title: 'News Feed', headerShown: false }}
       />
     </MainStack.Navigator>
   );

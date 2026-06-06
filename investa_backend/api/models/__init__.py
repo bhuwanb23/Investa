@@ -13,6 +13,7 @@ from .trading import (
 )
 from .notifications import Notification
 from .progress import UserProgress
+from .ai import AISettings
 
 # Export all models
 __all__ = [
@@ -39,4 +40,7 @@ __all__ = [
     
     # Progress models
     'UserProgress',
+    
+    # AI models
+    'AISettings',
 ]

@@ -68,6 +68,12 @@ const ProfileScreen = () => {
       case 'twoFactor':
         (navigation as any).navigate('TwoFactorAuth');
         break;
+      case 'aiSettings':
+        (navigation as any).navigate('AISettings');
+        break;
+      case 'newsFeed':
+        (navigation as any).navigate('NewsFeed');
+        break;
       default:
         break;
     }
@@ -384,6 +390,34 @@ const ProfileScreen = () => {
               <View style={styles.toggleTrack}>
                 <View style={styles.toggleThumb} />
               </View>
+            </Pressable>
+
+            <Pressable 
+              style={styles.settingRow} 
+              android_ripple={{ color: '#f3f4f6' }}
+              onPress={() => handleSettingPress('aiSettings')}
+            >
+              <View style={styles.settingLeft}>
+                <View style={[styles.settingIconBox, { backgroundColor: '#FCE7F3' }]}>
+                  <Ionicons name="bulb" size={16} color="#ec4899" />
+                </View>
+                <Text style={styles.settingLabel}>AI Settings</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+            </Pressable>
+
+            <Pressable 
+              style={styles.settingRow} 
+              android_ripple={{ color: '#f3f4f6' }}
+              onPress={() => handleSettingPress('newsFeed')}
+            >
+              <View style={styles.settingLeft}>
+                <View style={[styles.settingIconBox, { backgroundColor: '#E0F2FE' }]}>
+                  <Ionicons name="newspaper" size={16} color="#0284c7" />
+                </View>
+                <Text style={styles.settingLabel}>News Feed</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
             </Pressable>
           </View>
 

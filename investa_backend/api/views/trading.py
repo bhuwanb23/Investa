@@ -495,3 +495,23 @@ class AchievementViewSet(viewsets.ReadOnlyModelViewSet):
         
         serializer = AchievementSerializer(achievements, many=True)
         return Response(serializer.data)
+
+
+class NewsFeedViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = None  # imported below
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        from ..models import StockNews
+        qs = StockNews.objects.select_related('stock').all()
+        source = self.request.query_params.get('source')
+        if source:
+            qs = qs.filter(source__iexact=source)
+        symbol = self.request.query_params.get('symbol')
+        if symbol:
+            qs = qs.filter(stock__symbol__iexact=symbol)
+        return qs
+
+    def get_serializer_class(self):
+        from ..serializers import StockNewsSerializer
+        return StockNewsSerializer

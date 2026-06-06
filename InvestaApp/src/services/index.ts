@@ -59,3 +59,11 @@ export type {
   UserWatchlist, Achievement, UserAchievement, LeaderboardEntry,
   MarketSummary, TopMovers, TradeSummary
 } from './tradingApi';
+
+// LLM / AI Tutor
+export { default as llmService } from './llmService';
+export type { TutorResponse } from './llmService';
+
+// AI Settings
+export { default as aiSettingsApi } from './aiSettingsApi';
+export type { AISettingsData } from './aiSettingsApi';

@@ -8,11 +8,12 @@ from .learning import (
     CourseViewSet, LessonViewSet, UserLessonProgressViewSet,
     QuizViewSet, QuestionViewSet, AnswerViewSet, UserQuizAttemptViewSet
 )
-from .trading import TradingPerformanceViewSet, MarketIndexViewSet
+from .trading import TradingPerformanceViewSet, MarketIndexViewSet, NewsFeedViewSet
 from .notifications import NotificationViewSet
 from .progress import UserProgressViewSet
 from .auth import CustomAuthToken, UserRegistrationView, MeView, LogoutView
 from .console import index, dashboard, database_view, _build_model_entries
+from .ai import TutorView, AISettingsViewSet
 
 __all__ = [
     # Auth views
@@ -53,9 +54,16 @@ __all__ = [
     # Notification views
     'NotificationViewSet',
     
+    # Trading views
+    'NewsFeedViewSet',
+
     # Console views
     'index',
     'dashboard',
     'database_view',
     '_build_model_entries',
+    
+    # AI views
+    'TutorView',
+    'AISettingsViewSet',
 ]

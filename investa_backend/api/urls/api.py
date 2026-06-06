@@ -8,6 +8,7 @@ from ..views.trading import (
     AchievementViewSet
 )
 from ..views.auth import PingView, ForgotPasswordView, ResetPasswordView
+from ..views.ai import AISettingsViewSet
 
 router = DefaultRouter()
 router.register(r'languages', views.LanguageViewSet)
@@ -41,6 +42,7 @@ router.register(r'trading-performance', TradingPerformanceViewSet, basename='tra
 router.register(r'market-data', MarketDataViewSet, basename='market')
 router.register(r'market-indices', MarketIndexViewSet, basename='market-index')
 router.register(r'achievements', AchievementViewSet, basename='achievement')
+router.register(r'news', views.NewsFeedViewSet, basename='news')
 
 urlpatterns = [
     # API endpoints
@@ -53,4 +55,6 @@ urlpatterns = [
     path('auth/forgot-password/', ForgotPasswordView.as_view(), name='auth_forgot_password'),
     path('auth/reset-password/', ResetPasswordView.as_view(), name='auth_reset_password'),
     path('ping/', PingView.as_view(), name='api_ping'),
+    path('ai/tutor/', views.TutorView.as_view(), name='ai_tutor'),
+    path('ai/settings/', AISettingsViewSet.as_view({'get': 'list', 'post': 'create', 'put': 'update', 'patch': 'update'}), name='ai_settings'),
 ]

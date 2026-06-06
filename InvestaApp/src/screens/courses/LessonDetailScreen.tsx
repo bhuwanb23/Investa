@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { 
   View, 
   Text, 
@@ -6,8 +6,11 @@ import {
   SafeAreaView, 
   ScrollView, 
   ActivityIndicator, 
+  TextInput,
   TouchableOpacity,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -19,6 +22,7 @@ import { fetchLessonDetail, markLessonCompleted } from './utils/coursesApi';
 import { useTranslation } from '../../language';
 import VideoPlayer from './components/VideoPlayer';
 import MarkdownRenderer from './components/MarkdownRenderer';
+import { llmService } from '../../services';
 
 // Local-first lesson detail with backend when available
 type Language = { id: number; code: string; name: string; native_name: string };
@@ -43,7 +47,12 @@ const LessonDetailScreen: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [completing, setCompleting] = useState(false);
   const [completed, setCompleted] = useState(false);
-  // TODO: Phase 2 — replace with real Ollama/Gemini integration
+
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<{role: 'user'|'assistant'; content: string}[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatScrollRef = useRef<ScrollView>(null);
 
   const load = useCallback(async () => {
     try {
@@ -104,30 +113,80 @@ const LessonDetailScreen: React.FC = () => {
     }
   };
 
-  const renderAiTutorStub = () => (
+  const handleSendMessage = async () => {
+    const text = chatInput.trim();
+    if (!text || chatLoading) return;
+    setChatInput('');
+    const userMessage = { role: 'user' as const, content: text };
+    setChatMessages(prev => [...prev, userMessage]);
+    setChatLoading(true);
+    try {
+      const result = await llmService.sendTutorMessage(text, lesson?.content);
+      const reply = result.response || result.detail || 'Sorry, I could not process your request.';
+      setChatMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+    } catch {
+      setChatMessages(prev => [...prev, { role: 'assistant', content: 'Could not reach the AI tutor. Make sure Ollama is running.' }]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const renderAiTutor = () => (
     <View style={styles.aiTutorContainer}>
-      <View style={styles.aiTutorHeader}>
-        <Ionicons name="chatbubble-ellipses" size={24} color="#9CA3AF" />
+      <TouchableOpacity style={styles.aiTutorHeader} onPress={() => setChatOpen(o => !o)} activeOpacity={0.7}>
+        <Ionicons name="chatbubble-ellipses" size={24} color={PRIMARY} />
         <Text style={styles.aiTutorTitle}>AI Tutor</Text>
-        <View style={styles.comingSoonBadge}>
-          <Text style={styles.comingSoonBadgeText}>Coming Soon</Text>
-        </View>
-      </View>
-      <Text style={styles.aiTutorDescription}>
-        Get personalized help with this lesson from our AI assistant.
-      </Text>
-      <TouchableOpacity
-        style={styles.aiTutorButtonDisabled}
-        activeOpacity={1}
-        onPress={() => Alert.alert('AI Tutor', 'AI tutor launches in a future update.')}
-      >
-        <Ionicons name="help-circle" size={20} color="#9CA3AF" />
-        <Text style={styles.aiTutorButtonTextDisabled}>Ask a Question</Text>
+        <Ionicons name={chatOpen ? 'chevron-up' : 'chevron-down'} size={20} color={TEXT_MUTED} />
       </TouchableOpacity>
+      {chatOpen && (
+        <View>
+          <Text style={styles.aiTutorDescription}>
+            Ask questions about this lesson and get instant help.
+          </Text>
+          <ScrollView ref={chatScrollRef} style={styles.chatMessageList} onContentSizeChange={() => chatScrollRef.current?.scrollToEnd({ animated: true })}>
+            {chatMessages.length === 0 && (
+              <Text style={styles.chatEmptyText}>Ask a question to get started!</Text>
+            )}
+            {chatMessages.map((msg, i) => (
+              <View key={i} style={[styles.chatBubble, msg.role === 'user' ? styles.chatBubbleUser : styles.chatBubbleAssistant]}>
+                <Text style={[styles.chatBubbleText, msg.role === 'user' && styles.chatBubbleTextUser]}>
+                  {msg.content}
+                </Text>
+              </View>
+            ))}
+            {chatLoading && (
+              <View style={[styles.chatBubble, styles.chatBubbleAssistant]}>
+                <Text style={styles.chatBubbleText}>Thinking...</Text>
+              </View>
+            )}
+          </ScrollView>
+          <View style={styles.chatInputRow}>
+            <TextInput
+              style={styles.chatInput}
+              value={chatInput}
+              onChangeText={setChatInput}
+              placeholder="Ask the AI Tutor..."
+              placeholderTextColor={TEXT_MUTED}
+              multiline
+              editable={!chatLoading}
+              onSubmitEditing={handleSendMessage}
+              blurOnSubmit
+            />
+            <TouchableOpacity
+              style={[styles.chatSendBtn, (!chatInput.trim() || chatLoading) && { opacity: 0.5 }]}
+              onPress={handleSendMessage}
+              disabled={!chatInput.trim() || chatLoading}
+            >
+              <Ionicons name="send" size={18} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </View>
   );
 
   return (
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scroll} stickyHeaderIndices={[0]}>
         <MainHeader title={lesson?.title || t.lesson} iconName="book" showBackButton onBackPress={() => navigation.goBack()} />
@@ -149,8 +208,8 @@ const LessonDetailScreen: React.FC = () => {
             {/* Lesson video */}
             <VideoPlayer videoUrl={lesson.video_url} title={lesson.title} />
 
-            {/* AI Tutor (coming soon) — Phase 2 */}
-            {renderAiTutorStub()}
+            {/* AI Tutor — Phase 2 */}
+            {renderAiTutor()}
 
             {/* Content (markdown rendered) */}
             <MarkdownRenderer content={lesson.content || ''} />
@@ -208,6 +267,7 @@ const LessonDetailScreen: React.FC = () => {
 
 
     </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -270,51 +330,81 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 16,
     marginHorizontal: 12,
-    opacity: 0.7,
   },
   aiTutorHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
   },
   aiTutorTitle: {
     color: TEXT_DARK,
     fontSize: 16,
     fontWeight: '900',
     marginLeft: 10,
-  },
-  comingSoonBadge: {
-    backgroundColor: '#F3F4F6',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    marginLeft: 8,
-  },
-  comingSoonBadgeText: {
-    color: '#9CA3AF',
-    fontSize: 11,
-    fontWeight: '700',
+    flex: 1,
   },
   aiTutorDescription: {
     color: TEXT_MUTED,
     fontSize: 14,
-    marginBottom: 16,
+    marginTop: 12,
+    marginBottom: 8,
   },
-  aiTutorButtonDisabled: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    alignSelf: 'flex-start',
-    minHeight: 40,
+  chatMessageList: {
+    maxHeight: 240,
+    marginBottom: 8,
   },
-  aiTutorButtonTextDisabled: {
-    color: '#9CA3AF',
-    fontWeight: '800',
-    marginLeft: 6,
+  chatEmptyText: {
+    color: TEXT_MUTED,
     fontSize: 13,
+    textAlign: 'center',
+    paddingVertical: 20,
+  },
+  chatBubble: {
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 6,
+    maxWidth: '85%',
+  },
+  chatBubbleUser: {
+    backgroundColor: PRIMARY,
+    alignSelf: 'flex-end',
+    borderBottomRightRadius: 4,
+  },
+  chatBubbleAssistant: {
+    backgroundColor: '#F3F4F6',
+    alignSelf: 'flex-start',
+    borderBottomLeftRadius: 4,
+  },
+  chatBubbleText: {
+    color: TEXT_DARK,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  chatBubbleTextUser: {
+    color: '#fff',
+  },
+  chatInputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  chatInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: BORDER,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 13,
+    color: TEXT_DARK,
+    maxHeight: 80,
+  },
+  chatSendBtn: {
+    backgroundColor: PRIMARY,
+    borderRadius: 10,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   quizSection: {
     backgroundColor: CARD_BG,
