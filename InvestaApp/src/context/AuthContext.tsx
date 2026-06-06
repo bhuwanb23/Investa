@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import storage from '../services/storage';
 import { authApi, api, setOnUnauthorized } from '../services';
 
 export interface User {
@@ -51,8 +51,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const checkAuthStatus = async () => {
     try {
-      const storedToken = await AsyncStorage.getItem('authToken');
-      const storedUser = await AsyncStorage.getItem('user');
+      const storedToken = await storage.getItem('authToken');
+      const storedUser = await storage.getItem('user');
 
       if (storedToken && storedUser) {
         setToken(storedToken);
@@ -102,8 +102,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         trading_performance,
       };
 
-      await AsyncStorage.setItem('authToken', authToken);
-      await AsyncStorage.setItem('user', JSON.stringify(userData));
+      await storage.setItem('authToken', authToken);
+      await storage.setItem('user', JSON.stringify(userData));
 
       api.defaults.headers.common['Authorization'] = `Token ${authToken}`;
 
@@ -143,8 +143,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.warn('Backend logout call failed (proceeding with local cleanup):', error);
     }
     try {
-      await AsyncStorage.removeItem('authToken');
-      await AsyncStorage.removeItem('user');
+      await storage.removeItem('authToken');
+      await storage.removeItem('user');
       delete api.defaults.headers.common['Authorization'];
       setToken(null);
       setUser(null);

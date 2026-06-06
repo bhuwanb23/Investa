@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import storage from './storage';
 import CONFIG from '../config/config';
 import { Platform, NativeModules } from 'react-native';
 
@@ -62,7 +62,7 @@ function resolveLanHost(): string | null {
 api.interceptors.request.use(
   async (config) => {
     // Inject token from storage
-    const token = await AsyncStorage.getItem('authToken');
+    const token = await storage.getItem('authToken');
     if (token) {
       config.headers['Authorization'] = `Token ${token}`;
     }
@@ -180,8 +180,8 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401) {
       try {
-        await AsyncStorage.removeItem('authToken');
-        await AsyncStorage.removeItem('user');
+        await storage.removeItem('authToken');
+        await storage.removeItem('user');
       } catch (storageError) {
         console.error('Error clearing storage:', storageError);
       }
