@@ -322,8 +322,8 @@ const OrderHistoryScreen = () => {
       {filteredOrders.length === 0 ? (
         <View style={styles.emptyTrades}>
           <Ionicons name="time-outline" size={48} color="#9CA3AF" />
-          <Text style={styles.emptyText}>{t.noOrdersYet || 'No orders yet'}</Text>
-          <Text style={styles.emptySubtext}>{t.startTradingToSee || 'Your trading activity will appear here'}</Text>
+          <Text style={styles.emptyText}>{t.noOrdersYet}</Text>
+          <Text style={styles.emptySubtext}>{t.startTradingToSee}</Text>
         </View>
       ) : (
         filteredOrders.map(renderTradeItem)

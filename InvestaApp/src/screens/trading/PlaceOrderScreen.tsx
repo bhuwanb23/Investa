@@ -149,9 +149,9 @@ const PlaceOrderScreen = () => {
         </View>
         <View style={styles.notFoundContainer}>
           <Ionicons name="alert-circle-outline" size={48} color="#9CA3AF" />
-          <Text style={styles.notFoundTitle}>{t.stockNotFound || 'Stock data unavailable'}</Text>
+          <Text style={styles.notFoundTitle}>{t.stockNotFound}</Text>
           <Text style={styles.notFoundSubtext}>
-            {t.unableToLoadStock || 'Unable to load this stock. Please try again from the watchlist or market view.'}
+            {t.unableToLoadStock}
           </Text>
         </View>
       </SafeAreaView>
@@ -222,7 +222,7 @@ const PlaceOrderScreen = () => {
           />
         ) : (
           <View style={styles.loadingPreview}>
-            <Text style={styles.loadingText}>{t.loadingPortfolio || 'Loading portfolio...'}</Text>
+            <Text style={styles.loadingText}>{t.loadingPortfolio}</Text>
           </View>
         )}
       </ScrollView>

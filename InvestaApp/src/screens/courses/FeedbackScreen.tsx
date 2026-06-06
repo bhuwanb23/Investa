@@ -13,7 +13,7 @@ const FeedbackScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={{ paddingBottom: 16 }} stickyHeaderIndices={[0]}>
-        <MainHeader title={t.courseFeedback || 'Course Feedback'} iconName="chatbubbles" showBackButton onBackPress={() => navigation.goBack()} />
+        <MainHeader title={t.courseFeedback} iconName="chatbubbles" showBackButton onBackPress={() => navigation.goBack()} />
         <View style={{ flex: 1, marginHorizontal: 12 }}>
           <FeedbackContent />
         </View>

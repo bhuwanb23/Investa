@@ -57,7 +57,7 @@ const LessonQuizScreen: React.FC = () => {
       setQuizAttempt(attempt);
     } catch (err) {
       console.error('Error loading quiz:', err);
-      setError(t.failedToLoadQuiz || 'Failed to load quiz');
+      setError(t.failedToLoadQuiz);
     } finally {
       setLoading(false);
     }
@@ -90,10 +90,10 @@ const LessonQuizScreen: React.FC = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <MainHeader title={t.quiz || 'Quiz'} iconName="help-circle" />
+        <MainHeader title={t.quiz} iconName="help-circle" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#4f46e5" />
-          <Text style={styles.loadingText}>{t.loadingQuiz || 'Loading quiz...'}</Text>
+          <Text style={styles.loadingText}>{t.loadingQuiz}</Text>
         </View>
       </SafeAreaView>
     );
@@ -102,10 +102,10 @@ const LessonQuizScreen: React.FC = () => {
   if (error || !quiz) {
     return (
       <SafeAreaView style={styles.container}>
-        <MainHeader title={t.quiz || 'Quiz'} iconName="help-circle" />
+        <MainHeader title={t.quiz} iconName="help-circle" />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            {error || t.noQuizAvailable || 'No quiz available for this lesson'}
+            {error || t.noQuizAvailable}
           </Text>
         </View>
       </SafeAreaView>
@@ -119,7 +119,7 @@ const LessonQuizScreen: React.FC = () => {
 
     return (
       <SafeAreaView style={styles.container}>
-        <MainHeader title={t.quizResults || 'Quiz Results'} iconName="trophy" />
+        <MainHeader title={t.quizResults} iconName="trophy" />
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Hero Banner */}
           <View style={{ backgroundColor: '#EEF2FF', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#E0E7FF' }}>
@@ -224,7 +224,7 @@ const LessonQuizScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <MainHeader title={`${t.quiz || 'Quiz'}: ${quiz.title}`} iconName="help-circle" />
+      <MainHeader title={`${t.quiz}: ${quiz.title}`} iconName="help-circle" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {quizzes.length > 1 && (
           <View style={{ marginBottom: 12, backgroundColor: '#EEF2FF', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#E0E7FF' }}>

@@ -18,7 +18,7 @@ const ModuleProgressScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll} stickyHeaderIndices={[0]}>
-        <MainHeader title={t.moduleProgress || 'Module Progress'} iconName="analytics" showBackButton onBackPress={() => navigation.goBack()} />
+        <MainHeader title={t.moduleProgress} iconName="analytics" showBackButton onBackPress={() => navigation.goBack()} />
         {/* Overview Card */}
         <View style={styles.card}> 
           <View style={styles.center}> 

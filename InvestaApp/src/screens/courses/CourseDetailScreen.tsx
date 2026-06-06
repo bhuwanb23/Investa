@@ -70,10 +70,10 @@ const CourseDetailScreen: React.FC = () => {
         };
         setCourse(normalized);
       } else {
-        setError(t.courseNotFound || 'Course not found');
+        setError(t.courseNotFound);
       }
     } catch (e: any) {
-      setError(e?.response?.data?.detail || t.failedToLoadCourse || 'Failed to load course');
+      setError(e?.response?.data?.detail || t.failedToLoadCourse);
     } finally {
       setLoading(false);
     }
@@ -94,12 +94,12 @@ const CourseDetailScreen: React.FC = () => {
       {loading ? (
         <View style={styles.center}> 
           <ActivityIndicator size="large" color={PRIMARY} />
-          <Text style={styles.loadingText}>{t.loadingCourse || 'Loading course…'}</Text>
+          <Text style={styles.loadingText}>{t.loadingCourse}</Text>
         </View>
       ) : error ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={load}><Text style={styles.retryText}>{t.retry || 'Retry'}</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.retryBtn} onPress={load}><Text style={styles.retryText}>{t.retry}</Text></TouchableOpacity>
         </View>
       ) : course ? (
         <View>

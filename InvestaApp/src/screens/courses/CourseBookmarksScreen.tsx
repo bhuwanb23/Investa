@@ -53,7 +53,7 @@ const CourseBookmarksScreen: React.FC = () => {
 				</View>
 				<View style={{ paddingVertical: 16, marginHorizontal: 12 }}>
 					<View style={{ marginBottom: 8 }}>
-						<Text style={styles.countText}>{items.length} {t.bookmarkedLessons || 'bookmarked lessons'}</Text>
+						<Text style={styles.countText}>{items.length} {t.bookmarkedLessons}</Text>
 					</View>
 					<BookmarksList
 						items={items}

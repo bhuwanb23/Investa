@@ -70,10 +70,10 @@ const LessonDetailScreen: React.FC = () => {
           course: data.course as any,
         });
       } else {
-        setError(t.lessonNotFound || 'Lesson not found');
+        setError(t.lessonNotFound);
       }
     } catch (e: any) {
-      setError(e?.response?.data?.detail || t.failedToLoadLesson || 'Failed to load lesson');
+      setError(e?.response?.data?.detail || t.failedToLoadLesson);
     } finally {
       setLoading(false);
     }
@@ -122,7 +122,7 @@ const LessonDetailScreen: React.FC = () => {
     setChatLoading(true);
     try {
       const result = await llmService.sendTutorMessage(text, lesson?.content);
-      const reply = result.response || result.detail || 'Sorry, I could not process your request.';
+      const reply = result.response || result.detail;
       setChatMessages(prev => [...prev, { role: 'assistant', content: reply }]);
     } catch {
       setChatMessages(prev => [...prev, { role: 'assistant', content: 'Could not reach the AI tutor. Make sure Ollama is running.' }]);
@@ -194,7 +194,7 @@ const LessonDetailScreen: React.FC = () => {
         {loading ? (
           <View style={styles.center}> 
             <ActivityIndicator size="large" color={PRIMARY} />
-            <Text style={styles.loadingText}>{t.loadingLesson || 'Loading lesson…'}</Text>
+            <Text style={styles.loadingText}>{t.loadingLesson}</Text>
           </View>
         ) : error ? (
           <View style={styles.center}>
@@ -216,7 +216,7 @@ const LessonDetailScreen: React.FC = () => {
 
             {/* Progress */}
             <View style={styles.cardSection}>
-              <Text style={styles.sectionHeading}>{t.yourProgress || 'Your Progress'}</Text>
+              <Text style={styles.sectionHeading}>{t.yourProgress}</Text>
               <View style={styles.progressTrack}>
                 <View style={[styles.progressFillStrong, { width: `${Math.min(100, (lesson.estimated_duration / 20) * 20)}%` }]} />
               </View>
@@ -250,7 +250,7 @@ const LessonDetailScreen: React.FC = () => {
               activeOpacity={0.85}
             >
               <Text style={styles.primaryBtnText}>
-                {completed ? t.completed : (completing ? (t.marking || 'Marking…') : t.markAsComplete)}
+                {completed ? t.completed : (completing ? (t.marking) : t.markAsComplete)}
               </Text>
             </TouchableOpacity>
 
@@ -258,7 +258,7 @@ const LessonDetailScreen: React.FC = () => {
             <View style={styles.actionsRow}>
               <TouchableOpacity style={[styles.secondaryBtnOutline, { borderColor: '#E5E7EB' }]} onPress={() => navigation.goBack()}>
                 <Ionicons name="arrow-back" size={14} color={TEXT_DARK} />
-                <Text style={styles.secondaryBtnOutlineText}>{t.backToLessons || 'Back to Lessons'}</Text>
+                <Text style={styles.secondaryBtnOutlineText}>{t.backToLessons}</Text>
               </TouchableOpacity>
             </View>
           </View>

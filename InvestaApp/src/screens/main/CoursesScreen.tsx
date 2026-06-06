@@ -136,7 +136,7 @@ const CoursesScreen = () => {
             <View style={styles.center}>
               <Text style={styles.errorText}>{error}</Text>
               <TouchableOpacity style={styles.retryBtn} onPress={load}>
-                <Text style={styles.retryText}>{t.retry || 'Retry'}</Text>
+                <Text style={styles.retryText}>{t.retry}</Text>
               </TouchableOpacity>
             </View>
           )}

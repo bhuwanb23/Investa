@@ -98,7 +98,7 @@ const CertificateScreen: React.FC = () => {
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.secondaryBtn} onPress={handleShare}>
 						<Ionicons name="share" size={18} color="#7C3AED" />
-						<Text style={styles.secondaryBtnText}>{t.shareAchievement || 'Share Achievement'}</Text>
+						<Text style={styles.secondaryBtnText}>{t.shareAchievement}</Text>
 					</TouchableOpacity>
 				</View>
 
@@ -111,11 +111,11 @@ const CertificateScreen: React.FC = () => {
 						<Ionicons name="rocket" size={18} color="#fff" />
 					</View>
 					<View style={{ flex: 1 }}>
-						<Text style={styles.nextTitle}>{t.keepLearning || 'Keep Learning!'}</Text>
-						<Text style={styles.nextMuted}>{t.nextRecommendedModule || 'Next Recommended Module:'}</Text>
+						<Text style={styles.nextTitle}>{t.keepLearning}</Text>
+						<Text style={styles.nextMuted}>{t.nextRecommendedModule}</Text>
 						<Text style={styles.nextCourse}>Financial Market Analysis</Text>
 						<TouchableOpacity style={styles.nextCta} onPress={() => navigation.navigate('Courses' as never)}>
-							<Text style={styles.nextCtaText}>{t.startNextModule || 'Start Next Module'}</Text>
+							<Text style={styles.nextCtaText}>{t.startNextModule}</Text>
 							<Ionicons name="arrow-forward" size={14} color="#fff" />
 						</TouchableOpacity>
 					</View>

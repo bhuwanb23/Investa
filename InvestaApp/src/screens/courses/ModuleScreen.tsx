@@ -74,9 +74,9 @@ const ModuleScreen: React.FC = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <MainHeader title={t.loading || 'Loading...'} iconName="library" showBackButton onBackPress={() => navigation.goBack()} />
+        <MainHeader title={t.loading} iconName="library" showBackButton onBackPress={() => navigation.goBack()} />
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>{t.loadingModule || 'Loading module...'}</Text>
+          <Text style={styles.loadingText}>{t.loadingModule}</Text>
         </View>
       </SafeAreaView>
     );
@@ -85,7 +85,7 @@ const ModuleScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scroll} stickyHeaderIndices={[0]}>
-        <MainHeader title={t.moduleOverview || 'Module Overview'} iconName="library" showBackButton onBackPress={() => navigation.goBack()} />
+        <MainHeader title={t.moduleOverview} iconName="library" showBackButton onBackPress={() => navigation.goBack()} />
         <View style={{ marginHorizontal: 12 }}>
           <ModuleHero
             title={course.title || 'Module Title'}
@@ -105,10 +105,10 @@ const ModuleScreen: React.FC = () => {
         <View style={{ marginHorizontal: 12 }}>
           <ObjectivesList
             objectives={[
-              { text: t.completeAllLessonsInModule || 'Complete all lessons in the module', achieved: completedLessons === totalLessons && totalLessons > 0 },
-              { text: t.achieve80PercentOrHigher || 'Achieve 80% or higher on assessments', achieved: false },
-              { text: t.applyConceptsInPracticalExercises || 'Apply concepts in practical exercises', achieved: completedLessons >= Math.ceil(totalLessons * 0.5) },
-              { text: t.participateInModuleDiscussions || 'Participate in module discussions', achieved: false },
+              { text: t.completeAllLessonsInModule, achieved: completedLessons === totalLessons && totalLessons > 0 },
+              { text: t.achieve80PercentOrHigher, achieved: false },
+              { text: t.applyConceptsInPracticalExercises, achieved: completedLessons >= Math.ceil(totalLessons * 0.5) },
+              { text: t.participateInModuleDiscussions, achieved: false },
             ]}
           />
         </View>
@@ -116,9 +116,9 @@ const ModuleScreen: React.FC = () => {
         <View style={{ marginHorizontal: 12 }}>
           <BadgesGrid
             badges={[
-              { icon: 'code', title: t.moduleMaster || 'Module Master', subtitle: t.completeAllLessons || 'Complete all lessons', highlighted: completedLessons === totalLessons && totalLessons > 0 },
-              { icon: 'rocket', title: t.fastLearner || 'Fast Learner', subtitle: t.finishIn3Days || 'Finish in 3 days', highlighted: false },
-              { icon: 'trophy', title: t.perfectScore || 'Perfect Score', subtitle: t.score100PercentOnQuiz || 'Score 100% on quiz', highlighted: false },
+              { icon: 'code', title: t.moduleMaster, subtitle: t.completeAllLessons, highlighted: completedLessons === totalLessons && totalLessons > 0 },
+              { icon: 'rocket', title: t.fastLearner, subtitle: t.finishIn3Days, highlighted: false },
+              { icon: 'trophy', title: t.perfectScore, subtitle: t.score100PercentOnQuiz, highlighted: false },
             ]}
           />
         </View>
@@ -143,7 +143,7 @@ const ModuleScreen: React.FC = () => {
         >
           <Ionicons name="play" size={16} color="#fff" />
           <Text style={styles.primaryBtnText}>
-            {completedLessons === 0 ? (t.startModule || 'Start Module') : (t.continueModule || 'Continue Module')}
+            {completedLessons === 0 ? (t.startModule) : (t.continueModule)}
           </Text>
         </TouchableOpacity>
         {nextLesson && (

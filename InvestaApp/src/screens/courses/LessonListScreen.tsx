@@ -184,9 +184,9 @@ const LessonListScreen: React.FC = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <MainHeader title={t.loadingLesson || 'Loading...'} iconName="book" showBackButton onBackPress={() => navigation.goBack()} />
+        <MainHeader title={t.loadingLesson} iconName="book" showBackButton onBackPress={() => navigation.goBack()} />
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>{t.loadingCourse || 'Loading course...'}</Text>
+          <Text style={styles.loadingText}>{t.loadingCourse}</Text>
         </View>
       </SafeAreaView>
     );
@@ -196,7 +196,7 @@ const LessonListScreen: React.FC = () => {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scroll} stickyHeaderIndices={[0]}>
         <MainHeader 
-          title={course.title || t.course || 'Course'} 
+          title={course.title || t.course} 
           iconName="book" 
           showBackButton 
           onBackPress={() => navigation.goBack()} 
@@ -205,14 +205,14 @@ const LessonListScreen: React.FC = () => {
         {/* Continue CTA */}
         <View style={styles.ctaCard}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.ctaOver}>{t.continueWhereLeftOff || 'Continue where you left off'}</Text>
+            <Text style={styles.ctaOver}>{t.continueWhereLeftOff}</Text>
             <Text style={styles.ctaTitle}>
-              {t.lesson} {nextLessonId}: {lessons.find(l => l.id === nextLessonId)?.title || t.continueLearning || 'Continue Learning'}
+              {t.lesson} {nextLessonId}: {lessons.find(l => l.id === nextLessonId)?.title || t.continueLearning}
             </Text>
             <Text style={styles.ctaSub}>
               {lessons.find(l => l.id === nextLessonId)?.state === 'completed' 
-                ? (t.greatJobKeepGoing || 'Great job! Keep going!')
-                : (t.continueLearningJourney || 'Continue your learning journey')}
+                ? (t.greatJobKeepGoing)
+                : (t.continueLearningJourney)}
             </Text>
           </View>
           <TouchableOpacity 
@@ -228,7 +228,7 @@ const LessonListScreen: React.FC = () => {
               }
             }}
           >
-            <Text style={styles.ctaBtnText}>{t.continue || 'Continue'}</Text>
+            <Text style={styles.ctaBtnText}>{t.continue}</Text>
           </TouchableOpacity>
         </View>
 
