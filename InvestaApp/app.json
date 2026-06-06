@@ -3,7 +3,7 @@
     "name": "InvestaApp",
     "slug": "InvestaApp",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/investa_logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
