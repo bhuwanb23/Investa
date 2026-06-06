@@ -27,7 +27,7 @@ if not SECRET_KEY:
     raise ImproperlyConfigured('INVESTA_SECRET_KEY environment variable is required')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('INVESTA_DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('INVESTA_DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.environ.get(
     'INVESTA_ALLOWED_HOSTS',
