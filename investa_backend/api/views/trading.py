@@ -423,7 +423,7 @@ class TradingPerformanceViewSet(viewsets.ReadOnlyModelViewSet):
 class MarketDataViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for market data"""
     serializer_class = MarketDataSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         return MarketData.objects.all()
@@ -465,7 +465,7 @@ class MarketIndexViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for Indian market indices (NIFTY 50, SENSEX, BANK NIFTY)"""
     queryset = MarketIndex.objects.all()
     serializer_class = MarketIndexSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
 
 class AchievementViewSet(viewsets.ReadOnlyModelViewSet):

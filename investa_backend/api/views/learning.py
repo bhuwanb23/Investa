@@ -254,8 +254,8 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for quizzes"""
     queryset = Quiz.objects.filter(is_active=True)
     serializer_class = QuizSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    
+    permission_classes = [permissions.AllowAny]
+
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def for_lesson(self, request):
         """Get the first active quiz for a specific lesson"""
