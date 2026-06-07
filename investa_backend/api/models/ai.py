@@ -13,6 +13,10 @@ class AISettings(models.Model):
     provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES, default='ollama')
     ollama_endpoint = models.CharField(max_length=255, default='http://localhost:11434')
     ollama_model = models.CharField(max_length=100, default='llama3')
+    openai_api_key = models.CharField(max_length=255, blank=True, default='')
+    openai_model = models.CharField(max_length=100, blank=True, default='gpt-4')
+    gemini_api_key = models.CharField(max_length=255, blank=True, default='')
+    gemini_model = models.CharField(max_length=100, blank=True, default='gemini-pro')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

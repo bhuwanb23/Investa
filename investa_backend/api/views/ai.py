@@ -1,11 +1,13 @@
 from django.conf import settings
 from rest_framework import viewsets, status, permissions
+from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from ..models import AISettings
 from ..serializers import (
     TutorRequestSerializer,
     AISettingsSerializer,
+    TestConnectionSerializer,
 )
 
 
@@ -92,3 +94,47 @@ class AISettingsViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, pk=None):
         return self.list(request)
+
+
+class TestConnectionView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = TestConnectionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        try:
+            import requests as http_requests
+
+            if data['provider'] == 'ollama':
+                url = f"{data['ollama_endpoint']}/api/tags"
+                resp = http_requests.get(url, timeout=10)
+                resp.raise_for_status()
+                return Response({'detail': f'Connected to Ollama. Available models: {len(resp.json().get("models", []))}'})
+
+            elif data['provider'] == 'openai':
+                if not data.get('openai_api_key'):
+                    return Response({'detail': 'OpenAI API key is required.'}, status=status.HTTP_400_BAD_REQUEST)
+                from openai import OpenAI
+                client = OpenAI(api_key=data['openai_api_key'], timeout=10)
+                client.models.list()
+                return Response({'detail': 'Connected to OpenAI successfully.'})
+
+            elif data['provider'] == 'gemini':
+                if not data.get('gemini_api_key'):
+                    return Response({'detail': 'Gemini API key is required.'}, status=status.HTTP_400_BAD_REQUEST)
+                url = f"https://generativelanguage.googleapis.com/v1beta/models?key={data['gemini_api_key']}"
+                resp = http_requests.get(url, timeout=10)
+                resp.raise_for_status()
+                return Response({'detail': 'Connected to Gemini successfully.'})
+
+            return Response({'detail': 'Unknown provider.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            error_msg = str(e)
+            if 'ConnectionError' in type(e).__name__:
+                detail = f'Could not connect to {data["provider"]}. Check the endpoint or API key.'
+            else:
+                detail = f'Connection failed: {error_msg}'
+            return Response({'detail': detail}, status=status.HTTP_503_SERVICE_UNAVAILABLE)

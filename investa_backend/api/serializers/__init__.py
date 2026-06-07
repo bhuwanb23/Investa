@@ -30,7 +30,7 @@ from .trading import (
 )
 from .notifications import NotificationSerializer
 from .progress import UserProgressSerializer, UserProgressSummarySerializer, ProgressStatsSerializer
-from .ai import TutorRequestSerializer, AISettingsSerializer
+from .ai import TutorRequestSerializer, AISettingsSerializer, TestConnectionSerializer
 
 # Export all serializers
 __all__ = [
@@ -70,5 +70,5 @@ __all__ = [
     'UserProgressSerializer', 'UserProgressSummarySerializer', 'ProgressStatsSerializer',
     
     # AI serializers
-    'TutorRequestSerializer', 'AISettingsSerializer',
+    'TutorRequestSerializer', 'AISettingsSerializer', 'TestConnectionSerializer',
 ]

@@ -8,7 +8,7 @@ from ..views.trading import (
     AchievementViewSet
 )
 from ..views.auth import PingView, ForgotPasswordView, ResetPasswordView
-from ..views.ai import AISettingsViewSet
+from ..views.ai import AISettingsViewSet, TestConnectionView
 
 router = DefaultRouter()
 router.register(r'languages', views.LanguageViewSet)
@@ -57,4 +57,5 @@ urlpatterns = [
     path('ping/', PingView.as_view(), name='api_ping'),
     path('ai/tutor/', views.TutorView.as_view(), name='ai_tutor'),
     path('ai/settings/', AISettingsViewSet.as_view({'get': 'list', 'post': 'create', 'put': 'update', 'patch': 'update'}), name='ai_settings'),
+    path('ai/test/', TestConnectionView.as_view(), name='ai_test'),
 ]

@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import MainHeader from '../../components/MainHeader';
 import { aiSettingsApi, AISettingsData } from '../../services';
+import api from '../../services/api';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -36,9 +37,14 @@ const MODELS: Record<string, string[]> = {
 const AISettingsScreen = ({ navigation }: any) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
   const [provider, setProvider] = useState('ollama');
   const [ollamaEndpoint, setOllamaEndpoint] = useState('http://localhost:11434');
   const [ollamaModel, setOllamaModel] = useState('llama3');
+  const [openaiApiKey, setOpenaiApiKey] = useState('');
+  const [openaiModel, setOpenaiModel] = useState('gpt-4');
+  const [geminiApiKey, setGeminiApiKey] = useState('');
+  const [geminiModel, setGeminiModel] = useState('gemini-pro');
 
   const load = useCallback(async () => {
     try {
@@ -46,6 +52,8 @@ const AISettingsScreen = ({ navigation }: any) => {
       setProvider(data.provider);
       setOllamaEndpoint(data.ollama_endpoint);
       setOllamaModel(data.ollama_model);
+      setOpenaiModel(data.openai_model || 'gpt-4');
+      setGeminiModel(data.gemini_model || 'gemini-pro');
     } catch {
       // Use defaults
     } finally {
@@ -64,6 +72,10 @@ const AISettingsScreen = ({ navigation }: any) => {
         provider: provider as AISettingsData['provider'],
         ollama_endpoint: ollamaEndpoint,
         ollama_model: ollamaModel,
+        openai_api_key: openaiApiKey || undefined,
+        openai_model: openaiModel,
+        gemini_api_key: geminiApiKey || undefined,
+        gemini_model: geminiModel,
       });
       Alert.alert('Saved', 'AI settings updated successfully.');
     } catch {
@@ -74,7 +86,24 @@ const AISettingsScreen = ({ navigation }: any) => {
   };
 
   const handleTestConnection = async () => {
-    Alert.alert('Test Connection', 'Ensure Ollama is running, then ask a question in any lesson to verify.');
+    setTesting(true);
+    try {
+      await api.post('/api/ai/test/', {
+        provider,
+        ollama_endpoint: ollamaEndpoint,
+        ollama_model: ollamaModel,
+        openai_api_key: openaiApiKey || undefined,
+        openai_model: openaiModel,
+        gemini_api_key: geminiApiKey || undefined,
+        gemini_model: geminiModel,
+      });
+      Alert.alert('Success', `Connected to ${provider} successfully.`);
+    } catch (err: any) {
+      const msg = err?.response?.data?.detail || err?.message || 'Connection failed';
+      Alert.alert('Connection Failed', msg);
+    } finally {
+      setTesting(false);
+    }
   };
 
   if (loading) {
@@ -92,7 +121,6 @@ const AISettingsScreen = ({ navigation }: any) => {
     <SafeAreaView style={styles.safeArea}>
       <MainHeader title="AI Settings" iconName="bulb" showBackButton onBackPress={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Provider Selection */}
         <Text style={styles.sectionLabel}>Provider</Text>
         {PROVIDERS.map((p) => (
           <TouchableOpacity
@@ -111,7 +139,6 @@ const AISettingsScreen = ({ navigation }: any) => {
           </TouchableOpacity>
         ))}
 
-        {/* Ollama Settings */}
         {provider === 'ollama' && (
           <>
             <Text style={styles.sectionLabel}>Ollama Endpoint</Text>
@@ -132,16 +159,69 @@ const AISettingsScreen = ({ navigation }: any) => {
                   style={[styles.modelChip, ollamaModel === m && styles.modelChipActive]}
                   onPress={() => setOllamaModel(m)}
                 >
-                  <Text style={[styles.modelChipText, ollamaModel === m && styles.modelChipTextActive]}>
-                    {m}
-                  </Text>
+                  <Text style={[styles.modelChipText, ollamaModel === m && styles.modelChipTextActive]}>{m}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </>
         )}
 
-        {/* Save & Test */}
+        {provider === 'openai' && (
+          <>
+            <Text style={styles.sectionLabel}>OpenAI API Key</Text>
+            <TextInput
+              style={styles.input}
+              value={openaiApiKey}
+              onChangeText={setOpenaiApiKey}
+              placeholder="sk-..."
+              placeholderTextColor={TEXT_MUTED}
+              autoCapitalize="none"
+              autoCorrect={false}
+              secureTextEntry
+            />
+            <Text style={styles.sectionLabel}>Model</Text>
+            <View style={styles.modelRow}>
+              {MODELS.openai.map((m) => (
+                <TouchableOpacity
+                  key={m}
+                  style={[styles.modelChip, openaiModel === m && styles.modelChipActive]}
+                  onPress={() => setOpenaiModel(m)}
+                >
+                  <Text style={[styles.modelChipText, openaiModel === m && styles.modelChipTextActive]}>{m}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        )}
+
+        {provider === 'gemini' && (
+          <>
+            <Text style={styles.sectionLabel}>Gemini API Key</Text>
+            <TextInput
+              style={styles.input}
+              value={geminiApiKey}
+              onChangeText={setGeminiApiKey}
+              placeholder="AIza..."
+              placeholderTextColor={TEXT_MUTED}
+              autoCapitalize="none"
+              autoCorrect={false}
+              secureTextEntry
+            />
+            <Text style={styles.sectionLabel}>Model</Text>
+            <View style={styles.modelRow}>
+              {MODELS.gemini.map((m) => (
+                <TouchableOpacity
+                  key={m}
+                  style={[styles.modelChip, geminiModel === m && styles.modelChipActive]}
+                  onPress={() => setGeminiModel(m)}
+                >
+                  <Text style={[styles.modelChipText, geminiModel === m && styles.modelChipTextActive]}>{m}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        )}
+
         <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
           {saving ? (
             <ActivityIndicator size="small" color="#fff" />
@@ -150,9 +230,15 @@ const AISettingsScreen = ({ navigation }: any) => {
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.testBtn} onPress={handleTestConnection}>
-          <Ionicons name="pulse" size={16} color={PRIMARY} />
-          <Text style={styles.testBtnText}>Test Connection</Text>
+        <TouchableOpacity style={styles.testBtn} onPress={handleTestConnection} disabled={testing}>
+          {testing ? (
+            <ActivityIndicator size="small" color={PRIMARY} />
+          ) : (
+            <>
+              <Ionicons name="pulse" size={16} color={PRIMARY} />
+              <Text style={styles.testBtnText}>Test Connection</Text>
+            </>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -193,12 +279,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: PRIMARY,
-  },
+  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: PRIMARY },
   providerLabel: { fontWeight: '800', fontSize: 14, color: TEXT_DARK },
   providerDesc: { fontSize: 12, color: TEXT_MUTED, marginTop: 2 },
   input: {

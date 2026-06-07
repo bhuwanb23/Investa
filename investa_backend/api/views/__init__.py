@@ -13,7 +13,7 @@ from .notifications import NotificationViewSet
 from .progress import UserProgressViewSet
 from .auth import CustomAuthToken, UserRegistrationView, MeView, LogoutView
 from .console import index, dashboard, database_view, _build_model_entries
-from .ai import TutorView, AISettingsViewSet
+from .ai import TutorView, AISettingsViewSet, TestConnectionView
 
 __all__ = [
     # Auth views
@@ -66,4 +66,5 @@ __all__ = [
     # AI views
     'TutorView',
     'AISettingsViewSet',
+    'TestConnectionView',
 ]
