@@ -5,6 +5,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from ..throttles import AuthAnonRateThrottle, PingAnonRateThrottle
 from ..models import (
     UserProfile,
     SecuritySettings,
@@ -29,6 +30,7 @@ class CustomAuthToken(ObtainAuthToken):
     """Custom authentication token view that accepts email or username"""
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
+    throttle_classes = [AuthAnonRateThrottle]
     
     def post(self, request, *args, **kwargs):
         # Check if the input looks like an email
@@ -81,6 +83,7 @@ class UserRegistrationView(viewsets.GenericViewSet):
     permission_classes = [permissions.AllowAny]
     serializer_class = UserRegistrationSerializer
     authentication_classes = []
+    throttle_classes = [AuthAnonRateThrottle]
     
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -147,6 +150,7 @@ class PingView(APIView):
     """Simple health check endpoint to verify connectivity from clients"""
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
+    throttle_classes = [PingAnonRateThrottle]
 
     def get(self, request):
         return Response({
@@ -165,6 +169,7 @@ class ForgotPasswordView(APIView):
     """
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
+    throttle_classes = [AuthAnonRateThrottle]
 
     def post(self, request):
         serializer = ForgotPasswordRequestSerializer(data=request.data)
@@ -202,6 +207,7 @@ class ResetPasswordView(APIView):
     """
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
+    throttle_classes = [AuthAnonRateThrottle]
 
     def post(self, request):
         serializer = PasswordResetRequestSerializer(data=request.data)

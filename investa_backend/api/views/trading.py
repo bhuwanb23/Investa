@@ -1,6 +1,6 @@
 from rest_framework import viewsets, status, permissions, filters
 from rest_framework.decorators import action
-from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 from django.db.models import Sum, Avg
 from django.utils import timezone
 from datetime import timedelta
@@ -35,6 +35,7 @@ class StockViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for stock information"""
     serializer_class = StockSerializer
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [AnonRateThrottle]
 
     def get_permissions(self):
         if self.action in ['list', 'retrieve', 'price_history']:
