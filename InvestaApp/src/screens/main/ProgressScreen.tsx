@@ -68,10 +68,13 @@ const ProgressScreen = () => {
         portfolio_value: 0,
         portfolio_growth_percentage: 0,
         win_rate: 0,
+        total_trades: 0,
         total_badges: 0,
         earned_badges: 0,
         total_achievements: 0,
         earned_achievements: 0,
+        completed_lessons: 0,
+        total_lessons: 0,
         updated_at: new Date().toISOString()
       });
       setWeeklyActivity([]);

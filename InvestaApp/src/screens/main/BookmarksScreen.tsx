@@ -241,7 +241,7 @@ const BookmarksScreen = () => {
         <EmptyState
           icon="bookmark-outline"
           title="No Bookmarks Found"
-          message={getEmptyStateMessage()}
+          subtitle={getEmptyStateMessage()}
         />
       )}
     </SafeAreaView>

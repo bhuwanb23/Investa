@@ -40,10 +40,14 @@ const MarketWatchlistScreen = () => {
   const {
     stocks,
     searchStocks,
-    toggleFavorite,
-    getStocksByCategory,
-    setSelectedCategory: setCategoryFromHook,
+    getStockBySymbol,
+    toggleFavorite: toggleFavoriteById,
   } = useTradingData();
+
+  const handleToggleFavorite = (symbol: string) => {
+    const stock = getStockBySymbol(symbol);
+    if (stock?.id) toggleFavoriteById(stock.id);
+  };
   
   // Debug log to verify language is working
 
@@ -56,7 +60,6 @@ const MarketWatchlistScreen = () => {
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
-    setCategoryFromHook(category);
   };
 
   const handleSearchClear = () => {
@@ -69,26 +72,17 @@ const MarketWatchlistScreen = () => {
     searchStocks(text);
   };
 
-  const getFilteredStocks = () => {
-    let filtered = getStocksByCategory(selectedCategory);
-    
-    if (searchQuery.trim()) {
-      filtered = filtered.filter((stock: any) =>
-        stock.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        stock.symbol.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    
-    return filtered;
-  };
-
-  const filteredStocks = getFilteredStocks();
+  const filteredStocks = stocks.filter((stock: any) => {
+    if (selectedCategory === 'All') return true;
+    if (selectedCategory === 'Favorites') return stock.isFavorite;
+    return stock.exchange === selectedCategory;
+  });
 
   const renderStockItem = ({ item }: { item: any }) => (
     <StockCard
       stock={item}
       onPress={handleStockPress}
-      onToggleFavorite={toggleFavorite}
+      onToggleFavorite={handleToggleFavorite}
     />
   );
 

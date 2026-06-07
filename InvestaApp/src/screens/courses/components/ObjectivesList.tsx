@@ -12,7 +12,7 @@ const ObjectivesList: React.FC<Props> = ({ title = 'Learning Objectives', object
   return (
     <View style={styles.card}>
       <View style={[styles.row, { marginBottom: 10 }]}> 
-        <Ionicons name="bullseye" size={16} color={PRIMARY} />
+        <Ionicons name="flag-outline" size={16} color={PRIMARY} />
         <Text style={[styles.sectionTitle, { marginLeft: 8 }]}>{title}</Text>
       </View>
       {objectives.map((o, idx) => (

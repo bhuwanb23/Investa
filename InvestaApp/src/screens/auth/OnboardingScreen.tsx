@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 const { width, height } = Dimensions.get('window');
 
 const OnboardingScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -385,11 +385,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
     maxWidth: 300,
-  },
-  footer: {
-    paddingHorizontal: 20,
-    paddingBottom: 60,
-    alignItems: 'center',
   },
   dotsContainer: {
     flexDirection: 'row',

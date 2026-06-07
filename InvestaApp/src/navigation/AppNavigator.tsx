@@ -83,6 +83,7 @@ export type MainStackParamList = {
   CourseFeedback: undefined;
   LessonQuiz: undefined;
   Quiz: undefined;
+  QuizStart: undefined;
   QuizQuestion: { 
     quizId: string; 
     quizTitle: string; 

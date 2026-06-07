@@ -238,7 +238,7 @@ class TradingApiService {
     return response.data;
   }
 
-  async getStock(stockId: number): Promise<StockDetail> {
+  async getStock(stockId: number | string): Promise<StockDetail> {
     const response = await api.get(`/stocks/${stockId}/`);
     return response.data;
   }
@@ -269,7 +269,7 @@ class TradingApiService {
   }
 
   // Watchlist endpoints
-  async getMyWatchlist(): Promise<StockDetail[]> {
+  async getMyWatchlist(): Promise<UserWatchlist[]> {
     const response = await api.get('watchlist/my_watchlist/');
     return response.data;
   }
@@ -453,10 +453,4 @@ class TradingApiService {
 const tradingApi = new TradingApiService();
 export default tradingApi;
 
-// Export types for use in other files
-export type {
-  Stock, StockPrice, MarketData, TechnicalIndicator, StockDetail,
-  Portfolio, PortfolioHolding, Order, Trade, TradingPerformance,
-  UserWatchlist, Achievement, UserAchievement, LeaderboardEntry,
-  MarketSummary, TopMovers, TradeSummary
-};
+

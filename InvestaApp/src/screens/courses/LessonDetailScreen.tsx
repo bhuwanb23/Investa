@@ -123,7 +123,7 @@ const LessonDetailScreen: React.FC = () => {
     try {
       const result = await llmService.sendTutorMessage(text, lesson?.content);
       const reply = result.response || result.detail;
-      setChatMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+      setChatMessages(prev => [...prev, { role: 'assistant', content: reply ?? '' }]);
     } catch {
       setChatMessages(prev => [...prev, { role: 'assistant', content: 'Could not reach the AI tutor. Make sure Ollama is running.' }]);
     } finally {

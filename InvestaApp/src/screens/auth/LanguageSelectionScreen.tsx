@@ -11,7 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
 const LanguageSelectionScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const [selectedLanguage, setSelectedLanguage] = useState('');
 
   const languages = [
@@ -67,7 +67,7 @@ const LanguageSelectionScreen = () => {
     if (selectedLanguage) {
       // Here you would typically save the language preference
       // For now, just navigate to registration
-      navigation.navigate('Register', { language: selectedLanguage });
+      navigation.navigate('Register');
     }
   };
 
