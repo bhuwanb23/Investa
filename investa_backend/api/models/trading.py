@@ -83,13 +83,13 @@ class UserWatchlist(models.Model):
     """User's stock watchlist"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watchlist')
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE, related_name='watchers')
-    added_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
+    added_at = models.DateTimeField(auto_now_add=True)    class Meta:
         unique_together = ['user', 'stock']
+        ordering = ['-added_at']
     
     def __str__(self):
         return f"{self.user.username} - {self.stock.symbol}"
+
 
 
 class Portfolio(models.Model):
@@ -302,6 +302,7 @@ class TechnicalIndicator(models.Model):
     
     class Meta:
         unique_together = ['stock', 'indicator_name']
+        ordering = ['-updated_at']
     
     def __str__(self):
         return f"{self.stock.symbol} - {self.indicator_name}: {self.value}"
@@ -338,6 +339,7 @@ class UserAchievement(models.Model):
     
     class Meta:
         unique_together = ['user', 'achievement']
+        ordering = ['-earned_at']
     
     def __str__(self):
         return f"{self.user.username} - {self.achievement.name}"
