@@ -83,7 +83,9 @@ class UserWatchlist(models.Model):
     """User's stock watchlist"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watchlist')
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE, related_name='watchers')
-    added_at = models.DateTimeField(auto_now_add=True)    class Meta:
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
         unique_together = ['user', 'stock']
         ordering = ['-added_at']
     
