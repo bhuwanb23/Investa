@@ -40,3 +40,6 @@ yarn-error.*
 .idea/
 *.swp
 *.swo
+
+# Auto-generated junk files (do NOT commit)
+.config_*
