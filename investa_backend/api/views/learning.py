@@ -236,7 +236,12 @@ class LessonViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for lessons"""
     queryset = Lesson.objects.filter(is_active=True)
     serializer_class = LessonSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def mark_completed(self, request, pk=None):

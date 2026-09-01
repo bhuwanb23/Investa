@@ -222,6 +222,7 @@ class UserBadge(models.Model):
     
     class Meta:
         unique_together = ['user', 'badge']
+        ordering = ['-earned_at']
     
     def __str__(self):
         return f"{self.user.username} - {self.badge.name}"
