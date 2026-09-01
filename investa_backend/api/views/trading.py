@@ -371,6 +371,47 @@ class TradeViewSet(viewsets.ReadOnlyModelViewSet):
         
         return Response(summary)
 
+    @action(detail=False, methods=['get'])
+    def portfolio_summary(self, request):
+        """Get portfolio summary for the current user"""
+        try:
+            portfolio = Portfolio.objects.get(user=request.user)
+        except Portfolio.DoesNotExist:
+            return Response({
+                'total_value': 0,
+                'total_invested': 0,
+                'total_profit_loss': 0,
+                'pnl_percent': 0,
+                'cash_balance': 0,
+                'holdings': []
+            })
+
+        holdings = portfolio.holdings.select_related('stock').all()
+        holdings_data = []
+        for h in holdings:
+            holdings_data.append({
+                'stock_symbol': h.stock.symbol,
+                'stock_name': h.stock.name,
+                'quantity': h.quantity,
+                'average_price': h.average_price,
+                'current_price': h.current_price,
+                'market_value': h.market_value,
+                'profit_loss': h.market_value - h.total_invested,
+            })
+
+        pnl_percent = 0
+        if portfolio.total_invested > 0:
+            pnl_percent = float((portfolio.total_profit_loss / portfolio.total_invested) * 100)
+
+        return Response({
+            'total_value': portfolio.total_value,
+            'total_invested': portfolio.total_invested,
+            'total_profit_loss': portfolio.total_profit_loss,
+            'pnl_percent': round(pnl_percent, 2),
+            'cash_balance': portfolio.cash_balance,
+            'holdings': holdings_data
+        })
+
 
 class TradingPerformanceViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for trading performance"""
@@ -392,7 +433,14 @@ class TradingPerformanceViewSet(viewsets.ReadOnlyModelViewSet):
             performance = TradingPerformance.objects.create(user=request.user)
             serializer = self.get_serializer(performance)
             return Response(serializer.data)
-    
+
+    @action(detail=False, methods=['get'])
+    def my_achievements(self, request):
+        """Get current user's earned achievements"""
+        user_achievements = UserAchievement.objects.filter(user=request.user).select_related('achievement')
+        serializer = UserAchievementSerializer(user_achievements, many=True)
+        return Response(serializer.data)
+
     @action(detail=False, methods=['get'])
     def leaderboard(self, request):
         """Get leaderboard data"""

@@ -109,6 +109,38 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = CourseSerializer(courses, many=True)
         return Response(serializer.data)
 
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def enroll(self, request, pk=None):
+        """Enroll in a course - creates initial learning progress"""
+        course = self.get_object()
+        user = request.user
+
+        # Get or create learning progress for user
+        progress, created = LearningProgress.objects.get_or_create(user=user)
+
+        # Mark first lesson as available if none are
+        lessons = course.lessons.filter(is_active=True).order_by('order')
+        if not lessons.exists():
+            return Response({'detail': 'Course has no lessons'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Ensure at least the first lesson is available
+        first_lesson = lessons.first()
+        UserLessonProgress.objects.get_or_create(
+            user=user,
+            lesson=first_lesson,
+            defaults={'status': 'available', 'progress': 0}
+        )
+
+        # Update course count
+        progress.total_modules = max(progress.total_modules, course.lessons.filter(is_active=True).count())
+        progress.save()
+
+        return Response({
+            'detail': f'Enrolled in {course.title}',
+            'course_id': course.id,
+            'course_title': course.title,
+        })
+
     @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def with_progress(self, request, pk=None):
         """Get course details with user progress"""
