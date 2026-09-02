@@ -22,6 +22,7 @@ import QuizOptionButton from './components/QuizOptionButton';
 import QuizExplanation from './components/QuizExplanation';
 import { startQuizAttempt, submitQuizAnswer, completeQuizAttempt, getQuizAttempt } from '../courses/utils/coursesApi';
 import api from '../../services/api';
+import logger from '../../utils/logger';
 
 type QuizQuestionScreenNavigationProp = StackNavigationProp<MainStackParamList, 'QuizQuestion'>;
 type QuizQuestionScreenRouteProp = RouteProp<MainStackParamList, 'QuizQuestion'>;
@@ -49,7 +50,7 @@ const QuizQuestionScreen = () => {
         const attempt = await startQuizAttempt(Number(quizId));
         setQuizAttempt(attempt);
       } catch (err) {
-        console.error('Error initializing quiz:', err);
+        logger.error('Error initializing quiz:', err);
         setError('Failed to load quiz from server.');
       } finally {
         setLoading(false);
@@ -124,7 +125,7 @@ const QuizQuestionScreen = () => {
         quizId: String(quizId),
       });
     } catch (err) {
-      console.error('Error finishing quiz:', err);
+      logger.error('Error finishing quiz:', err);
       Alert.alert('Error', 'Failed to submit quiz results.');
     } finally {
       setLoading(false);
@@ -169,7 +170,7 @@ const QuizQuestionScreen = () => {
       // Update local state via hook
       selectAnswer(optionIndex);
     } catch (err) {
-      console.error('Error submitting answer:', err);
+      logger.error('Error submitting answer:', err);
       Alert.alert('Error', 'Failed to save your answer.');
     }
   };

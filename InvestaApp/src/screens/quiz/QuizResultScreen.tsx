@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { MainStackParamList } from '../../navigation/AppNavigator';
 import QuizHeader from './components/QuizHeader';
 import api from '../../services/api';
+import logger from '../../utils/logger';
 
 type QuizResultScreenNavigationProp = StackNavigationProp<MainStackParamList, 'QuizResult'>;
 type QuizResultScreenRouteProp = RouteProp<MainStackParamList, 'QuizResult'>;
@@ -64,7 +65,7 @@ const QuizResultScreen = () => {
         // Filter for achievements earned recently (in the last hour) or just general ones
         setAchievements(response.data || []);
       } catch (error) {
-        console.error('Error fetching achievements:', error);
+        logger.error('Error fetching achievements:', error);
       } finally {
         setLoadingAchievements(false);
       }
