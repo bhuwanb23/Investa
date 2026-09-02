@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import profileApi, { UserProfile, ProfileUpdateData, CompleteProfileData, Language } from '../services/profileApi';
 import { ApiError } from '../services/api';
+import logger from '../utils/logger';
 
 interface UseProfileReturn {
   profile: UserProfile | null;
@@ -37,7 +38,7 @@ export const useProfile = (): UseProfileReturn => {
     } catch (err) {
       const apiError = err as ApiError;
       setError(apiError.message);
-      console.error('Error fetching profile:', apiError);
+      logger.error('Error fetching profile:', apiError);
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +58,7 @@ export const useProfile = (): UseProfileReturn => {
       const apiError = err as ApiError;
       setError(apiError.message);
       Alert.alert('Error', apiError.message);
-      console.error('Error updating profile:', apiError);
+      logger.error('Error updating profile:', apiError);
       return false;
     } finally {
       setIsUpdating(false);
@@ -78,7 +79,7 @@ export const useProfile = (): UseProfileReturn => {
       const apiError = err as ApiError;
       setError(apiError.message);
       Alert.alert('Error', apiError.message);
-      console.error('Error completing profile:', apiError);
+      logger.error('Error completing profile:', apiError);
       return false;
     } finally {
       setIsUpdating(false);
@@ -104,7 +105,7 @@ export const useProfile = (): UseProfileReturn => {
       const apiError = err as ApiError;
       setError(apiError.message);
       Alert.alert('Error', apiError.message);
-      console.error('Error uploading avatar:', apiError);
+      logger.error('Error uploading avatar:', apiError);
       return false;
     } finally {
       setIsUpdating(false);
@@ -119,7 +120,7 @@ export const useProfile = (): UseProfileReturn => {
     } catch (err) {
       const apiError = err as ApiError;
       setError(apiError.message);
-      console.error('Error fetching languages:', apiError);
+      logger.error('Error fetching languages:', apiError);
     }
   }, []);
 

@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import authApi, { LoginData, RegisterData } from '../services/authApi';
 import { ApiError } from '../services/api';
+import logger from '../utils/logger';
 
 interface UseAuthApiReturn {
   isLoading: boolean;
@@ -37,7 +38,7 @@ export const useAuthApi = (): UseAuthApiReturn => {
       const apiError = err as ApiError;
       setError(apiError.message);
       Alert.alert('Login Error', apiError.message);
-      console.error('Error during login:', apiError);
+      logger.error('Error during login:', apiError);
       return false;
     } finally {
       setIsLoading(false);
@@ -59,7 +60,7 @@ export const useAuthApi = (): UseAuthApiReturn => {
       const apiError = err as ApiError;
       setError(apiError.message);
       Alert.alert('Registration Error', apiError.message);
-      console.error('Error during registration:', apiError);
+      logger.error('Error during registration:', apiError);
       return false;
     } finally {
       setIsLoading(false);
@@ -84,7 +85,7 @@ export const useAuthApi = (): UseAuthApiReturn => {
       const apiError = err as ApiError;
       setError(apiError.message);
       Alert.alert('Error', apiError.message);
-      console.error('Error changing password:', apiError);
+      logger.error('Error changing password:', apiError);
       return false;
     } finally {
       setIsLoading(false);
@@ -129,7 +130,7 @@ export const useAuthApi = (): UseAuthApiReturn => {
       const apiError = err as ApiError;
       setError(apiError.message);
       Alert.alert('Error', apiError.message);
-      console.error('Error confirming password reset:', apiError);
+      logger.error('Error confirming password reset:', apiError);
       return false;
     } finally {
       setIsLoading(false);
