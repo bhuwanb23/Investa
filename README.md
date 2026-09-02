@@ -243,8 +243,23 @@ cd investa_backend
 python -m venv venv && source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python manage.py migrate
-python pouplate_sample_data.py # add some sample data to make it run and work
+python manage.py create_test_user  # Create test user (testuser@example.com / testpass123)
+python manage.py populate_sample_data  # Seed courses, stocks, quizzes, achievements
 python manage.py runserver 0.0.0.0:8000    # Bind to all interfaces for devices
+```
+
+### 🐳 **Docker (Production)**
+```bash
+# Copy and configure environment variables
+cp .env.example .env  # Edit with your values
+
+# Build and run
+
+docker compose up --build
+
+# Run migrations inside the container
+docker compose exec backend python manage.py migrate
+docker compose exec backend python manage.py populate_sample_data
 ```
 
 ### 📱 **Frontend (Expo)**
@@ -340,11 +355,29 @@ curl http://localhost:8000/api/trades/portfolio_summary/ \
 ## 🧪 **Testing**
 
 - 🧪 **Backend tests** can be added under `investa_backend/api/tests.py` or app-specific test modules.
-- 📋 **Example smoke tests** included: `investa_backend/test_api.py`, `investa_backend/test_auth_flow.py`.
 - 🚀 **Run tests:**
 ```bash
 cd investa_backend
-pytest  # or: python manage.py test
+python manage.py test  # or: pytest
+```
+
+## 🚢 **Deployment**
+
+### Production Checklist
+- [ ] Generate a secure `INVESTA_SECRET_KEY`
+- [ ] Set `INVESTA_DEBUG=False`
+- [ ] Configure `INVESTA_ALLOWED_HOSTS` for your domain
+- [ ] Set up `INVESTA_CORS_ORIGINS` for your frontend URL
+- [ ] Run `python manage.py collectstatic`
+- [ ] Set up a PostgreSQL database (recommended for production)
+- [ ] Configure a reverse proxy (nginx/caddy) for SSL termination
+
+### Docker Deployment
+```bash
+docker compose up -d --build
+docker compose exec backend python manage.py migrate
+docker compose exec backend python manage.py populate_sample_data
+docker compose exec backend python manage.py createsuperuser  # Create admin user
 ```
 
 ---
