@@ -103,7 +103,7 @@ class Portfolio(models.Model):
     total_value = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     total_invested = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     total_profit_loss = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
-    cash_balance = models.DecimalField(max_digits=15, decimal_places=2, default=10000.00)  # Starting cash
+    cash_balance = models.DecimalField(max_digits=15, decimal_places=2, default=Decimal('10000.00'))  # Starting cash
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

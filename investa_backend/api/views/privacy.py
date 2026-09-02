@@ -21,25 +21,19 @@ class PrivacySettingsViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def my_settings(self, request):
         """Get current user's privacy settings"""
-        try:
-            settings = PrivacySettings.objects.get(user=request.user)
-            serializer = self.get_serializer(settings)
-            return Response(serializer.data)
-        except PrivacySettings.DoesNotExist:
-            return Response({'detail': 'Privacy settings not found'}, status=status.HTTP_404_NOT_FOUND)
+        settings, _ = PrivacySettings.objects.get_or_create(user=request.user)
+        serializer = self.get_serializer(settings)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['put', 'patch'])
     def update_settings(self, request):
         """Update current user's privacy settings"""
-        try:
-            settings = PrivacySettings.objects.get(user=request.user)
-            serializer = PrivacySettingsSerializer(settings, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except PrivacySettings.DoesNotExist:
-            return Response({'detail': 'Privacy settings not found'}, status=status.HTTP_404_NOT_FOUND)
+        settings, _ = PrivacySettings.objects.get_or_create(user=request.user)
+        serializer = PrivacySettingsSerializer(settings, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['get'])
     def export_data(self, request):

@@ -37,35 +37,26 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def my_profile(self, request):
         """Get current user's complete profile"""
-        try:
-            profile = UserProfile.objects.get(user=request.user)
-            serializer = UserProfileDetailSerializer(profile)
-            return Response(serializer.data)
-        except UserProfile.DoesNotExist:
-            return Response({'detail': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
-    
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        serializer = UserProfileDetailSerializer(profile)
+        return Response(serializer.data)
+
     @action(detail=False, methods=['put', 'patch'] )
     def update_profile(self, request):
         """Update current user's profile"""
-        try:
-            profile = UserProfile.objects.get(user=request.user)
-            serializer = ProfileUpdateSerializer(profile, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except UserProfile.DoesNotExist:
-            return Response({'detail': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        serializer = ProfileUpdateSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=False, methods=['post'])
     def complete_profile(self, request):
         """Complete user profile setup"""
-        try:
-            profile = UserProfile.objects.get(user=request.user)
-            serializer = CompleteProfileSerializer(profile, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except UserProfile.DoesNotExist:
-            return Response({'detail': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        serializer = CompleteProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

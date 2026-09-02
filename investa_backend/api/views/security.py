@@ -32,25 +32,19 @@ class SecuritySettingsViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def my_settings(self, request):
         """Get current user's security settings"""
-        try:
-            settings = SecuritySettings.objects.get(user=request.user)
-            serializer = self.get_serializer(settings)
-            return Response(serializer.data)
-        except SecuritySettings.DoesNotExist:
-            return Response({'detail': 'Security settings not found'}, status=status.HTTP_404_NOT_FOUND)
+        settings, _ = SecuritySettings.objects.get_or_create(user=request.user)
+        serializer = self.get_serializer(settings)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['put', 'patch'])
     def update_settings(self, request):
         """Update current user's security settings"""
-        try:
-            settings = SecuritySettings.objects.get(user=request.user)
-            serializer = SecuritySettingsUpdateSerializer(settings, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except SecuritySettings.DoesNotExist:
-            return Response({'detail': 'Security settings not found'}, status=status.HTTP_404_NOT_FOUND)
+        settings, _ = SecuritySettings.objects.get_or_create(user=request.user)
+        serializer = SecuritySettingsUpdateSerializer(settings, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['post'])
     def change_password(self, request):
@@ -66,8 +60,9 @@ class SecuritySettingsViewSet(viewsets.ModelViewSet):
         user.set_password(serializer.validated_data['new_password'])
         user.save()
 
-        settings = SecuritySettings.objects.get(user=user)
-        settings.last_password_change = __import__('django.utils.timezone', fromlist=['now']).now()
+        settings, _ = SecuritySettings.objects.get_or_create(user=user)
+        from django.utils import timezone
+        settings.last_password_change = timezone.now()
         settings.save()
 
         return Response({'detail': 'Password changed successfully.'})
@@ -94,14 +89,11 @@ class SecuritySettingsViewSet(viewsets.ModelViewSet):
         settings.backup_codes = hashed_codes
         settings.save()
 
-        serializer = TwoFactorSetupSerializer(data={
+        return Response({
             'secret': secret,
             'uri': uri,
             'backup_codes': backup_codes,
-        })
-        serializer.is_valid()
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        }, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['post'])
     def verify_2fa(self, request):
