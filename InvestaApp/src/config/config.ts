@@ -1,5 +1,6 @@
 // Configuration file for the Investa app
 import { Platform, NativeModules } from 'react-native';
+import logger from '../utils/logger';
 
 let Constants: any = {};
 try {
@@ -78,7 +79,7 @@ function resolveBaseUrl(): string {
     if (Constants?.isDevice) {
       // Helpful runtime warning to configure LAN IP
       // eslint-disable-next-line no-console
-      console.warn('[Investa] Running on a physical device without a resolvable LAN host. Set EXPO_PUBLIC_API_BASE_URL or EXPO_PUBLIC_LAN_IP to your computer\'s IP.');
+      logger.warn('[Investa] Running on a physical device without a resolvable LAN host. Set EXPO_PUBLIC_API_BASE_URL or EXPO_PUBLIC_LAN_IP to your computer\'s IP.');
     }
     // iOS simulator / web
     return 'http://127.0.0.1:8000/api/';

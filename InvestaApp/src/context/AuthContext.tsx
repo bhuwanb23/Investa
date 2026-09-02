@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import storage from '../services/storage';
 import { authApi, api, setOnUnauthorized } from '../services';
+import logger from '../utils/logger';
 
 export interface User {
   id: number;
@@ -60,7 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         api.defaults.headers.common['Authorization'] = `Token ${storedToken}`;
       }
     } catch (error) {
-      console.error('Error checking auth status:', error);
+      logger.error('Error checking auth status:', error);
     } finally {
       setIsLoading(false);
     }
@@ -140,7 +141,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await authApi.logout();
     } catch (error) {
-      console.warn('Backend logout call failed (proceeding with local cleanup):', error);
+      logger.warn('Backend logout call failed (proceeding with local cleanup):', error);
     }
     try {
       await storage.removeItem('authToken');
@@ -149,7 +150,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken(null);
       setUser(null);
     } catch (error) {
-      console.error('Logout cleanup error:', error);
+      logger.error('Logout cleanup error:', error);
       throw error;
     }
   };
