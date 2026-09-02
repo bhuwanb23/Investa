@@ -49,6 +49,7 @@ class UserProgress(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
+        ordering = ['-updated_at']
         verbose_name_plural = "User Progress"
     
     def __str__(self):
