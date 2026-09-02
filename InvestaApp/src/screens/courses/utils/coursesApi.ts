@@ -1,4 +1,5 @@
 import api from '../../../services/api';
+import logger from '../../../utils/logger';
 
 export interface Language {
   id: number;
@@ -70,7 +71,7 @@ export const fetchQuizForLesson = async (lessonId: number) => {
     const response = await api.get(`quiz/for_lesson/?lesson_id=${lessonId}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching quiz for lesson:', error);
+    logger.error('Error fetching quiz for lesson:', error);
     throw error;
   }
 };
@@ -83,7 +84,7 @@ export const fetchQuizzesForLesson = async (lessonId: number) => {
     if (data && Array.isArray(data.results)) return data.results;
     return [];
   } catch (error) {
-    console.error('Error fetching quizzes for lesson:', error);
+    logger.error('Error fetching quizzes for lesson:', error);
     return [];
   }
 };
@@ -95,7 +96,7 @@ export const startQuizAttempt = async (quizId: number) => {
     });
     return response.data;
   } catch (error) {
-    console.error('Error starting quiz attempt:', error);
+    logger.error('Error starting quiz attempt:', error);
     throw error;
   }
 };
@@ -114,7 +115,7 @@ export const submitQuizAnswer = async (
     });
     return response.data;
   } catch (error) {
-    console.error('Error submitting quiz answer:', error);
+    logger.error('Error submitting quiz answer:', error);
     throw error;
   }
 };
@@ -126,7 +127,7 @@ export const completeQuizAttempt = async (attemptId: number, timeTaken: number) 
     });
     return response.data;
   } catch (error) {
-    console.error('Error completing quiz attempt:', error);
+    logger.error('Error completing quiz attempt:', error);
     throw error;
   }
 };
@@ -136,7 +137,7 @@ export const getQuizAttempts = async () => {
     const response = await api.get('quiz-attempts/my_attempts/');
     return response.data;
   } catch (error) {
-    console.error('Error fetching quiz attempts:', error);
+    logger.error('Error fetching quiz attempts:', error);
     throw error;
   }
 };
@@ -146,7 +147,7 @@ export const getQuizAttempt = async (attemptId: number) => {
     const response = await api.get(`quiz-attempts/${attemptId}/`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching quiz attempt:', error);
+    logger.error('Error fetching quiz attempt:', error);
     throw error;
   }
 };
