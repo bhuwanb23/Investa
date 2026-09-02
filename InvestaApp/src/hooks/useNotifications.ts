@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import notificationsApi, { Notification } from '../services/notificationsApi';
 import { ApiError } from '../services/api';
+import logger from '../utils/logger';
 
 interface UseNotificationsReturn {
   notifications: Notification[];
@@ -36,7 +37,7 @@ export const useNotifications = (): UseNotificationsReturn => {
     } catch (err) {
       const apiError = err as ApiError;
       setError(apiError.message);
-      console.error('Error fetching notifications:', apiError);
+      logger.error('Error fetching notifications:', apiError);
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +58,7 @@ export const useNotifications = (): UseNotificationsReturn => {
       const apiError = err as ApiError;
       setError(apiError.message);
       Alert.alert('Error', apiError.message);
-      console.error('Error marking all notifications as read:', apiError);
+      logger.error('Error marking all notifications as read:', apiError);
       return false;
     } finally {
       setIsUpdating(false);
@@ -87,7 +88,7 @@ export const useNotifications = (): UseNotificationsReturn => {
       const apiError = err as ApiError;
       setError(apiError.message);
       Alert.alert('Error', apiError.message);
-      console.error('Error marking notification as read:', apiError);
+      logger.error('Error marking notification as read:', apiError);
       return false;
     } finally {
       setIsUpdating(false);
@@ -102,7 +103,7 @@ export const useNotifications = (): UseNotificationsReturn => {
     } catch (err) {
       const apiError = err as ApiError;
       setError(apiError.message);
-      console.error('Error fetching unread count:', apiError);
+      logger.error('Error fetching unread count:', apiError);
     }
   }, []);
 
