@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { fetchOrderHistory } from './utils/tradingApi';
 import MainHeader from '../../components/MainHeader';
 import { useTranslation } from '../../language';
+import logger from '../../utils/logger';
 
 // Define navigation types
 type RootStackParamList = {
@@ -66,7 +67,7 @@ const OrderHistoryScreen = () => {
         // Received orders data
         setOrders(data);
       } catch (error) {
-        console.error('OrderHistory: Error fetching orders:', error);
+        logger.error('OrderHistory: Error fetching orders:', error);
       } finally {
         if (mounted) setLoading(false);
       }

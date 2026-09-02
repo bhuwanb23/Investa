@@ -20,6 +20,7 @@ import {
 } from './components';
 import MainHeader from '../../components/MainHeader';
 import { useTranslation } from '../../language';
+import logger from '../../utils/logger';
 
 // Define navigation types
 type RootStackParamList = {
@@ -56,7 +57,7 @@ const PlaceOrderScreen = () => {
         setCurrentCash(Number(portfolioData.cash_balance));
       }
     } catch (error) {
-      console.error('Error loading portfolio:', error);
+      logger.error('Error loading portfolio:', error);
     } finally {
       setCashLoaded(true);
     }
