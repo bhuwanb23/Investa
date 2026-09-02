@@ -12,6 +12,7 @@ import MainHeader from '../../components/MainHeader';
 import LogoLoader from '../../components/LogoLoader';
 import { progressApi, ProgressSummary, WeeklyActivity } from '../../services';
 import { useTranslation } from '../../language';
+import logger from '../../utils/logger';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -50,7 +51,7 @@ const ProgressScreen = () => {
       setProgressData(progressRes);
       setWeeklyActivity(weeklyRes);
     } catch (error) {
-      console.error('Error fetching progress data:', error);
+      logger.error('Error fetching progress data:', error);
       // Set default data on error
       setProgressData({
         id: 1,
@@ -88,7 +89,7 @@ const ProgressScreen = () => {
     try {
       await fetchProgressData();
     } catch (error) {
-      console.error('Error refreshing progress data:', error);
+      logger.error('Error refreshing progress data:', error);
     } finally {
       setRefreshing(false);
     }

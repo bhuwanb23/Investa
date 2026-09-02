@@ -22,6 +22,7 @@ import {
   fetchLeaderboard,
 } from '../trading/utils/tradingApi';
 import { useTranslation } from '../../language';
+import logger from '../../utils/logger';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -94,7 +95,7 @@ const TradingScreen = () => {
         setTopLosers(moversRes?.top_losers ?? []);
         setLeaderboard(Array.isArray(leaderboardRes) ? leaderboardRes.slice(0, 5) : []);
       } catch (error) {
-        console.error('TradingScreen: Error fetching data:', error);
+        logger.error('TradingScreen: Error fetching data:', error);
         if (mounted) {
           setPortfolioData(null);
           setHoldings([]);
