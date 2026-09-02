@@ -21,7 +21,10 @@ class SecuritySettings(models.Model):
     last_password_change = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
+    class Meta:
+        ordering = ['-updated_at']
+
     def __str__(self):
         return f"{self.user.username}'s Security Settings"
 
@@ -36,6 +39,9 @@ class UserSession(models.Model):
     is_active = models.BooleanField(default=True)
     last_activity = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.user.username} - {self.session_key[:8]}..."
@@ -52,6 +58,7 @@ class PasswordResetToken(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        ordering = ['-created_at']
         indexes = [
             models.Index(fields=['token']),
             models.Index(fields=['user', '-created_at']),

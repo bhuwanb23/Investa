@@ -22,6 +22,9 @@ class Stock(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['symbol']
+
     def __str__(self):
         return f"{self.symbol} - {self.name}"
 
@@ -103,13 +106,16 @@ class Portfolio(models.Model):
     cash_balance = models.DecimalField(max_digits=15, decimal_places=2, default=10000.00)  # Starting cash
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
+    class Meta:
+        ordering = ['-updated_at']
+
     @property
     def total_return_percentage(self):
         if self.total_invested == 0:
             return 0
         return round((self.total_profit_loss / self.total_invested) * 100, 2)
-    
+
     def __str__(self):
         return f"{self.user.username}'s Portfolio"
 
@@ -126,13 +132,16 @@ class PortfolioHolding(models.Model):
     unrealized_pnl = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
+    class Meta:
+        ordering = ['-market_value']
+
     @property
     def return_percentage(self):
         if self.total_invested == 0:
             return 0
         return round((self.unrealized_pnl / self.total_invested) * 100, 2)
-    
+
     def __str__(self):
         return f"{self.portfolio.user.username} - {self.stock.symbol} ({self.quantity} shares)"
 
@@ -145,7 +154,7 @@ class Order(models.Model):
         ('STOP', 'Stop Order'),
         ('STOP_LIMIT', 'Stop Limit Order'),
     ]
-    
+
     ORDER_STATUS = [
         ('PENDING', 'Pending'),
         ('FILLED', 'Filled'),
@@ -153,12 +162,12 @@ class Order(models.Model):
         ('CANCELLED', 'Cancelled'),
         ('REJECTED', 'Rejected'),
     ]
-    
+
     ORDER_SIDE = [
         ('BUY', 'Buy'),
         ('SELL', 'Sell'),
     ]
-    
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE, related_name='orders')
     order_type = models.CharField(max_length=20, choices=ORDER_TYPES, default='MARKET')
@@ -175,15 +184,18 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     filled_at = models.DateTimeField(null=True, blank=True)
-    
+
+    class Meta:
+        ordering = ['-created_at']
+
     @property
     def is_completed(self):
         return self.status in ['FILLED', 'CANCELLED', 'REJECTED']
-    
+
     @property
     def remaining_quantity(self):
         return self.quantity - self.filled_quantity
-    
+
     @property
     def calculated_total_amount(self):
         """Calculate total amount based on price and quantity"""
@@ -194,7 +206,7 @@ class Order(models.Model):
         elif self.average_fill_price and self.filled_quantity:
             return self.average_fill_price * self.filled_quantity
         return Decimal('0.00')
-    
+
     def save(self, *args, **kwargs):
         """Override save to calculate total_amount if not set"""
         if not self.total_amount or self.total_amount == 0:
@@ -203,9 +215,9 @@ class Order(models.Model):
             elif self.price and self.quantity:
                 self.total_amount = self.price * self.quantity
         super().save(*args, **kwargs)
-    
+
     def __str__(self):
-        return f"{self.user.username} - {self.side} {self.quantity} {self.stock.symbol} @ ₹{self.price or 'MARKET'}"
+        return f"{self.user.username} - {self.side} {self.quantity} {self.stock.symbol} @ \u20b9{self.price or 'MARKET'}"
 
 
 class Trade(models.Model):
@@ -220,7 +232,10 @@ class Trade(models.Model):
     commission = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     net_amount = models.DecimalField(max_digits=15, decimal_places=2)
     executed_at = models.DateTimeField(auto_now_add=True)
-    
+
+    class Meta:
+        ordering = ['-executed_at']
+
     def __str__(self):
         return f"{self.user.username} - {self.side} {self.quantity} {self.stock.symbol} @ ₹{self.price}"
 
@@ -240,19 +255,22 @@ class TradingPerformance(models.Model):
     largest_position = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
+    class Meta:
+        ordering = ['-updated_at']
+
     @property
     def success_rate(self):
         if self.total_trades == 0:
             return 0
         return round((self.successful_trades / self.total_trades) * 100, 1)
-    
+
     @property
     def average_return_per_trade(self):
         if self.total_trades == 0:
             return 0
         return round((self.total_profit_loss / self.total_trades), 2)
-    
+
     def __str__(self):
         return f"{self.user.username}'s Trading Performance"
 
@@ -265,7 +283,10 @@ class TradingSession(models.Model):
     trades_count = models.IntegerField(default=0)
     profit_loss = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     is_active = models.BooleanField(default=True)
-    
+
+    class Meta:
+        ordering = ['-start_time']
+
     def __str__(self):
         return f"{self.user.username} - Session {self.start_time.date()}"
 
@@ -285,10 +306,11 @@ class MarketData(models.Model):
     pe_ratio = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     dividend_yield = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
+        ordering = ['-change_percentage']
         unique_together = ['stock']
-    
+
     def __str__(self):
         return f"{self.stock.symbol} - ₹{self.current_price} ({self.change_percentage}%)"
 
@@ -320,7 +342,7 @@ class Achievement(models.Model):
         ('PORTFOLIO_GROWTH', 'Portfolio Growth'),
         ('DIVERSIFICATION', 'Diversification'),
     ]
-    
+
     name = models.CharField(max_length=100)
     description = models.TextField()
     achievement_type = models.CharField(max_length=30, choices=ACHIEVEMENT_TYPES)
@@ -328,7 +350,10 @@ class Achievement(models.Model):
     color = models.CharField(max_length=7, default='#F59E0B')  # Hex color
     criteria_value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
+    class Meta:
+        ordering = ['-created_at']
+
     def __str__(self):
         return self.name
 
