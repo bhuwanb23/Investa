@@ -13,6 +13,7 @@ import BadgesGrid from './components/BadgesGrid';
 import ModuleStats from './components/ModuleStats';
 import { fetchCourseDetailWithProgress } from './utils/coursesApi';
 import { useTranslation } from '../../language';
+import logger from '../../utils/logger';
 
 type ParamList = {
   ModuleScreen: { courseId: string; course?: any };
@@ -48,7 +49,7 @@ const ModuleScreen: React.FC = () => {
           setCourse(courseData);
           setLessons(courseData.lessons || []);
         } catch (error) {
-          console.error('Error loading course data in ModuleScreen:', error);
+          logger.error('Error loading course data in ModuleScreen:', error);
           // Keep the courseParam as fallback
         } finally {
           setLoading(false);

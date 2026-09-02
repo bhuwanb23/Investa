@@ -23,6 +23,7 @@ import { useTranslation } from '../../language';
 import VideoPlayer from './components/VideoPlayer';
 import MarkdownRenderer from './components/MarkdownRenderer';
 import { llmService } from '../../services';
+import logger from '../../utils/logger';
 
 // Local-first lesson detail with backend when available
 type Language = { id: number; code: string; name: string; native_name: string };
@@ -98,7 +99,7 @@ const LessonDetailScreen: React.FC = () => {
         });
       }, 300);
     } catch (e) {
-      console.error('Error marking lesson as completed:', e);
+      logger.error('Error marking lesson as completed:', e);
       // Still reflect completion locally and navigate
       setCompleted(true);
       setTimeout(() => {

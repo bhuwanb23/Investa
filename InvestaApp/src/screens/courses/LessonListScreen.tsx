@@ -8,6 +8,7 @@ import MainHeader from '../../components/MainHeader';
 import LessonListAdvanced from './components/LessonListAdvanced';
 import { fetchCourseDetail, fetchCourseDetailWithProgress } from './utils/coursesApi';
 import { useTranslation } from '../../language';
+import logger from '../../utils/logger';
 
 type ParamList = {
   LessonList: { courseId?: string; course?: any; completedLessonId?: number; lessonCompleted?: boolean };
@@ -107,7 +108,7 @@ const LessonListScreen: React.FC = () => {
           const transformedLessons = transformLessonsWithUnlocking(courseData.lessons || []);
           setLessons(transformedLessons);
         } catch (error) {
-          console.error('Error loading course data:', error);
+          logger.error('Error loading course data:', error);
           // Fallback to default data only if no courseId
           if (!courseIdParam) {
             setLessons(DEFAULT_LESSONS);
@@ -147,7 +148,7 @@ const LessonListScreen: React.FC = () => {
           setLessons(transformedLessons);
           
         } catch (error) {
-          console.error('Error refreshing course data:', error);
+          logger.error('Error refreshing course data:', error);
         }
       }
     };

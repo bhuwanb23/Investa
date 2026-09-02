@@ -8,6 +8,7 @@ import CertificateConfetti from './components/CertificateConfetti';
 import { useTranslation } from '../../language';
 import api from '../../services/api';
 import { MainStackParamList } from '../../navigation/AppNavigator';
+import logger from '../../utils/logger';
 
 type CertificateScreenRouteProp = RouteProp<MainStackParamList, 'Certificate'>;
 
@@ -27,7 +28,7 @@ const CertificateScreen: React.FC = () => {
 				const response = await api.get(`/courses/${courseId}/certificate/`);
 				setCertData(response.data);
 			} catch (error: any) {
-				console.error('Error fetching certificate:', error);
+				logger.error('Error fetching certificate:', error);
 				Alert.alert(
 					'Not Eligible',
 					error.response?.data?.detail || 'You haven\'t completed all lessons in this course yet.',

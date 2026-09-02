@@ -10,6 +10,7 @@ import { getQuizAttempt } from './utils/coursesApi';
 import { markLessonCompleted, fetchCourseDetailWithProgress } from './utils/coursesApi';
 import { Alert } from 'react-native';
 import { useTranslation } from '../../language';
+import logger from '../../utils/logger';
 
 type ParamList = { 
   LessonQuiz: { 
@@ -56,7 +57,7 @@ const LessonQuizScreen: React.FC = () => {
       const attempt = await startQuizAttempt(selectedQuiz.id);
       setQuizAttempt(attempt);
     } catch (err) {
-      console.error('Error loading quiz:', err);
+      logger.error('Error loading quiz:', err);
       setError(t.failedToLoadQuiz);
     } finally {
       setLoading(false);
@@ -68,7 +69,7 @@ const LessonQuizScreen: React.FC = () => {
       const result = await submitQuizAnswer(quizAttempt.id, questionId, answerId, textAnswer);
       return result;
     } catch (err) {
-      console.error('Error submitting answer:', err);
+      logger.error('Error submitting answer:', err);
       throw err;
     }
   };
@@ -82,7 +83,7 @@ const LessonQuizScreen: React.FC = () => {
       setQuizCompleted(true);
       return result;
     } catch (err) {
-      console.error('Error completing quiz:', err);
+      logger.error('Error completing quiz:', err);
       throw err;
     }
   };
