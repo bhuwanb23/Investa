@@ -22,14 +22,15 @@ from django.conf.urls.static import static
 urlpatterns = [
     # Admin panel
     path('admin/', admin.site.urls),
-    
-    # Main console views (dashboard, database, index)
-    path('', include('api.urls.console')),
-    
+
     # API endpoints
     path('api/', include('api.urls.api')),
 ]
 
 # Serve media files during development
 if settings.DEBUG:
+    # Console views (dashboard, database explorer) - only in development
+    urlpatterns += [
+        path('', include('api.urls.console')),
+    ]
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
