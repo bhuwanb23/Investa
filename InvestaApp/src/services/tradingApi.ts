@@ -1,4 +1,5 @@
 import api from './api';
+import logger from '../utils/logger';
 
 // Types for trading data
 export interface Stock {
@@ -379,7 +380,7 @@ class TradingApiService {
     try {
       return await this.getStock(symbol);
     } catch (error) {
-      console.error(`Error fetching stock ${symbol}:`, error);
+      logger.error(`Error fetching stock ${symbol}:`, error);
       return null;
     }
   }
@@ -400,7 +401,7 @@ class TradingApiService {
         return true;
       }
     } catch (error) {
-      console.error('Error toggling favorite:', error);
+      logger.error('Error toggling favorite:', error);
       return false;
     }
   }

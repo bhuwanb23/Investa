@@ -2,6 +2,7 @@ import axios, { AxiosError, AxiosResponse } from 'axios';
 import storage from './storage';
 import CONFIG from '../config/config';
 import { Platform, NativeModules } from 'react-native';
+import logger from '../utils/logger';
 
 // API Response Types
 export interface ApiResponse<T = any> {
@@ -183,7 +184,7 @@ api.interceptors.response.use(
         await storage.removeItem('authToken');
         await storage.removeItem('user');
       } catch (storageError) {
-        console.error('Error clearing storage:', storageError);
+        logger.error('Error clearing storage:', storageError);
       }
       _onUnauthorized?.();
     }

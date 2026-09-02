@@ -1,5 +1,6 @@
 import api from './api';
 import { InProgressCourse } from './coursesApi';
+import logger from '../utils/logger';
 
 export interface UserProgress {
   id: number;
@@ -113,7 +114,7 @@ export const progressApi = {
       const response = await api.get('progress/my_progress/');
       return response.data;
     } catch (error) {
-      console.error('Error fetching user progress:', error);
+      logger.error('Error fetching user progress:', error);
       throw error;
     }
   },
@@ -126,7 +127,7 @@ export const progressApi = {
       const response = await api.get('progress/summary/');
       return response.data;
     } catch (error) {
-      console.error('Error fetching progress summary:', error);
+      logger.error('Error fetching progress summary:', error);
       throw error;
     }
   },
@@ -139,7 +140,7 @@ export const progressApi = {
       const response = await api.get('progress/stats/');
       return response.data;
     } catch (error) {
-      console.error('Error fetching progress stats:', error);
+      logger.error('Error fetching progress stats:', error);
       throw error;
     }
   },
@@ -152,7 +153,7 @@ export const progressApi = {
       const response = await api.post('progress/refresh/');
       return response.data;
     } catch (error) {
-      console.error('Error refreshing progress:', error);
+      logger.error('Error refreshing progress:', error);
       throw error;
     }
   },
@@ -165,7 +166,7 @@ export const progressApi = {
       const response = await api.get('progress/weekly_activity/');
       return response.data;
     } catch (error) {
-      console.error('Error fetching weekly activity:', error);
+      logger.error('Error fetching weekly activity:', error);
       throw error;
     }
   },
@@ -178,7 +179,7 @@ export const progressApi = {
       const response = await api.get(`progress/${id}/`);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching progress ${id}:`, error);
+      logger.error(`Error fetching progress ${id}:`, error);
       throw error;
     }
   },
@@ -191,7 +192,7 @@ export const progressApi = {
       const response = await api.get('progress/in_progress/');
       return response.data;
     } catch (error) {
-      console.error('Error fetching in-progress courses:', error);
+      logger.error('Error fetching in-progress courses:', error);
       throw error;
     }
   },
@@ -204,7 +205,7 @@ export const progressApi = {
       const response = await api.get('progress/');
       return response.data.results || response.data;
     } catch (error) {
-      console.error('Error listing all progress:', error);
+      logger.error('Error listing all progress:', error);
       throw error;
     }
   }
