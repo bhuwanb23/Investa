@@ -22,6 +22,7 @@ import LogoLoader from '../../components/LogoLoader';
 import { useTranslation } from '../../language';
 import { progressApi, coursesApi, tradingApi, ProgressSummary, InProgressCourse, Course, MarketData, UserAchievement } from '../../services';
 import EmptyState from '../../components/EmptyState';
+import logger from '../../utils/logger';
 
 // Define navigation types
 type RootStackParamList = {
@@ -70,7 +71,7 @@ const HomeScreen = () => {
       const data = await progressApi.getProgressSummary();
       setProgressData(data);
     } catch (error) {
-      console.error('HomeScreen: Error fetching progress:', error);
+      logger.error('HomeScreen: Error fetching progress:', error);
     } finally {
       setLoading(false);
     }
@@ -92,7 +93,7 @@ const HomeScreen = () => {
       setRecommended(rec);
       setTrending(movers.top_gainers.slice(0, 4));
     } catch (error) {
-      console.error('HomeScreen: Error fetching home data:', error);
+      logger.error('HomeScreen: Error fetching home data:', error);
     } finally {
       setDataLoading(false);
     }

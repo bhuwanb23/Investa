@@ -10,6 +10,7 @@ import { useTranslation } from './src/language';
 import { NavigationContainer, DefaultTheme, DarkTheme, createNavigationContainerRef } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
+import ErrorBoundary from './src/components/ErrorBoundary';
 
 const NAVBAR_HEIGHT = 60;
 export const navigationRef = createNavigationContainerRef<any>();
@@ -18,18 +19,20 @@ export default function App() {
 	const scheme = useColorScheme();
 	const theme = scheme === 'dark' ? DarkTheme : DefaultTheme;
 	return (
-		<AuthProvider>
-			<LanguageProvider>
-				<PaperProvider>
-					<SafeAreaProvider>
-						<View style={{ flex: 1 }}>
-							<AppShell theme={theme} />
-						</View>
-						<StatusBar style="auto" />
-					</SafeAreaProvider>
-				</PaperProvider>
-			</LanguageProvider>
-		</AuthProvider>
+		<ErrorBoundary>
+			<AuthProvider>
+				<LanguageProvider>
+					<PaperProvider>
+						<SafeAreaProvider>
+							<View style={{ flex: 1 }}>
+								<AppShell theme={theme} />
+							</View>
+							<StatusBar style="auto" />
+						</SafeAreaProvider>
+					</PaperProvider>
+				</LanguageProvider>
+			</AuthProvider>
+		</ErrorBoundary>
 	);
 }
 

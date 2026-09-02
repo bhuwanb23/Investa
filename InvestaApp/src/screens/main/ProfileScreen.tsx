@@ -18,6 +18,7 @@ import { useProfile } from '../../hooks';
 import { useTranslation } from '../../language';
 import { useLanguage } from '../../context/LanguageContext';
 import { progressApi, tradingApi, UserProgress, TradingPerformance } from '../../services';
+import logger from '../../utils/logger';
 
 const PRIMARY = '#4f46e5';
 const PAGE_BG = '#f9fafb';
@@ -50,7 +51,7 @@ const ProfileScreen = () => {
     try {
       await logout();
     } catch (error) {
-      console.error('ProfileScreen: Error during logout:', error);
+      logger.error('ProfileScreen: Error during logout:', error);
     }
   };
 
