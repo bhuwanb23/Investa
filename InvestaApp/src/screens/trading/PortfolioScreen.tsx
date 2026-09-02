@@ -20,6 +20,7 @@ import {
 import MainHeader from '../../components/MainHeader';
 import { useTranslation } from '../../language';
 import { colorForSector } from './constants/palette';
+import logger from '../../utils/logger';
 
 // Define navigation types
 type RootStackParamList = {
@@ -141,7 +142,7 @@ const PortfolioScreen = () => {
         setOrders(ordersRes);
         setStocks(stocksRes);
       } catch (error) {
-        console.error('PortfolioScreen: Error fetching data:', error);
+        logger.error('PortfolioScreen: Error fetching data:', error);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -165,7 +166,7 @@ const PortfolioScreen = () => {
       setOrders(ordersRes);
       setStocks(stocksRes);
     } catch (error) {
-      console.error('PortfolioScreen: Error refreshing data:', error);
+      logger.error('PortfolioScreen: Error refreshing data:', error);
     } finally {
       setLoading(false);
     }

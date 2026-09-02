@@ -26,6 +26,7 @@ import {
   fetchStockNews,
   fetchStockRecentTrades,
 } from './utils/tradingApi';
+import logger from '../../utils/logger';
 
 // Define navigation types
 type RootStackParamList = {
@@ -66,7 +67,7 @@ const StockDetailScreen = () => {
       const foundStock = stocks.find((s: any) => s.symbol === stockSymbol);
 
       if (!foundStock) {
-        console.warn(`Stock ${stockSymbol} not found in backend`);
+        logger.warn(`Stock ${stockSymbol} not found in backend`);
         return;
       }
 
@@ -88,7 +89,7 @@ const StockDetailScreen = () => {
       setNews(newsData);
       setRecentTrades(tradesData);
     } catch (error) {
-      console.error('Error loading stock detail data:', error);
+      logger.error('Error loading stock detail data:', error);
     } finally {
       setLoading(false);
     }
