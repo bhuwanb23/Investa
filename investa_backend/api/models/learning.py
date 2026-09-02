@@ -17,13 +17,16 @@ class LearningProgress(models.Model):
     last_activity = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
+    class Meta:
+        ordering = ['-updated_at']
+
     @property
     def completion_percentage(self):
         if self.total_modules == 0:
             return 0
         return round((self.completed_modules / self.total_modules) * 100, 1)
-    
+
     def __str__(self):
         return f"{self.user.username}'s Learning Progress"
 
@@ -46,6 +49,9 @@ class Course(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self) -> str:
         return self.title
@@ -87,6 +93,7 @@ class UserLessonProgress(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        ordering = ['-started_at']
         unique_together = [('user', 'lesson')]
 
     def __str__(self):
@@ -103,6 +110,9 @@ class Quiz(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"Quiz: {self.lesson.title}"
@@ -189,6 +199,9 @@ class UserQuizAnswer(models.Model):
     points_earned = models.PositiveIntegerField(default=0)
     answered_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-answered_at']
+
     def __str__(self):
         return f"{self.user_attempt.user.username} - {self.question.question_text[:30]}..."
 
@@ -201,7 +214,7 @@ class Badge(models.Model):
         ('security', 'Security'),
         ('social', 'Social'),
     ]
-    
+
     name = models.CharField(max_length=100)
     description = models.TextField()
     badge_type = models.CharField(max_length=20, choices=BADGE_TYPES)
@@ -209,7 +222,10 @@ class Badge(models.Model):
     color = models.CharField(max_length=7, default="#4f46e5", help_text="Hex color code")
     criteria = models.JSONField(default=dict, help_text="Criteria to earn this badge")
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
+    class Meta:
+        ordering = ['-created_at']
+
     def __str__(self):
         return self.name
 
