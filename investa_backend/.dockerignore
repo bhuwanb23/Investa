@@ -1,0 +1,34 @@
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Environment
+.env
+.env.*
+
+# Database (created at runtime)
+*.sqlite3
+db.sqlite3
+
+# Runtime dirs (created at startup)
+media/
+staticfiles/
+
+# Tests / dev-only scripts
+test/
+*.log
+
+# VCS / IDE
+.git/
+.gitignore
+.vscode/
+.idea/
+*.md
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml

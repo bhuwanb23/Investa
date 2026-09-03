@@ -1,0 +1,111 @@
+name: Release Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 0.1.0)'
+        required: true
+        default: '0.1.0'
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Build APK
+    runs-on: ubuntu-latest
+    env:
+      VERSION_RAW: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        run: |
+          clean="${VERSION_RAW#v}"
+          echo "clean=${clean}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${clean}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: InvestaApp/package-lock.json
+
+      - name: Install dependencies
+        working-directory: InvestaApp
+        run: npm ci
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Prebuild Android project
+        working-directory: InvestaApp
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Apply release signing (if keystore secrets provided)
+        working-directory: InvestaApp
+        run: |
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
+            python - <<'PY'
+            import pathlib
+            p = pathlib.Path('android/app/build.gradle')
+            s = p.read_text()
+            if 'debug.keystore' not in s:
+                print('WARN: debug keystore block not found, skipping signing patch')
+            else:
+                s = s.replace("storeFile file('debug.keystore')", "storeFile file('release.keystore')")
+                s = s.replace("storePassword 'android'", "storePassword '${{ secrets.ANDROID_KEYSTORE_PASSWORD }}'")
+                s = s.replace("keyAlias 'androiddebugkey'", "keyAlias '${{ secrets.ANDROID_KEY_ALIAS }}'")
+                s = s.replace("keyPassword 'android'", "keyPassword '${{ secrets.ANDROID_KEY_PASSWORD }}'")
+                p.write_text(s)
+                print('Applied release signing config')
+            PY
+          else
+            echo "No ANDROID_KEYSTORE_BASE64 secret — APK will be signed with the debug keystore (sideload-only)."
+          fi
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build release APK
+        working-directory: InvestaApp/android
+        run: ./gradlew assembleRelease --no-daemon -x lintVitalRelease
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: InvestaApp-v${{ steps.version.outputs.clean }}.apk
+          path: InvestaApp/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+
+      - name: Create git tag
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Investa v${{ steps.version.outputs.clean }}
+          body: |
+            ## Investa v${{ steps.version.outputs.clean }}
+
+            Automated release build of the Android app.
+
+            - APK: `InvestaApp-v${{ steps.version.outputs.clean }}.apk`
+          files: InvestaApp/android/app/build/outputs/apk/release/app-release.apk
