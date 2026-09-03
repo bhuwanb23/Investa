@@ -6,7 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     APP_HOME=/app \
     APP_USER=appuser \
-    APP_GROUP=appgroup
+    APP_GROUP=appgroup \
+    HOME=/app
 
 # Set work directory
 WORKDIR ${APP_HOME}
