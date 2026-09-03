@@ -12,9 +12,11 @@ services:
       - INVESTA_DEBUG=${INVESTA_DEBUG:-False}
       - INVESTA_ALLOWED_HOSTS=${INVESTA_ALLOWED_HOSTS:-localhost,127.0.0.1}
       - INVESTA_CORS_ORIGINS=${INVESTA_CORS_ORIGINS:-http://localhost:3000,http://localhost:8081}
+      - INVESTA_DB_PATH=/app/db/db.sqlite3
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3}
     volumes:
+      - backend_db:/app/db
       - backend_media:/app/media
       - backend_static:/app/staticfiles
     restart: unless-stopped
@@ -26,5 +28,6 @@ services:
       start_period: 10s
 
 volumes:
+  backend_db:
   backend_media:
   backend_static:
