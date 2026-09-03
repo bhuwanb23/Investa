@@ -91,7 +91,8 @@ WSGI_APPLICATION = 'investa_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # Overridable so containers can persist the DB on a mounted volume.
+        'NAME': os.environ.get('INVESTA_DB_PATH', str(BASE_DIR / 'db.sqlite3')),
     }
 }
 

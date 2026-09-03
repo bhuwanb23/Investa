@@ -2,7 +2,7 @@
   "expo": {
     "name": "InvestaApp",
     "slug": "InvestaApp",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "orientation": "default",
     "icon": "./assets/investa_logo.png",
     "userInterfaceStyle": "light",
@@ -17,6 +17,7 @@
       "supportsTablet": true
     },
     "android": {
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/investa_logo.png",
         "backgroundColor": "#ffffff"
