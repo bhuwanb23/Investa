@@ -281,6 +281,25 @@ npx expo start --clear
 
 > 💡 **Tip:** Ensure phone and computer are on the same network when using Expo Go. Also make sure that both IP matches and works with each other and add them in env variables, otherwise it will not able to make pai calls and fails.
 
+### 🚀 **Release an Android APK (CI)**
+
+The `release` workflow (`/.github/workflows/release.yml`) builds a signed APK and publishes a GitHub release. Trigger it in one of two ways:
+
+1. **Push a version tag:** `git tag v0.1.0 && git push origin v0.1.0`
+2. **Manually:** GitHub → Actions → **Release Android APK** → *Run workflow* (enter version, e.g. `0.1.0`)
+
+The APK (`InvestaApp-v<version>.apk`) is attached to the GitHub release. The app version in `InvestaApp/app.json` must match the release version.
+
+> 🔐 **Release signing:** by default the APK is signed with the debug keystore (fine for sideloading). For a Play-Store-ready build, add repo secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD` — the workflow will sign with your release keystore automatically.
+
+### 🐳 **Docker image registry (CI)**
+
+The `docker` workflow (`/.github/workflows/docker.yml`) builds the backend image and pushes it to GitHub Container Registry (`ghcr.io/<owner>/Investa/investa-backend`) on every push to `main` and on version tags. Pull it with:
+
+```bash
+docker pull ghcr.io/<owner>/Investa/investa-backend:latest
+```
+
 ---
 
 
