@@ -54,26 +54,12 @@ jobs:
 
       - name: Apply release signing (if keystore secrets provided)
         working-directory: InvestaApp
-        run: |
-          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
-            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
-            python - <<'PY'
-            import pathlib
-            p = pathlib.Path('android/app/build.gradle')
-            s = p.read_text()
-            if 'debug.keystore' not in s:
-                print('WARN: debug keystore block not found, skipping signing patch')
-            else:
-                s = s.replace("storeFile file('debug.keystore')", "storeFile file('release.keystore')")
-                s = s.replace("storePassword 'android'", "storePassword '${{ secrets.ANDROID_KEYSTORE_PASSWORD }}'")
-                s = s.replace("keyAlias 'androiddebugkey'", "keyAlias '${{ secrets.ANDROID_KEY_ALIAS }}'")
-                s = s.replace("keyPassword 'android'", "keyPassword '${{ secrets.ANDROID_KEY_PASSWORD }}'")
-                p.write_text(s)
-                print('Applied release signing config')
-            PY
-          else
-            echo "No ANDROID_KEYSTORE_BASE64 secret — APK will be signed with the debug keystore (sideload-only)."
-          fi
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: python "${{ github.workspace }}/.github/scripts/apply_release_signing.py"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
