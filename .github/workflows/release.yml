@@ -68,11 +68,17 @@ jobs:
         working-directory: InvestaApp/android
         run: ./gradlew assembleRelease --no-daemon -x lintVitalRelease
 
+      - name: Rename APK with version
+        run: |
+          mkdir -p dist
+          cp InvestaApp/android/app/build/outputs/apk/release/app-release.apk \
+            dist/InvestaApp-v${{ steps.version.outputs.clean }}.apk
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: InvestaApp-v${{ steps.version.outputs.clean }}.apk
-          path: InvestaApp/android/app/build/outputs/apk/release/app-release.apk
+          path: dist/InvestaApp-v${{ steps.version.outputs.clean }}.apk
           if-no-files-found: error
 
       - name: Create git tag
@@ -94,4 +100,4 @@ jobs:
             Automated release build of the Android app.
 
             - APK: `InvestaApp-v${{ steps.version.outputs.clean }}.apk`
-          files: InvestaApp/android/app/build/outputs/apk/release/app-release.apk
+          files: dist/InvestaApp-v${{ steps.version.outputs.clean }}.apk
